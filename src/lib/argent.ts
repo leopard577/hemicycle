@@ -340,6 +340,8 @@ export interface Synthese {
   cumuls: number
   graves: number
   attention: number
+  /** Valeur totale des parts de sociétés listées dans la déclaration d'intérêts */
+  capital: number
 }
 
 export function synthese(depute: Depute, now = Date.now()): Synthese {
@@ -351,5 +353,6 @@ export function synthese(depute: Depute, now = Date.now()): Synthese {
     cumuls: depute.mandatsLocaux.filter((m) => m.type !== 'communautaire').length + privees,
     graves: al.filter((a) => a.niveau === 'grave').length,
     attention: al.filter((a) => a.niveau === 'attention').length,
+    capital: (depute.hatvp.interets?.participations ?? []).reduce((sum, p) => sum + (p.evaluation ?? 0), 0),
   }
 }

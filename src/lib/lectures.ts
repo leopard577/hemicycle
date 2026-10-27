@@ -2,7 +2,7 @@
 import type { Synthese } from '@/lib/argent'
 import { formatEuro } from '@/lib/format'
 
-export type Lecture = 'groupe' | 'cumuls' | 'annexes' | 'alertes'
+export type Lecture = 'groupe' | 'cumuls' | 'annexes' | 'capital' | 'alertes'
 
 interface Palier {
   label: string
@@ -53,6 +53,23 @@ export const LECTURES: Record<Exclude<Lecture, 'groupe'>, Definition> = {
         syntheses.reduce((sum, s) => sum + s.annexes, 0),
         { compact: true },
       )} par an au total.`,
+  },
+  capital: {
+    label: 'Capital déclaré',
+    paliers: [
+      { label: '1 M€ et plus', fill: 'fill-red-800', bg: 'bg-red-800', test: (s) => s.capital >= 1_000_000 },
+      { label: '100 k€ à 1 M€', fill: 'fill-red-600', bg: 'bg-red-600', test: (s) => s.capital >= 100_000 },
+      { label: '10 à 100 k€', fill: 'fill-orange-500', bg: 'bg-orange-500', test: (s) => s.capital >= 10_000 },
+      { label: 'Moins de 10 k€', fill: 'fill-amber-300', bg: 'bg-amber-300', test: (s) => s.capital > 0 },
+      { label: 'Aucun', ...AUCUN, test: () => true },
+    ],
+    valeur: (s) => s.capital,
+    detail: (s) => (s.capital > 0 ? formatEuro(s.capital, { compact: true }) : null),
+    resume: (n, syntheses) =>
+      `${n} députés déclarent des parts dans des sociétés, pour une valeur totale de ${formatEuro(
+        syntheses.reduce((sum, s) => sum + s.capital, 0),
+        { compact: true },
+      )}. Le patrimoine immobilier et l'épargne n'y figurent pas.`,
   },
   alertes: {
     label: 'Déclarations',
