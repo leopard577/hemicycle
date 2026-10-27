@@ -10,7 +10,8 @@ const monthFmt = new Intl.DateTimeFormat('fr-FR', { month: 'short', year: 'numer
 const euroRoundFmt = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
 
 export function formatDate(iso: string | null) {
-  return iso ? dateFmt.format(new Date(iso)) : null
+  // « 1er juillet » et non « 1 juillet »
+  return iso ? dateFmt.format(new Date(iso)).replace(/^1 /, '1er ') : null
 }
 
 export function formatEuro(n: number, { round = false, compact = false } = {}) {

@@ -6,9 +6,9 @@ export const PATRIMOINE: TypeDeclaration[] = ['dsp', 'dspm', 'dspfm']
 /** Nature du dépôt, sans répéter le type de déclaration déjà donné par la section */
 export const NATURE: Record<TypeDeclaration, string> = {
   dia: 'Déclaration initiale',
-  diam: 'Modification',
+  diam: 'Mise à jour',
   dsp: 'Déclaration initiale',
-  dspm: 'Modification',
+  dspm: 'Mise à jour',
   dspfm: 'Fin de mandat',
 }
 

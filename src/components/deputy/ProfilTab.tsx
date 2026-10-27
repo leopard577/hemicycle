@@ -21,9 +21,9 @@ export function ProfilTab({ depute }: { depute: Depute }) {
         <Fields>
           <Field label="En fonction depuis">{formatDate(depute.dateDebut)}</Field>
           {depute.qualiteGroupe && !depute.qualiteGroupe.startsWith('Membre') && (
-            <Field label="Dans le groupe">{depute.qualiteGroupe.replace(/ (du|au)$/, '')}</Field>
+            <Field label="Rôle dans le groupe">{depute.qualiteGroupe.replace(/ (du|au)$/, '')}</Field>
           )}
-          {depute.parti && <Field label="Rattachement financier">{depute.parti}</Field>}
+          {depute.parti && <Field label="Parti de rattachement">{depute.parti}</Field>}
           {depute.placeHemicycle && <Field label="Place dans l'hémicycle">n° {depute.placeHemicycle}</Field>}
         </Fields>
       </Section>

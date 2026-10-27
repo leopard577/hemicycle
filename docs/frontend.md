@@ -13,6 +13,11 @@ search query.
 | `src/lib/hemicycle.ts` | `hemicycleLayout(count)`: seats spread over 12 arcs, proportionally to arc length, then sorted by angle (left to right) |
 | `src/components/Legend.tsx` | Group filter, a single-select `ToggleGroup`; clicking the active group clears the filter |
 | `src/components/DeputyPanel.tsx` | Right-hand `Sheet`: header tinted with the group colour, key-figure tiles, then `Tabs` |
+| `src/components/Lectures.tsx` | Hemicycle reading selector (groups, cumul, extra income, declarations), colour scale, top-10 list; definitions in `src/lib/lectures.ts` |
+| `src/components/deputy/Addition.tsx` | Top of the panel: monthly seat cost, breakdown bar, SMIC comparison, live counter since taking office, three key figures |
+| `src/components/deputy/Alertes.tsx` | Facts from crossing AN × HATVP × RNE, by severity |
+| `src/components/deputy/CumulsTab.tsx` | Default tab: income by year (stacked SVG bars, SMIC line), activities in parallel, RNE local mandates vs declaration, local allowance cap, other mandates |
+| `src/lib/argent.ts` | Cost, income classification, alerts, per-deputy summary used by the readings |
 | `src/components/deputy/ProfilTab.tsx` | Constituency, mandate, committees, biography, contact |
 | `src/components/deputy/RemunerationTab.tsx` | Allowance, special allowances, expense envelopes, staff |
 | `src/components/deputy/InteretsTab.tsx` | Holdings table and declared income; explains why content is missing |
@@ -30,7 +35,7 @@ search query.
 - **Adding a component**: `npx shadcn@latest add <name>`. The files land in `src/components/ui/`. Avoid
   editing them; override through `className` at the call site instead.
 - **Overriding a shadcn class that uses a variant selector**: repeat the same selector. For example, the
-  sheet width is set with `data-[side=right]:sm:max-w-[26rem]`, because a plain `sm:max-w-md` loses
+  sheet width is set with `data-[side=right]:sm:max-w-[30rem]`, because a plain `sm:max-w-md` loses
   against the component's own `data-[side=right]:sm:max-w-sm`.
 - **`cn`** comes from the `cn` npm package (published by shadcn) and is re-exported by `src/lib/utils.ts`.
 - **Dark mode**: shadcn relies on a `.dark` class, which `src/main.tsx` toggles to follow
@@ -41,8 +46,16 @@ search query.
 - **The panel is a non-modal `Sheet`.** `modal={false}`, with `onInteractOutside` prevented, so clicking
   another seat swaps the deputy instead of closing the panel. Escape and the × button close it.
   `onOpenAutoFocus` is prevented so the search input keeps focus.
-- **`DeputyDetails` is keyed by deputy id**, so switching deputies resets the tab to "Profil".
-- **Wide screens**: from `lg` up, the root wrapper gets `lg:pr-[26rem]` while the panel is open, so `<main>` (`mx-auto`) stays centred in the free space instead of hiding behind the panel. The page is also centred vertically.
+- **Only the panel body scrolls.** The header (photo, name, group, the French "Fermer la fiche" button
+  that replaces shadcn's English close button) stays fixed, and the tab bar is `sticky` at the top of the
+  body. Changing tab while scrolled past the tab bar jumps back to the start of the new tab's content.
+- **`DeputyDetails` is keyed by deputy id**, and it owns the scroll container, so switching deputies
+  resets both the tab (to "Cumuls") and the scroll position.
+- **Wide screens**: from `lg` up, the root wrapper gets `lg:pr-[30rem]` while the panel is open, so `<main>` (`mx-auto`) stays centred in the free space instead of hiding behind the panel. The page is also centred vertically.
+- **Seat picking uses the nearest seat**, not the circle under the pointer. On a phone the dots are 6 to 8 px wide,
+  so `Hemicycle` maps the pointer to the closest seat (within 2.5 seat radii) and selects on `pointerup`. On touch,
+  sliding a finger previews names in the centre label and releasing opens that deputy; the SVG is `touch-pan-y`, so
+  vertical swipes still scroll the page. A hint shown only on coarse pointers explains the gesture.
 - **Accessibility**: seats have `role="listitem"`, an `aria-label` and keyboard activation (Enter or
   Space), and the centre label is an `aria-live` region.
 

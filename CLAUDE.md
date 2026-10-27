@@ -25,7 +25,7 @@ opening a deputy's panel.
 - **No hand-written CSS.** Use Tailwind classes and shadcn/ui components (`npx shadcn@latest add <name>`).
   `src/index.css` is the generated shadcn theme. Inline `style` is only for colours that come from the data.
 - **Do not edit `src/components/ui/*`** unless there is no other way. Override with `className`, repeating
-  the component's variant selector when needed (e.g. `data-[side=right]:sm:max-w-[26rem]`).
+  the component's variant selector when needed (e.g. `data-[side=right]:sm:max-w-[30rem]`).
 - **`public/data/deputes.json` is generated and git-ignored.** Never commit it: change `scripts/`, then
   rerun `npm run data`. The GitHub Pages workflow (`.github/workflows/deploy.yml`) regenerates it on every
   deploy, plus a weekly scheduled run.
@@ -55,8 +55,13 @@ opening a deputy's panel.
   printed by `npm run data` (currently 538 of 574) after touching `scripts/hatvp.mjs`.
 - **The HATVP CSV joins on `id_origine`**, the AN id without `PA`. It falls back to surname plus first
   name when that column is empty.
+- **Alerts name real people.** `alertes()` in `src/lib/argent.ts` must only state dated, sourced facts, never
+  intent ("fraude", "planque"…). Keep the tolerances (30 days for incompatibilities, two months plus a week
+  for filings) unless the law says otherwise.
+- **The RNE has no stable URL.** `scripts/rne.mjs` finds each file by title through the data.gouv API; if a
+  title changes the build fails on purpose.
 - **Pay scales are hard-coded** in `scripts/hatvp.mjs` (`baremes`, `INDEMNITES_SPECIALES`) from AN fiche
-  n° 7, January 2026. Update them by hand when the Assemblée publishes new amounts.
+  n° 7, January 2026, and `baremes.smic` from the June 2026 SMIC. Update them by hand when the Assemblée publishes new amounts.
 - **The deputy panel is a non-modal Radix `Sheet`.** Outside clicks are ignored on purpose, so seats stay
   clickable while it is open.
 - **AN JSON quirks.** Single values may or may not be arrays (use `asArray`). Empty values can be

@@ -15,6 +15,7 @@ frozen copy of personal data stays in the history, and the deployed site is neve
 | AN, active deputies, mandates and bodies (AMO10, JSON zip) | `data.assemblee-nationale.fr/static/openData/repository/17/amo/deputes_actifs_mandats_actifs_organes/AMO10_deputes_actifs_mandats_actifs_organes.json.zip` | Deputies, groups and colours, committees, functions, seat number, staff list, contact details |
 | HATVP list of declarations (CSV, `;`-separated) | `www.hatvp.fr/livraison/opendata/liste.csv` | Which declarations each deputy filed, with dates and publication status |
 | HATVP consolidated declarations (XML, ~81 MB) | `www.hatvp.fr/livraison/merge/declarations.xml` | Content of declarations of interests: income, holdings |
+| RNE, Répertoire national des élus (CSV, `;`-separated, ~75 MB) | resolved at build time from `www.data.gouv.fr/api/1/datasets/repertoire-national-des-elus-1/` (file URLs change on every update) | Local mandates currently held by each deputy (`mandatsLocaux`) |
 | AN fiche de synthèse n° 7 (January 2026) | `assemblee-nationale.fr/dyn/synthese/deputes-groupes-parlementaires/la-situation-materielle-du-depute` | Pay scales, hard-coded in `scripts/hatvp.mjs` |
 
 Photos are not downloaded. The dataset only stores their URL on assemblee-nationale.fr.
@@ -33,7 +34,13 @@ Photos are not downloaded. The dataset only stores their URL on assemblee-nation
    "Bureau d'âge" is deliberately ignored.
 3. **HATVP** (`loadHatvp` in `hatvp.mjs`). Download the CSV and the XML, keep only deputy declarations, then
    match them to AN deputies (see below).
-4. **Sort and write.** Groups are ordered left to right according to `GROUP_ORDER`. Deputies are sorted by
+4. **RNE** (`loadRne` in `rne.mjs`). Download the municipal, district, intercommunal, departmental, regional,
+   territorial-assembly and European files. A row is assigned to a deputy on exact birth date plus a shared
+   surname token; the first name only breaks ties between deputies born the same day. Community councillor
+   rows are kept but not counted as a separate mandate in the UI, since they follow from a municipal seat.
+5. **Other HATVP functions.** Every row of `liste.csv` for the same person shares `url_dossier`. Rows whose
+   `type_mandat` is not `depute` become `hatvp.autresMandats` (senator, mayor, EPCI president…).
+6. **Sort and write.** Groups are ordered left to right according to `GROUP_ORDER`. Deputies are sorted by
    group, then by real seat number, so each group forms a contiguous wedge of the chart.
 
 ## Matching HATVP records to deputies
@@ -107,6 +114,22 @@ Values the HATVP redacts (`[Données non publiées]`) become `null`.
 `Déclaration déposée - publication en préfecture à venir` or `En cours`. `src/lib/declarations.ts` turns it
 into a label.
 
+## Derived indicators (front end)
+
+`src/lib/argent.ts` computes everything shown in the "Cumuls" tab, the alerts and the hemicycle readings.
+Nothing is stored in the dataset.
+
+- **Seat cost**: gross allowance + special allowances + expense allowance + staff credit, per month, from
+  `baremes`. The live counter prorates it from `dateDebut`. The staff credit is a ceiling, not spending.
+- **Income lines**: each `Revenu` of the declaration of interests is classified (deputy mandate, European
+  Parliament, Senate, local mandate, job, consulting, board). A line is "in progress" when it has no end
+  date or ended after `dateDebut`. Lines in different sections with the same latest amount are counted once
+  (a company often appears both as a job and as a board seat).
+- **Alerts** only state dated facts: executive local function in the RNE for more than 30 days of overlap
+  at the RNE file date; RNE mandate older than the declaration but not found in it (keyword or place-name
+  match on the free-text title); RNE mandate started after the last DIA/DIAM and more than two months ago;
+  entry declarations filed after two months plus a week of tolerance. The wording must stay factual.
+
 ## Asset declarations (DSP)
 
 The content of deputies' asset declarations (`dsp`, `dspm`, `dspfm`) is never fetched, stored or displayed.
@@ -132,4 +155,8 @@ a deputy has more than one.
   include successive employees, so it can exceed the limit of 5 simultaneous staff.
 - **Group order.** `GROUP_ORDER` in `build-data.mjs` is maintained by hand. A new group abbreviation is
   placed at the far right until it is added there.
+- **RNE lag.** The RNE is published every few months. A mandate or function that ended since may still
+  appear, which is why alerts quote the RNE file date.
+- **Free-text titles.** Declared mandates are free text ("CONSEILLER DEPARTEMENATL", "présidente CD
+  Lozere"). Matching them to RNE mandates is heuristic: check a flagged deputy by hand before quoting it.
 - **Missing deputies.** Vacant seats are not drawn, which is why there are 574 seats rather than 577.

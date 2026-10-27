@@ -17,7 +17,7 @@ export function DeclarationsTab({ depute }: { depute: Depute }) {
         <Liste declarations={declarations} types={INTERETS} absent="Aucune déclaration d'intérêts enregistrée" />
       </Section>
 
-      <Section title="Situation patrimoniale">
+      <Section title="Patrimoine">
         <Intro>
           Patrimoine en début et en fin de mandat. Son contenu se consulte uniquement en préfecture et sa diffusion est
           interdite (art. LO 135-2 du code électoral) : seul le dépôt est indiqué ici.
@@ -31,7 +31,7 @@ export function DeclarationsTab({ depute }: { depute: Depute }) {
 
       {page && (
         <div className="py-4 text-sm">
-          <ExternalLink href={page}>Page du député sur hatvp.fr</ExternalLink>
+          <ExternalLink href={page}>Sa page sur hatvp.fr</ExternalLink>
         </div>
       )}
     </div>
@@ -68,7 +68,7 @@ function Liste({
           <li key={i} className="space-y-1 px-3 py-2.5" title={d.libelle}>
             <div className="flex items-start justify-between gap-3">
               <span className="text-sm font-medium">{NATURE[d.type]}</span>
-              <Badge variant={ETAT_VARIANT[etat]} className="h-auto shrink-0 whitespace-normal text-right">
+              <Badge variant={ETAT_VARIANT[etat]} className="h-auto max-w-1/2 whitespace-normal text-right">
                 {label}
               </Badge>
             </div>

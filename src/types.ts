@@ -37,6 +37,37 @@ export interface Depute {
   photo: string
   indemnitesSpeciales: IndemniteSpeciale[]
   nbCollaborateurs: number
+  /** Mandats locaux en cours selon le Répertoire national des élus */
+  mandatsLocaux: MandatLocal[]
+}
+
+export type TypeMandatLocal =
+  | 'municipal'
+  | 'arrondissement'
+  | 'communautaire'
+  | 'departemental'
+  | 'regional'
+  | 'collectivite'
+  | 'europeen'
+
+export interface MandatLocal {
+  type: TypeMandatLocal
+  libelle: string
+  lieu: string | null
+  /** Maire, adjoint, vice-président… ; null pour un simple conseiller */
+  fonction: string | null
+  debut: string | null
+  debutFonction: string | null
+  /** Date de mise à jour du fichier RNE */
+  miseAJour: string | null
+}
+
+/** Fonction pour laquelle la même personne a déposé une déclaration auprès de la HATVP */
+export interface AutreMandatHatvp {
+  type: string
+  institution: string
+  qualite: string | null
+  dernierDepot: string | null
 }
 
 export interface IndemniteSpeciale {
@@ -94,6 +125,7 @@ export interface Hatvp {
   page: string | null
   declarations: DeclarationHatvp[]
   interets: Interets | null
+  autresMandats: AutreMandatHatvp[]
 }
 
 export interface Baremes {
@@ -104,6 +136,7 @@ export interface Baremes {
   creditCollaborateurs: number
   maxCollaborateurs: number
   plafondCumul: number
+  smic: { brut: number; net: number; miseAJour: string; source: string }
 }
 
 export interface Dataset {

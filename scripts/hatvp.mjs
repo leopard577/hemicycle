@@ -17,6 +17,26 @@ export const baremes = {
   creditCollaborateurs: 11463,
   maxCollaborateurs: 5,
   plafondCumul: 2965.98,
+  // SMIC mensuel 35 h au 1er juin 2026 (revalorisation automatique, arrêté du 22 mai 2026)
+  smic: {
+    brut: 1867.02,
+    net: 1477.93,
+    miseAJour: '2026-06',
+    source: 'https://www.service-public.gouv.fr/particuliers/vosdroits/F2300',
+  },
+}
+
+const TYPE_MANDAT = {
+  senateur: 'Sénat',
+  europe: 'Parlement européen',
+  gouvernement: 'Gouvernement',
+  commune: 'Commune',
+  epci: 'Intercommunalité',
+  departement: 'Département',
+  region: 'Région',
+  ctsp: 'Collectivité à statut particulier',
+  president: 'Présidence de la République',
+  autre: 'Autre fonction',
 }
 
 // Indemnités spéciales (brut mensuel), indexées par [type d'organe, organe, qualité]
@@ -169,10 +189,13 @@ export async function loadHatvp() {
 
   // Lignes indexées par identifiant AN, ou par nom + prénom quand id_origine est vide
   const rowsByKey = new Map()
-  const push = (key, r) => rowsByKey.set(key, [...(rowsByKey.get(key) ?? []), r])
+  // Toutes les lignes d'une même personne partagent url_dossier, quel que soit le mandat :
+  // c'est ce qui révèle les autres fonctions déclarées (sénateur, maire, président d'EPCI…)
+  const autresByDossier = new Map()
+  const push = (map, key, r) => map.set(key, [...(map.get(key) ?? []), r])
   for (const r of parseCsv(csv)) {
-    if (r.type_mandat !== 'depute') continue
-    push(r.id_origine || `nom:${normalizeName(r.nom)}${normalizeName(r.prenom)}`, r)
+    if (r.type_mandat === 'depute') push(rowsByKey, r.id_origine || `nom:${normalizeName(r.nom)}${normalizeName(r.prenom)}`, r)
+    else if (r.url_dossier) push(autresByDossier, r.url_dossier, r)
   }
 
   const parser = new XMLParser({
@@ -247,6 +270,24 @@ export async function loadHatvp() {
         }))
         .sort((a, b) => (b.dateDepot ?? '').localeCompare(a.dateDepot ?? '')),
       interets: interets ? extractInterets(interets) : null,
+      autresMandats: autresMandats(rows[0]?.url_dossier),
     }
+  }
+
+  // Une entrée par fonction, avec la date du dépôt le plus récent
+  function autresMandats(dossier) {
+    const parFonction = new Map()
+    for (const r of autresByDossier.get(dossier) ?? []) {
+      const key = `${r.type_mandat}|${r.qualite}`
+      const current = parFonction.get(key)
+      if (current && (current.dernierDepot ?? '') >= r.date_depot) continue
+      parFonction.set(key, {
+        type: r.type_mandat,
+        institution: TYPE_MANDAT[r.type_mandat] ?? r.type_mandat,
+        qualite: r.qualite || null,
+        dernierDepot: r.date_depot || null,
+      })
+    }
+    return [...parFonction.values()].sort((a, b) => (b.dernierDepot ?? '').localeCompare(a.dernierDepot ?? ''))
   }
 }

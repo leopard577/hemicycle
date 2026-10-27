@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { ChevronDownIcon, CircleAlertIcon, InfoIcon } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { cn } from '@/lib/utils'
 
 export function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
   return (
@@ -60,26 +61,62 @@ export function Note({ children }: { children: ReactNode }) {
 }
 
 /** Chiffre clé affiché en tuile sous l'en-tête du panneau */
-export function KeyFigure({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
+export function KeyFigure({
+  label,
+  value,
+  hint,
+  alerte = false,
+}: {
+  label: string
+  value: ReactNode
+  hint?: ReactNode
+  /** Met le chiffre en évidence quand il révèle un cumul */
+  alerte?: boolean
+}) {
   return (
-    <div className="min-w-0 rounded-lg bg-muted/60 px-3 py-2">
+    <div className={cn('min-w-0 rounded-lg px-3 py-2', alerte ? 'bg-orange-500/10' : 'bg-muted/60')}>
       <dt className="truncate text-xs text-muted-foreground">{label}</dt>
-      <dd className="font-heading text-lg leading-tight font-semibold tabular-nums">{value}</dd>
+      <dd
+        className={cn(
+          'font-heading text-lg leading-tight font-semibold tabular-nums',
+          alerte && 'text-orange-700 dark:text-orange-400',
+        )}
+      >
+        {value}
+      </dd>
       {hint && <dd className="truncate text-xs text-muted-foreground">{hint}</dd>}
     </div>
   )
 }
 
-/** Précisions méthodologiques repliées en bas d'onglet, pour ne pas noyer les données */
-export function Precisions({ children }: { children: ReactNode }) {
+/** Précisions et sources, repliées en bas de la fiche pour ne pas noyer les données */
+export function Precisions({
+  children,
+  open,
+  onOpenChange,
+}: {
+  children: ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+}) {
   return (
-    <Collapsible className="py-4">
-      <CollapsibleTrigger className="group flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
+    <Collapsible className="py-4" open={open} onOpenChange={onOpenChange}>
+      <CollapsibleTrigger className="group -my-2 flex items-center gap-1.5 py-2 text-xs font-medium text-muted-foreground hover:text-foreground">
         <InfoIcon className="size-3.5" />
         Précisions et sources
         <ChevronDownIcon className="size-3.5 transition-transform group-data-[state=open]:rotate-180" />
       </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2 space-y-2">{children}</CollapsibleContent>
+      <CollapsibleContent className="mt-3 space-y-5">{children}</CollapsibleContent>
     </Collapsible>
+  )
+}
+
+/** Groupe de notes dans « Précisions et sources » */
+export function GroupeNotes({ titre, children }: { titre: string; children: ReactNode }) {
+  return (
+    <section className="space-y-2">
+      <h4 className="text-xs font-semibold text-foreground">{titre}</h4>
+      {children}
+    </section>
   )
 }

@@ -3,9 +3,13 @@ import { SearchIcon } from 'lucide-react'
 import { DeputyPanel } from '@/components/DeputyPanel'
 import { Hemicycle } from '@/components/Hemicycle'
 import { Legend } from '@/components/Legend'
+import { ChoixLecture, DetailLecture } from '@/components/Lectures'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { coutMensuel, synthese } from '@/lib/argent'
+import { formatEuro } from '@/lib/format'
+import { type Lecture, LECTURES, palier } from '@/lib/lectures'
 import { cn } from '@/lib/utils'
 import type { Dataset, Depute } from '@/types'
 
@@ -23,6 +27,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [groupFilter, setGroupFilter] = useState<string | null>(null)
   const [query, setQuery] = useState('')
+  const [lecture, setLecture] = useState<Lecture>('groupe')
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/deputes.json`)
@@ -40,6 +45,12 @@ export default function App() {
     data?.deputes.forEach((d) => d.groupeId && m.set(d.groupeId, (m.get(d.groupeId) ?? 0) + 1))
     return m
   }, [data])
+
+  const syntheses = useMemo(() => new Map(data?.deputes.map((d) => [d.id, synthese(d)])), [data])
+  const coutTotal = useMemo(
+    () => data?.deputes.reduce((sum, d) => sum + coutMensuel(d, data.baremes).total, 0) ?? 0,
+    [data],
+  )
 
   const q = normalize(query.trim())
   const isHighlighted = useCallback(
@@ -69,7 +80,7 @@ export default function App() {
   return (
     // Le panneau ouvert réserve sa largeur en padding : l'hémicycle reste centré dans l'espace libre
     <div
-      className={cn('flex min-h-svh flex-col transition-[padding] duration-300', selected && 'lg:pr-[26rem]')}
+      className={cn('flex min-h-svh flex-col transition-[padding] duration-300', selected && 'lg:pr-[30rem]')}
     >
       <header className="border-b">
         <div className="mx-auto flex w-full max-w-5xl flex-wrap items-end justify-between gap-4 px-6 py-5">
@@ -120,13 +131,36 @@ export default function App() {
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 py-8">
+        <p className="mx-auto mb-6 max-w-2xl text-center text-lg text-balance">
+          Chaque mois, ces {data.deputes.length} sièges coûtent{' '}
+          <strong className="font-heading text-2xl text-red-700 tabular-nums dark:text-red-400">
+            {formatEuro(coutTotal, { compact: true })}
+          </strong>{' '}
+          aux contribuables, soit {formatEuro(coutTotal * 12, { compact: true })} par an. Choisissez un siège pour voir
+          ce que chacun touche et cumule.
+        </p>
+
+        <ChoixLecture lecture={lecture} onChange={setLecture} />
+
         <Hemicycle
           deputes={data.deputes}
           groupes={groupes}
           selectedId={selectedId}
           isHighlighted={isHighlighted}
           onSelect={(d) => setSelectedId(d.id)}
+          teinte={lecture === 'groupe' ? null : (d) => palier(lecture, syntheses.get(d.id)!).fill}
+          detail={lecture === 'groupe' ? null : (d) => LECTURES[lecture].detail(syntheses.get(d.id)!)}
         />
+
+        {lecture !== 'groupe' && (
+          <DetailLecture
+            lecture={lecture}
+            deputes={data.deputes}
+            syntheses={syntheses}
+            groupes={groupes}
+            onSelect={(d) => setSelectedId(d.id)}
+          />
+        )}
 
         <Legend groupes={data.groupes} counts={counts} activeId={groupFilter} onChange={setGroupFilter} />
 
@@ -136,8 +170,9 @@ export default function App() {
       </main>
 
       <footer className="border-t px-6 py-4 text-center text-xs text-muted-foreground">
-        Données : open data de l'Assemblée nationale, mises à jour le{' '}
-        {new Date(data.generatedAt).toLocaleDateString('fr-FR')}. Les sièges sont regroupés par groupe politique.
+        Données publiques : Assemblée nationale, HATVP et Répertoire national des élus (ministère de l'Intérieur),
+        extraites le {new Date(data.generatedAt).toLocaleDateString('fr-FR')}. Revenus et mandats tels que déclarés ;
+        les montants de rémunération suivent les barèmes officiels. Les sièges sont regroupés par groupe politique.
       </footer>
 
       <DeputyPanel

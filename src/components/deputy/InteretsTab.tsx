@@ -9,7 +9,7 @@ const RUBRIQUES: { key: 'activites' | 'mandats' | 'consultant' | 'dirigeant'; ti
   { key: 'activites', title: 'Activités professionnelles (5 dernières années)' },
   { key: 'mandats', title: 'Mandats électifs' },
   { key: 'consultant', title: 'Activités de conseil' },
-  { key: 'dirigeant', title: "Fonctions de dirigeant d'organisme" },
+  { key: 'dirigeant', title: 'Fonctions de dirigeant (sociétés, associations…)' },
 ]
 
 export function InteretsTab({ depute }: { depute: Depute }) {
@@ -22,7 +22,7 @@ export function InteretsTab({ depute }: { depute: Depute }) {
       <div className="py-4">
         <Note>
           Déclaration d'intérêts et d'activités déposée le {formatDate(interets.dateDepot)}
-          {interets.modificative && ' (modificative)'}. Montants déclarés par le député.
+          {interets.modificative && ' (mise à jour)'}. Les montants sont ceux que l'élu a lui-même déclarés.
           {page && (
             <>
               {' '}
@@ -32,7 +32,7 @@ export function InteretsTab({ depute }: { depute: Depute }) {
         </Note>
       </div>
 
-      <Section title="Capital : participations financières">
+      <Section title="Parts détenues dans des sociétés">
         <Participations items={interets.participations} />
       </Section>
 
@@ -62,9 +62,9 @@ function AbsenceInterets({ depute }: { depute: Depute }) {
   const { label, etat } = etatDeclaration(derniere)
   return (
     <div className="py-4">
-      <MissingData title={etat === 'publiee' ? 'Contenu non disponible en open data' : label}>
+      <MissingData title={etat === 'publiee' ? 'Détail pas encore disponible' : label}>
         {etat === 'publiee'
-          ? "La déclaration est publiée sur hatvp.fr, mais son contenu n'est pas dans les données ouvertes."
+          ? "La déclaration est publiée sur hatvp.fr, mais son contenu ne figure pas encore dans les fichiers téléchargeables de la HATVP."
           : derniere.dateDepot
             ? `Déposée le ${formatDate(derniere.dateDepot)}, elle n'est pas encore publiée.`
             : "Elle n'est pas encore publiée."}
@@ -81,9 +81,9 @@ function AbsenceInterets({ depute }: { depute: Depute }) {
 
 function Vide({ items }: { items: unknown[] | null }) {
   return items === null ? (
-    <Badge variant="outline">Rubrique non renseignée</Badge>
+    <Badge variant="outline">Partie non remplie</Badge>
   ) : (
-    <Badge variant="secondary">Néant déclaré</Badge>
+    <Badge variant="secondary">Aucun, selon sa déclaration</Badge>
   )
 }
 
@@ -98,7 +98,7 @@ function Participations({ items }: { items: Interets['participations'] }) {
           <TableRow>
             <TableHead>Société</TableHead>
             <TableHead className="text-right">Valeur</TableHead>
-            <TableHead className="text-right">Capital</TableHead>
+            <TableHead className="text-right">Part du capital</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

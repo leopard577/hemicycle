@@ -5,6 +5,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { baremes, indemnitesSpeciales, loadHatvp } from './hatvp.mjs'
+import { loadRne } from './rne.mjs'
 
 const SOURCE =
   'https://data.assemblee-nationale.fr/static/openData/repository/17/amo/deputes_actifs_mandats_actifs_organes/AMO10_deputes_actifs_mandats_actifs_organes.json.zip'
@@ -32,7 +33,7 @@ for (const entry of zip.getEntries()) {
 }
 
 const organeLabel = (ref) => organes.get(Array.isArray(ref) ? ref[0] : ref)?.libelle ?? ref
-const hatvpFor = await loadHatvp()
+const [hatvpFor, rneFor] = await Promise.all([loadHatvp(), loadRne()])
 
 const groupes = new Map()
 const deputes = []
@@ -102,6 +103,8 @@ for (const a of acteurs) {
 const hatvp = hatvpFor(deputes)
 // Repli sur l'URL HATVP fournie par l'AN quand la liste HATVP n'en donne pas
 for (const d of deputes) d.hatvp = { ...hatvp.get(d.id), page: hatvp.get(d.id).page ?? d.hatvp }
+const rne = rneFor(deputes)
+for (const d of deputes) d.mandatsLocaux = rne.get(d.id) ?? []
 
 const rank = (abrev) => {
   const i = GROUP_ORDER.indexOf(abrev)
@@ -122,4 +125,8 @@ console.log(
   `HATVP : ${deputes.filter((d) => d.hatvp.declarations.length).length} avec déclarations, ` +
     `${deputes.filter((d) => d.hatvp.interets).length} avec contenu d'intérêts, ` +
     `${deputes.filter((d) => d.indemnitesSpeciales.length).length} avec indemnité spéciale`,
+)
+console.log(
+  `RNE : ${deputes.filter((d) => d.mandatsLocaux.length).length} avec au moins un mandat local en cours, ` +
+    `${deputes.filter((d) => d.hatvp.autresMandats.length).length} avec une autre fonction déclarée à la HATVP`,
 )

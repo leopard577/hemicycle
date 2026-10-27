@@ -1,14 +1,20 @@
+import { useRef, useState } from 'react'
+import { XIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { age, formatEuro, formatMonth } from '@/lib/format'
+import { alertes } from '@/lib/argent'
 import type { Baremes, Depute, Groupe } from '@/types'
+import { Addition, Calcul } from './deputy/Addition'
+import { Alertes } from './deputy/Alertes'
+import { CumulsTab, NotesCumuls } from './deputy/CumulsTab'
 import { DeclarationsTab } from './deputy/DeclarationsTab'
 import { InteretsTab } from './deputy/InteretsTab'
-import { KeyFigure } from './deputy/parts'
 import { ProfilTab } from './deputy/ProfilTab'
-import { RemunerationTab } from './deputy/RemunerationTab'
+import { GroupeNotes, Precisions } from './deputy/parts'
+import { NotesRemuneration, RemunerationTab } from './deputy/RemunerationTab'
 
 interface Props {
   depute: Depute | null
@@ -23,7 +29,8 @@ export function DeputyPanel({ depute, groupe, baremes, onClose }: Props) {
     <Sheet open={depute !== null} modal={false} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
-        className="w-full gap-0 overflow-y-auto p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-[26rem]"
+        showCloseButton={false}
+        className="w-full gap-0 overflow-hidden p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-[30rem]"
         onInteractOutside={(e) => e.preventDefault()}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
@@ -35,20 +42,37 @@ export function DeputyPanel({ depute, groupe, baremes, onClose }: Props) {
 
 function DeputyDetails({ depute, groupe, baremes }: { depute: Depute; groupe: Groupe | undefined; baremes: Baremes }) {
   const feminine = depute.civ === 'Mme'
+  const corps = useRef<HTMLDivElement>(null)
+  const onglets = useRef<HTMLDivElement>(null)
+  const [sources, setSources] = useState(false)
+
+  // Un astérisque ouvre « Précisions et sources » puis fait défiler jusqu'à sa note
+  const versNote = (n: number) => {
+    setSources(true)
+    window.setTimeout(() => document.getElementById(`calcul-${n}`)?.scrollIntoView({ block: 'start' }), 50)
+  }
+
+  // Changer d'onglet ramène au début de son contenu si l'on avait défilé au-delà de la barre d'onglets
+  const versOnglets = () => {
+    const c = corps.current
+    const o = onglets.current
+    if (c && o && c.scrollTop > o.offsetTop) c.scrollTo({ top: o.offsetTop, behavior: 'instant' })
+  }
 
   return (
     <>
+      {/* En-tête fixe : l'identité et le bouton de fermeture restent visibles pendant le défilement */}
       <SheetHeader
-        className="flex-row items-center gap-4 border-t-4 border-b px-6 pt-8 pb-6"
+        className="relative shrink-0 flex-row items-center gap-3 border-t-4 border-b py-4 pr-14 pl-6 sm:gap-4"
         style={{
           borderTopColor: groupe?.couleur,
           background: groupe && `color-mix(in oklch, ${groupe.couleur} 9%, transparent)`,
         }}
       >
         <div className="shrink-0 rounded-full bg-border p-[3px]" style={{ background: groupe?.couleur }}>
-          <Avatar className="size-22 border-2 border-background">
+          <Avatar className="size-14 border-2 border-background sm:size-16">
             <AvatarImage src={depute.photo} alt="" className="object-cover" />
-            <AvatarFallback className="font-heading text-2xl font-bold">
+            <AvatarFallback className="font-heading text-xl font-bold">
               {depute.prenom[0]}
               {depute.nom[0]}
             </AvatarFallback>
@@ -56,7 +80,7 @@ function DeputyDetails({ depute, groupe, baremes }: { depute: Depute; groupe: Gr
         </div>
         <div className="min-w-0 space-y-1">
           <p className="text-xs tracking-wider text-muted-foreground uppercase">{feminine ? 'Députée' : 'Député'}</p>
-          <SheetTitle className="text-2xl leading-tight font-semibold">
+          <SheetTitle className="text-xl leading-tight font-semibold sm:text-2xl">
             {depute.prenom} {depute.nom}
           </SheetTitle>
           <SheetDescription asChild>
@@ -72,17 +96,44 @@ function DeputyDetails({ depute, groupe, baremes }: { depute: Depute; groupe: Gr
             </div>
           </SheetDescription>
         </div>
+        <SheetClose asChild>
+          <Button variant="ghost" size="icon" className="absolute top-2 right-2" aria-label="Fermer la fiche">
+            <XIcon />
+          </Button>
+        </SheetClose>
       </SheetHeader>
 
-      <ChiffresCles depute={depute} baremes={baremes} />
+      {/* Seul le corps défile ; il est recréé à chaque député, donc repart du haut */}
+      <div
+        ref={corps}
+        className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth motion-reduce:scroll-auto"
+      >
+        <Addition depute={depute} baremes={baremes} onRenvoi={versNote} />
+        <Alertes alertes={alertes(depute)} />
 
-      <Tabs defaultValue="profil" className="gap-0 px-6 pt-2 pb-8">
-        <TabsList className="w-full">
-          <TabsTrigger value="profil">Profil</TabsTrigger>
-          <TabsTrigger value="remuneration">Rémunération</TabsTrigger>
-          <TabsTrigger value="interets">Intérêts</TabsTrigger>
-          <TabsTrigger value="declarations">Déclarations</TabsTrigger>
-        </TabsList>
+        <Tabs ref={onglets} defaultValue="cumuls" onValueChange={versOnglets} className="gap-0 px-6 pb-4">
+          <div className="sticky top-0 z-10 -mx-6 bg-popover px-6 py-2">
+            <TabsList className="w-full group-data-horizontal/tabs:h-9">
+              <TabsTrigger value="cumuls" className="max-sm:px-1 max-sm:text-[0.8125rem] max-[22.5rem]:px-0.5 max-[22.5rem]:text-xs">
+                Cumuls
+              </TabsTrigger>
+              <TabsTrigger value="remuneration" className="max-sm:px-1 max-sm:text-[0.8125rem] max-[22.5rem]:px-0.5 max-[22.5rem]:text-xs">
+                Salaire
+              </TabsTrigger>
+              <TabsTrigger value="interets" className="max-sm:px-1 max-sm:text-[0.8125rem] max-[22.5rem]:px-0.5 max-[22.5rem]:text-xs">
+                Intérêts
+              </TabsTrigger>
+              <TabsTrigger value="declarations" className="max-sm:px-1 max-sm:text-[0.8125rem] max-[22.5rem]:px-0.5 max-[22.5rem]:text-xs">
+                Déclarations
+              </TabsTrigger>
+              <TabsTrigger value="profil" className="max-sm:px-1 max-sm:text-[0.8125rem] max-[22.5rem]:px-0.5 max-[22.5rem]:text-xs">
+                Profil
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        <TabsContent value="cumuls">
+          <CumulsTab depute={depute} baremes={baremes} />
+        </TabsContent>
         <TabsContent value="profil">
           <ProfilTab depute={depute} />
         </TabsContent>
@@ -95,49 +146,22 @@ function DeputyDetails({ depute, groupe, baremes }: { depute: Depute; groupe: Gr
         <TabsContent value="declarations">
           <DeclarationsTab depute={depute} />
         </TabsContent>
-      </Tabs>
+        </Tabs>
+
+        <div className="border-t px-6 pb-6">
+          <Precisions open={sources} onOpenChange={setSources}>
+            <GroupeNotes titre="Calcul du coût du siège">
+              <Calcul depute={depute} baremes={baremes} />
+            </GroupeNotes>
+            <GroupeNotes titre="Cumuls et revenus déclarés">
+              <NotesCumuls depute={depute} baremes={baremes} />
+            </GroupeNotes>
+            <GroupeNotes titre="Salaire et frais de mandat">
+              <NotesRemuneration depute={depute} baremes={baremes} />
+            </GroupeNotes>
+          </Precisions>
+        </div>
+      </div>
     </>
-  )
-}
-
-/** Ce qui distingue ce député, avant le détail des onglets */
-function ChiffresCles({ depute, baremes }: { depute: Depute; baremes: Baremes }) {
-  const ans = age(depute.dateNais)
-  const participations = depute.hatvp.interets?.participations
-  const capital = participations?.reduce((sum, p) => sum + (p.evaluation ?? 0), 0)
-
-  return (
-    <dl className="grid grid-cols-2 gap-2 px-6 pt-5 pb-3">
-      <KeyFigure
-        label="Âge"
-        value={ans === null ? '—' : `${ans} ans`}
-        hint={depute.villeNais && `${depute.civ === 'Mme' ? 'Née' : 'Né'} à ${depute.villeNais}`}
-      />
-      <KeyFigure label="En fonction depuis" value={formatMonth(depute.dateDebut)} hint={depute.departement} />
-      <KeyFigure
-        label="Collaborateurs listés"
-        value={depute.nbCollaborateurs}
-        hint={`${baremes.maxCollaborateurs} au plus en même temps`}
-      />
-      <KeyFigure
-        label="Capital déclaré"
-        value={
-          participations === undefined || participations === null
-            ? '—'
-            : participations.length === 0
-              ? 'Néant'
-              : formatEuro(capital ?? 0, { compact: true })
-        }
-        hint={
-          participations === undefined
-            ? 'Déclaration indisponible'
-            : participations === null
-              ? 'Rubrique non renseignée'
-              : participations.length === 0
-                ? 'Aucune participation'
-                : `${participations.length} participation${participations.length > 1 ? 's' : ''}`
-        }
-      />
-    </dl>
   )
 }

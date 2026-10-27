@@ -32,6 +32,14 @@ clone, puis à nouveau pour obtenir des données plus récentes.
 - **Hémicycle** : 574 sièges répartis sur 12 rangs concentriques, regroupés de gauche à droite par groupe
   politique. Le survol affiche le nom, le groupe et la circonscription. Les sièges sont accessibles au
   clavier.
+- **Lectures de l'hémicycle** : colorer les sièges par groupe, par cumul de mandats, par revenus déclarés en
+  plus de l'indemnité ou par signalements sur les déclarations, avec un classement des dix premiers.
+- **L'addition** en tête de chaque fiche : coût mensuel du siège (indemnités, frais de mandat, crédit
+  collaborateurs), équivalent en années de SMIC et compteur de l'argent public mobilisé depuis l'entrée en
+  fonction.
+- **Cumuls** : revenus déclarés année par année, activités et mandats exercés en parallèle, mandats locaux
+  du Répertoire national des élus confrontés à la déclaration d'intérêts, et signalements datés (fonction
+  exécutive locale, mandat non retrouvé, déclaration en retard).
 - **Filtres** : recherche par nom ou par département, et clic sur un groupe de la légende pour le mettre en
   évidence.
 - **Fiche député**, non modale pour pouvoir passer d'un siège à l'autre, avec quatre onglets :
@@ -86,6 +94,8 @@ Toutes les données sont publiques :
   ([data.assemblee-nationale.fr](https://data.assemblee-nationale.fr)).
 - **Open data de la HATVP** : liste des déclarations et contenu des déclarations d'intérêts
   ([hatvp.fr/open-data](https://www.hatvp.fr/open-data/)).
+- **Répertoire national des élus** (ministère de l'Intérieur) : mandats locaux en cours
+  ([data.gouv.fr](https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/)).
 - **Barèmes de rémunération** : la
   [fiche de synthèse n° 7](https://www.assemblee-nationale.fr/dyn/synthese/deputes-groupes-parlementaires/la-situation-materielle-du-depute)
   de l'Assemblée (janvier 2026). Ces montants sont saisis en dur dans `scripts/hatvp.mjs`.
