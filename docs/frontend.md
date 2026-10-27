@@ -8,16 +8,16 @@ search query.
 
 | File | Role |
 | --- | --- |
-| `src/App.tsx` | Data loading, search box and results, layout, and the margin added when the panel is open |
+| `src/App.tsx` | Data loading, search box and results, layout, and the padding reserved for the panel when it is open |
 | `src/components/Hemicycle.tsx` | SVG chart. `deputes[i]` sits on `layout.seats[i]`, so the order of the dataset decides who sits where. The centre label shows the hovered deputy. |
 | `src/lib/hemicycle.ts` | `hemicycleLayout(count)`: seats spread over 12 arcs, proportionally to arc length, then sorted by angle (left to right) |
 | `src/components/Legend.tsx` | Group filter, a single-select `ToggleGroup`; clicking the active group clears the filter |
-| `src/components/DeputyPanel.tsx` | Right-hand `Sheet` with header (photo, name, group) and `Tabs` |
+| `src/components/DeputyPanel.tsx` | Right-hand `Sheet`: header tinted with the group colour, key-figure tiles, then `Tabs` |
 | `src/components/deputy/ProfilTab.tsx` | Constituency, mandate, committees, biography, contact |
 | `src/components/deputy/RemunerationTab.tsx` | Allowance, special allowances, expense envelopes, staff |
 | `src/components/deputy/InteretsTab.tsx` | Holdings table and declared income; explains why content is missing |
 | `src/components/deputy/DeclarationsTab.tsx` | HATVP declarations grouped into assets and interests |
-| `src/components/deputy/parts.tsx` | Shared blocks: `Section`, `Fields`/`Field`, `ExternalLink`, `MissingData`, `Note` |
+| `src/components/deputy/parts.tsx` | Shared blocks: `Section` (optional `aside`), `Fields`/`Field`, `ExternalLink`, `MissingData`, `Note`, `KeyFigure` (tiles under the panel header), `Precisions` (collapsed notes and sources) |
 | `src/lib/declarations.ts` | Maps raw HATVP statuses to labels and states (`publiee`, `attente`, `manquante`) |
 | `src/lib/format.ts` | `formatDate`, `formatEuro`, `age` (fr-FR) |
 
@@ -42,8 +42,7 @@ search query.
   another seat swaps the deputy instead of closing the panel. Escape and the × button close it.
   `onOpenAutoFocus` is prevented so the search input keeps focus.
 - **`DeputyDetails` is keyed by deputy id**, so switching deputies resets the tab to "Profil".
-- **Wide screens**: from `lg` up, `<main>` gets `lg:mr-[26rem]` while the panel is open, so the chart is
-  not hidden behind it.
+- **Wide screens**: from `lg` up, the root wrapper gets `lg:pr-[26rem]` while the panel is open, so `<main>` (`mx-auto`) stays centred in the free space instead of hiding behind the panel. The page is also centred vertically.
 - **Accessibility**: seats have `role="listitem"`, an `aria-label` and keyboard activation (Enter or
   Space), and the centre label is an `aria-live` region.
 

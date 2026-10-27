@@ -3,6 +3,15 @@ import type { DeclarationHatvp, TypeDeclaration } from '@/types'
 export const INTERETS: TypeDeclaration[] = ['dia', 'diam']
 export const PATRIMOINE: TypeDeclaration[] = ['dsp', 'dspm', 'dspfm']
 
+/** Nature du dépôt, sans répéter le type de déclaration déjà donné par la section */
+export const NATURE: Record<TypeDeclaration, string> = {
+  dia: 'Déclaration initiale',
+  diam: 'Modification',
+  dsp: 'Déclaration initiale',
+  dspm: 'Modification',
+  dspfm: 'Fin de mandat',
+}
+
 export type Etat = 'publiee' | 'attente' | 'manquante'
 
 /** Traduit le statut brut de la HATVP en libellé lisible */

@@ -69,7 +69,7 @@ export function Hemicycle({ deputes, groupes, selectedId, isHighlighted, onSelec
       >
         {hovered ? (
           <>
-            <strong className="text-lg text-foreground">
+            <strong className="font-heading text-xl font-semibold text-foreground">
               {hovered.prenom} {hovered.nom}
             </strong>
             <span className="font-bold brightness-90" style={{ color: hoveredGroupe?.couleur }}>
@@ -84,7 +84,7 @@ export function Hemicycle({ deputes, groupes, selectedId, isHighlighted, onSelec
           </>
         ) : (
           <>
-            <strong className="text-4xl leading-none text-foreground tabular-nums">{deputes.length}</strong>
+            <strong className="font-heading text-5xl leading-none font-semibold text-foreground tabular-nums">{deputes.length}</strong>
             <span>députés</span>
           </>
         )}

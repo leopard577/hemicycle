@@ -1,11 +1,15 @@
 import type { ReactNode } from 'react'
-import { CircleAlertIcon, InfoIcon } from 'lucide-react'
+import { ChevronDownIcon, CircleAlertIcon, InfoIcon } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 
-export function Section({ title, children }: { title: string; children: ReactNode }) {
+export function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
   return (
     <section className="space-y-2 py-4">
-      <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">{title}</h3>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <h3 className="font-heading text-base font-semibold">{title}</h3>
+        {aside}
+      </div>
       {children}
     </section>
   )
@@ -53,4 +57,29 @@ export function MissingData({
 
 export function Note({ children }: { children: ReactNode }) {
   return <p className="text-xs text-muted-foreground">{children}</p>
+}
+
+/** Chiffre clé affiché en tuile sous l'en-tête du panneau */
+export function KeyFigure({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
+  return (
+    <div className="min-w-0 rounded-lg bg-muted/60 px-3 py-2">
+      <dt className="truncate text-xs text-muted-foreground">{label}</dt>
+      <dd className="font-heading text-lg leading-tight font-semibold tabular-nums">{value}</dd>
+      {hint && <dd className="truncate text-xs text-muted-foreground">{hint}</dd>}
+    </div>
+  )
+}
+
+/** Précisions méthodologiques repliées en bas d'onglet, pour ne pas noyer les données */
+export function Precisions({ children }: { children: ReactNode }) {
+  return (
+    <Collapsible className="py-4">
+      <CollapsibleTrigger className="group flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
+        <InfoIcon className="size-3.5" />
+        Précisions et sources
+        <ChevronDownIcon className="size-3.5 transition-transform group-data-[state=open]:rotate-180" />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-2 space-y-2">{children}</CollapsibleContent>
+    </Collapsible>
+  )
 }

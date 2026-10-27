@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import type { Dataset, Depute } from '@/types'
 
+const MAX_SUGGESTIONS = 8
+
 const normalize = (s: string) =>
   s
     .normalize('NFD')
@@ -65,17 +67,15 @@ export default function App() {
   if (!data) return <p className="p-12 text-center text-muted-foreground">Chargement…</p>
 
   return (
-    <div className="min-h-svh">
-      <main
-        className={cn(
-          'mx-auto max-w-5xl px-6 pt-8 pb-12 transition-[margin] duration-300',
-          selected && 'lg:mr-[26rem]',
-        )}
-      >
-        <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    // Le panneau ouvert réserve sa largeur en padding : l'hémicycle reste centré dans l'espace libre
+    <div
+      className={cn('flex min-h-svh flex-col transition-[padding] duration-300', selected && 'lg:pr-[26rem]')}
+    >
+      <header className="border-b">
+        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-end justify-between gap-4 px-6 py-5">
           <div>
-            <p className="text-xs tracking-widest text-muted-foreground uppercase">17ᵉ législature</p>
-            <h1 className="text-3xl font-bold tracking-tight">L'hémicycle</h1>
+            <p className="text-xs font-medium tracking-widest text-primary uppercase">Assemblée nationale · 17ᵉ législature</p>
+            <h1 className="font-heading text-4xl font-semibold tracking-tight">L'hémicycle</h1>
           </div>
 
           <div className="relative w-full sm:w-80">
@@ -88,9 +88,9 @@ export default function App() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            {q && matches.length > 0 && matches.length <= 8 && (
+            {q && (
               <Card className="absolute inset-x-0 top-full z-10 mt-1 gap-0 p-1 shadow-lg">
-                {matches.map((d) => (
+                {matches.slice(0, MAX_SUGGESTIONS).map((d) => (
                   <Button
                     key={d.id}
                     variant="ghost"
@@ -105,11 +105,21 @@ export default function App() {
                     <span className="truncate text-muted-foreground">· {d.departement}</span>
                   </Button>
                 ))}
+                {matches.length === 0 && (
+                  <p className="px-3 py-2 text-sm text-muted-foreground">Aucun député ne correspond.</p>
+                )}
+                {matches.length > MAX_SUGGESTIONS && (
+                  <p className="px-3 py-2 text-xs text-muted-foreground">
+                    … et {matches.length - MAX_SUGGESTIONS} autres, en surbrillance sur l'hémicycle.
+                  </p>
+                )}
               </Card>
             )}
           </div>
-        </header>
+        </div>
+      </header>
 
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 py-8">
         <Hemicycle
           deputes={data.deputes}
           groupes={groupes}
@@ -120,12 +130,15 @@ export default function App() {
 
         <Legend groupes={data.groupes} counts={counts} activeId={groupFilter} onChange={setGroupFilter} />
 
-        <p className="text-center text-xs text-muted-foreground">
-          {(q || groupFilter) && <>{matches.length} résultat(s) · </>}
-          Données : open data de l'Assemblée nationale, mises à jour le{' '}
-          {new Date(data.generatedAt).toLocaleDateString('fr-FR')}. Les sièges sont regroupés par groupe politique.
+        <p aria-live="polite" className="min-h-5 text-center text-sm text-muted-foreground">
+          {(q || groupFilter) && `${matches.length} député${matches.length > 1 ? 's' : ''} sur ${data.deputes.length}`}
         </p>
       </main>
+
+      <footer className="border-t px-6 py-4 text-center text-xs text-muted-foreground">
+        Données : open data de l'Assemblée nationale, mises à jour le{' '}
+        {new Date(data.generatedAt).toLocaleDateString('fr-FR')}. Les sièges sont regroupés par groupe politique.
+      </footer>
 
       <DeputyPanel
         depute={selected}
