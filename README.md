@@ -87,7 +87,8 @@ Les photos des députés ne sont pas copiées : elles sont chargées depuis asse
 - **Les données manquantes restent visibles** : la fiche distingue une déclaration non déposée, déposée mais
   pas encore publiée, une partie laissée vide, et « aucun » déclaré.
 - La fiche reste ouverte quand on clique sur un autre siège, pour comparer facilement.
-- Thème clair ou sombre selon le réglage de l'appareil, affichage adapté au téléphone.
+- Thème clair ou sombre au choix, avec le bouton à côté de la recherche (par défaut, celui de l'appareil),
+  et affichage adapté au téléphone.
 
 ## Développement
 

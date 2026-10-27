@@ -38,8 +38,9 @@ search query.
   sheet width is set with `data-[side=right]:sm:max-w-[30rem]`, because a plain `sm:max-w-md` loses
   against the component's own `data-[side=right]:sm:max-w-sm`.
 - **`cn`** comes from the `cn` npm package (published by shadcn) and is re-exported by `src/lib/utils.ts`.
-- **Dark mode**: shadcn relies on a `.dark` class, which `src/main.tsx` toggles to follow
-  `prefers-color-scheme`.
+- **Dark mode**: shadcn relies on a `.dark` class. `src/lib/theme.ts` sets it from the choice saved in
+  `localStorage` (`theme`: `clair` or `sombre`), or from `prefers-color-scheme` when nothing is saved.
+  `ThemeToggle` in the header saves the choice.
 
 ## Behaviour worth knowing
 

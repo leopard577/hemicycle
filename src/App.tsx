@@ -3,6 +3,7 @@ import { SearchIcon } from 'lucide-react'
 import { DeputyPanel } from '@/components/DeputyPanel'
 import { Hemicycle } from '@/components/Hemicycle'
 import { Legend } from '@/components/Legend'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { ChoixLecture, DetailLecture } from '@/components/Lectures'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -89,43 +90,46 @@ export default function App() {
             <h1 className="font-heading text-4xl font-semibold tracking-tight">L'hémicycle</h1>
           </div>
 
-          <div className="relative w-full sm:w-80">
-            <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Nom, département…"
-              aria-label="Rechercher un député"
-              className="pl-8"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            {q && (
-              <Card className="absolute inset-x-0 top-full z-10 mt-1 gap-0 p-1 shadow-lg">
-                {matches.slice(0, MAX_SUGGESTIONS).map((d) => (
-                  <Button
-                    key={d.id}
-                    variant="ghost"
-                    className="w-full justify-start font-normal"
-                    onClick={() => setSelectedId(d.id)}
-                  >
-                    <span
-                      className="size-2.5 shrink-0 rounded-full"
-                      style={{ background: groupes.get(d.groupeId ?? '')?.couleur }}
-                    />
-                    {d.prenom} {d.nom}
-                    <span className="truncate text-muted-foreground">· {d.departement}</span>
-                  </Button>
-                ))}
-                {matches.length === 0 && (
-                  <p className="px-3 py-2 text-sm text-muted-foreground">Aucun député ne correspond.</p>
-                )}
-                {matches.length > MAX_SUGGESTIONS && (
-                  <p className="px-3 py-2 text-xs text-muted-foreground">
-                    … et {matches.length - MAX_SUGGESTIONS} autres, en surbrillance sur l'hémicycle.
-                  </p>
-                )}
-              </Card>
-            )}
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <div className="relative flex-1 sm:w-80 sm:flex-none">
+              <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Nom, département…"
+                aria-label="Rechercher un député"
+                className="pl-8"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              {q && (
+                <Card className="absolute inset-x-0 top-full z-10 mt-1 gap-0 p-1 shadow-lg">
+                  {matches.slice(0, MAX_SUGGESTIONS).map((d) => (
+                    <Button
+                      key={d.id}
+                      variant="ghost"
+                      className="w-full justify-start font-normal"
+                      onClick={() => setSelectedId(d.id)}
+                    >
+                      <span
+                        className="size-2.5 shrink-0 rounded-full"
+                        style={{ background: groupes.get(d.groupeId ?? '')?.couleur }}
+                      />
+                      {d.prenom} {d.nom}
+                      <span className="truncate text-muted-foreground">· {d.departement}</span>
+                    </Button>
+                  ))}
+                  {matches.length === 0 && (
+                    <p className="px-3 py-2 text-sm text-muted-foreground">Aucun député ne correspond.</p>
+                  )}
+                  {matches.length > MAX_SUGGESTIONS && (
+                    <p className="px-3 py-2 text-xs text-muted-foreground">
+                      … et {matches.length - MAX_SUGGESTIONS} autres, en surbrillance sur l'hémicycle.
+                    </p>
+                  )}
+                </Card>
+              )}
+            </div>
+            <ThemeToggle />
           </div>
         </div>
       </header>
