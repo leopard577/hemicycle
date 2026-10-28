@@ -139,9 +139,6 @@ export function Hemicycle<T extends Parliamentarian>({
           )}
         </div>
       </div>
-      <p className="mt-2 hidden text-center text-xs text-muted-foreground pointer-coarse:block">
-        Faites glisser le doigt sur les sièges pour lire les noms, relâchez pour ouvrir la fiche.
-      </p>
     </div>
   )
 }

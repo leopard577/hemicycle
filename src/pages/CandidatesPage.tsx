@@ -62,7 +62,7 @@ export function CandidatesPage() {
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 space-y-12 px-6 py-8">
+      <main className="mx-auto w-full max-w-5xl flex-1 space-y-12 px-6 py-4">
         {/* Before the official list, calling someone a candidate is a claim, not a fact: no 2027 name here */}
         <MissingData title="Et l'élection présidentielle de 2027 ?">
           Une page lui sera consacrée dès que les données officielles seront publiques : les parrainages et la liste

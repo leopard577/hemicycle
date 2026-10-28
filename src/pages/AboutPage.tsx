@@ -34,7 +34,7 @@ export function AboutPage() {
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 space-y-12 px-6 py-8">
+      <main className="mx-auto w-full max-w-3xl flex-1 space-y-12 px-6 py-4">
         <p className="text-lg text-balance">
           Ce que coûtent les élus et les membres du Gouvernement, ce qu'ils cumulent et ce qu'ils déclarent : ces
           informations sont publiques, mais dispersées sur une dizaine de sites, dans des fichiers que peu de gens

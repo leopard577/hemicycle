@@ -160,7 +160,7 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
         </div>
       </div>
 
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 py-8">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 py-4">
         <p className="mx-auto mb-6 max-w-2xl text-center text-lg text-balance">
           Chaque mois, ces {data.members.length} sièges coûtent{' '}
           <strong className="font-heading text-2xl text-red-700 tabular-nums dark:text-red-400">
@@ -202,6 +202,10 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
         )}
 
         <Legend groups={data.groups} counts={counts} activeId={groupFilter} onChange={setGroupFilter} />
+        {/* Seats are drawn group by group, not where each member really sits: the official seat is in the panel */}
+        <p className="mx-auto max-w-xl text-center text-xs text-balance text-muted-foreground">
+          Représentation indicative. La place réelle figure dans la fiche, onglet « Profil ».
+        </p>
 
         <p aria-live="polite" className="min-h-5 text-center text-sm text-muted-foreground">
           {(q || groupFilter) &&

@@ -77,7 +77,7 @@ export function GovernmentPage() {
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 space-y-12 px-6 py-8">
+      <main className="mx-auto w-full max-w-5xl flex-1 space-y-12 px-6 py-4">
         <section className="space-y-6">
           <p className="mx-auto max-w-2xl text-center text-lg text-balance">
             Chaque mois, la rémunération du Président de la République et des {ministers} membres du Gouvernement coûte{' '}

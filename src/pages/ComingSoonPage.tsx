@@ -21,7 +21,7 @@ export function ComingSoonPage({ page }: { page: Page }) {
         </div>
       </div>
 
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 py-8">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 py-4">
         <Card className="mx-auto w-full max-w-xl">
           <CardHeader>
             <CardTitle>Page en préparation</CardTitle>

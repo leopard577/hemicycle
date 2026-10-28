@@ -15,7 +15,7 @@ export function NotFoundPage() {
         </div>
       </div>
 
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-8">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-4">
         <p className="text-balance">
           Aucune page ne correspond à l'adresse <code className="break-all text-muted-foreground">#{pathname}</code>.
           Elle a peut-être été mal saisie, ou la page a changé de nom.
