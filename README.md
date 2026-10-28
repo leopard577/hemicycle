@@ -1,26 +1,23 @@
 # Hémicycle
 
-**Ce que coûtent vos députés, ce qu'ils cumulent, et ce que leurs déclarations ne disent pas.**
+**Ce que coûtent vos élus et votre Gouvernement, ce qu'ils cumulent, et ce que leurs déclarations ne disent pas.**
 
 👉 **[Site web](https://leopard577.github.io/hemicycle/)**
 
-Hémicycle est une carte interactive de l'Assemblée nationale (17ᵉ législature). Chacun des 574 députés en
-exercice y occupe un siège. Un clic sur un siège ouvre sa fiche :
+Hémicycle rassemble des données publiques dispersées sur une dizaine de sites officiels et les rend lisibles
+par tous. Quatre pages :
 
-- **ce que son siège coûte aux contribuables**, chaque mois et depuis son élection, avec un compteur qui
-  tourne en direct ;
-- **ce qu'il gagne en plus de son mandat** : activités professionnelles, sociétés dirigées, mandats locaux,
-  année par année ;
-- **les mandats qu'il cumule**, et ceux qui manquent dans ses déclarations ;
-- **ses déclarations auprès de la HATVP** : déposées ou non, à temps ou en retard.
+- **Députés** et **Sénateurs** : chaque élu sur son siège ; un clic ouvre sa fiche avec le coût de son siège,
+  ses autres revenus, ses mandats cumulés et ses déclarations à la HATVP ;
+- **Gouvernement** : rémunération du Président et des ministres, cabinets, budget de l'Élysée et des ministères ;
+- **Candidats** : présidentielle 2022, parrainages, comptes de campagne et remboursements de l'État.
 
-Tous les chiffres viennent de registres publics officiels et chaque calcul est expliqué dans la fiche. Rien
-n'est estimé ni inventé : l'application croise des données que chacun peut consulter, mais qui sont
-dispersées sur plusieurs sites.
+La page **À propos** donne les mentions légales, la politique de confidentialité et le contact.
 
-## D'où viennent les données
+## Les données
 
-Toutes les données sont publiques et officielles :
+Toutes viennent de sources publiques et officielles, mises à jour chaque lundi. Chaque chiffre renvoie à sa
+source et chaque calcul est expliqué dans la fiche ; le détail technique est dans [docs/data.md](docs/data.md).
 
 | Source | Ce qu'on y prend |
 | --- | --- |
@@ -32,173 +29,47 @@ Toutes les données sont publiques et officielles :
 | [Sénat, indemnité, frais de mandat et collaborateurs](https://www.senat.fr/connaitre-le-senat/role-et-fonctionnement/lindemnite-parlementaire.html) (mars 2026) | Montant de l'indemnité, des indemnités de fonction, de l'avance de frais de mandat et du crédit collaborateurs |
 | [Journal officiel](https://www.legifrance.gouv.fr) (décrets de nomination) et [Conseil constitutionnel](https://www.conseil-constitutionnel.fr/decision/2022/2022197PDR.htm) | Composition du Gouvernement, dates de nomination, début du mandat présidentiel |
 | [Décret n° 2012-983](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000026310466) | Rémunération du Président de la République et des membres du Gouvernement |
+| [Projet de loi de finances pour 2027](https://www.assemblee-nationale.fr/dyn/17/dossiers/PLF_2027) (texte déposé et annexes) | Budget de chaque ministère, effectifs des cabinets ministériels et indemnités de sujétion, dotation et dépenses de l'Élysée |
 | [Conseil constitutionnel](https://www.data.gouv.fr/datasets/parrainages-des-candidats-a-lelection-presidentielle-francaise-de-2022) (parrainages, liste des candidats) et [ministère de l'Intérieur](https://www.data.gouv.fr/datasets/election-presidentielle-des-10-et-24-avril-2022-resultats-definitifs-du-1er-tour) (résultats) | Candidats à l'élection présidentielle de 2022, parrainages, voix aux deux tours |
 | [CNCCFP](https://cnccfp.fr/election-presidentielle-des-10-et-24-avril-2022-publication-au-journal-officiel-des-decisions-de-la-commission/), décisions publiées au Journal officiel | Comptes de campagne de 2022 : dépenses, recettes, remboursement dû par l'État, dépenses irrégulières et réductions |
+| [franceinfo avec AFP](https://www.franceinfo.fr/politique/emmanuel-macron/presidentielle-2022-consultez-les-declarations-de-patrimoine-et-d-interets-des-12-candidats_4998801.html) (8 mars 2022) et [Insee](https://www.insee.fr/fr/statistiques/8736846) | Patrimoine net des candidats de 2022 tel que rapporté par la presse, comparé à celui des ménages |
 | [service-public.gouv.fr](https://www.service-public.gouv.fr/particuliers/vosdroits/F2300) | Montant du SMIC (juin 2026), pour les comparaisons |
 
-Les données sont mises à jour automatiquement chaque lundi. La date d'extraction figure en bas de la page.
+- **Le coût d'un siège est un maximum** : il inclut les frais de mandat et le crédit collaborateurs, qui ne
+  sont pas versés à l'élu.
+- **Les revenus sont ceux que l'élu a déclarés**, reproduits sans modification ni arrondi.
+- **Les signalements sont des rapprochements automatiques** entre registres : vérifiez-les avant de les citer.
+- **Le contenu des déclarations de patrimoine n'est jamais affiché** (article LO 135-2 du code électoral),
+  seulement leur dépôt et leurs dates. Seule exception : le patrimoine des candidats de 2022, tel que la presse
+  l'a rapporté.
 
-**Ce qu'il faut savoir pour bien lire les chiffres**
-
-- **Le coût du siège est un maximum.** Il additionne l'indemnité brute, les indemnités spéciales, l'avance de
-  frais de mandat et le crédit collaborateurs. Le crédit collaborateurs paie les assistants et n'est pas
-  versé au député ; ce qui n'est pas dépensé ne l'est pas.
-- **Les revenus sont ceux que le député a lui-même déclarés.** Ils sont bruts ou nets selon les
-  déclarations, et la HATVP ne publie pas tous les montants.
-- **Le Répertoire national des élus est mis à jour tous les quelques mois.** Un mandat abandonné récemment
-  peut encore y figurer. C'est pourquoi chaque signalement cite ses dates.
-- **Les déclarations de patrimoine ne sont jamais affichées.** On ne peut les consulter qu'en préfecture, et
-  publier leur contenu est un délit (article LO 135-2 du code électoral). L'application indique seulement si
-  elles ont été déposées et quand. Le « capital » affiché vient des parts de sociétés listées dans la
-  **déclaration d'intérêts**, que la HATVP publie.
-
-Les données sont réutilisées sous [Licence Ouverte 2.0 (Etalab)](https://www.etalab.gouv.fr/licence-ouverte-open-licence/).
-Les photos ne sont pas copiées : elles sont chargées depuis assemblee-nationale.fr et senat.fr.
-
-Les informations issues de la HATVP respectent en plus ses [mentions légales](https://www.hatvp.fr/mentions-legales/) :
-elles sont reproduites sans modification (un passage masqué par la HATVP reste affiché « [Données non publiées] »),
-leur source est citée, les droits de reproduction sont réservés et strictement limités, et toute utilisation
-commerciale ou publicitaire est interdite. Les photos du site de la HATVP, protégées par le droit d'auteur et le
-droit à l'image, ne sont pas utilisées.
-
-## Fonctionnalités
-
-### L'hémicycle
-
-- **577 sièges**, regroupés de gauche à droite par groupe politique. Le survol affiche le nom, le groupe et
-  la circonscription.
-- **Cinq façons de colorer les sièges** :
-  - **Groupes** : la couleur du groupe politique ;
-  - **Cumul de mandats** : nombre de mandats locaux et d'activités rémunérées exercés en même temps ;
-  - **Autres revenus** : revenus déclarés en plus de l'indemnité de député ;
-  - **Capital déclaré** : valeur des parts de sociétés listées dans la déclaration d'intérêts ;
-  - **Déclarations** : fonction interdite avec le mandat, déclaration en retard ou incomplète.
-- Pour chaque coloration, un **résumé chiffré** et le **classement des dix premiers**, cliquable.
-- **Recherche** par nom ou par département, et **filtre** par groupe politique.
-
-### Le Sénat
-
-- Les **348 sénateurs**, avec les mêmes colorations, la même recherche et la même fiche que pour les députés.
-- Les **indemnités de fonction** (Président du Sénat, questeurs, vice-présidents, présidents de groupe, de
-  commission permanente ou de délégation, rapporteurs généraux) sont comptées dans le coût du siège.
-- Juste après un renouvellement, la fiche donne la **date limite de dépôt** des déclarations au lieu de
-  signaler leur absence.
-
-### Le Gouvernement
-
-- Le **Président de la République**, le **Premier ministre**, les **ministres** et les **ministres délégués**,
-  avec leur intitulé exact et le décret qui les a nommés.
-- Pour chacun : la **rémunération** calculée selon le décret n° 2012-983 (traitement, indemnités de résidence
-  et de fonction), un compteur depuis la nomination, ses **revenus et mandats déclarés**, ses mandats locaux
-  et ses **déclarations HATVP**.
-- Les **cabinets ministériels** : effectifs de chaque cabinet (membres et personnels de soutien) et enveloppe
-  des indemnités de sujétion, d'après l'annexe au projet de loi de finances.
-- Le **budget de l'Élysée** : dotation de l'État et dépenses prévues poste par poste (personnel, déplacements,
-  réceptions, fonctionnement, investissement), d'après la même source.
-- Les **départs** du Gouvernement en cours, avec le décret qui y met fin.
-- Comme pour les parlementaires, le contenu des déclarations de patrimoine n'est pas repris, bien que la HATVP
-  publie celui des ministres.
-
-### Les candidats
-
-- Les **12 candidats à l'élection présidentielle de 2022**, par ordre de voix au premier tour, avec leur score
-  aux deux tours.
-- Pour chacun : les **dépenses de campagne** retenues par la CNCCFP et le **remboursement dû par l'État**,
-  avec le plafond légal, les dépenses jugées irrégulières et les réductions décidées, et le lien vers la
-  décision.
-- Ses **parrainages** : leur nombre, la répartition par type d'élu et le nombre de départements. Les
-  parrains ne sont pas nommés, ni les personnes parrainées qui ne figurent pas sur la liste officielle.
-- La campagne officielle (affiches, professions de foi, bulletins), payée directement par l'État, n'est pas
-  comptée : aucune source ne la détaille par candidat.
-
-### La fiche d'un député
-
-- **L'addition** : ce que le siège coûte par mois et par an, l'équivalent en années de SMIC, et un compteur
-  de l'argent public mobilisé depuis son entrée en fonction.
-- **Ce que révèlent les registres publics** : des signalements datés et sourcés, par exemple
-  - une fonction de maire ou de président d'intercommunalité occupée en même temps que le mandat de député,
-    alors que la loi l'interdit ;
-  - un mandat local absent de sa déclaration d'intérêts ;
-  - un nouveau mandat non signalé à la HATVP dans les deux mois ;
-  - une déclaration déposée après le délai légal.
-- **Cinq onglets** :
-  - **Cumuls** : revenus déclarés année par année comparés au SMIC, activités exercées en parallèle du
-    mandat, mandats locaux en cours, plafond des indemnités locales, anciens mandats (Parlement européen,
-    Sénat, Gouvernement…), puis le détail de sa déclaration d'intérêts, rubrique par rubrique ;
-  - **Salaire** : indemnité parlementaire, indemnités spéciales, frais de mandat, collaborateurs ;
-  - **Capital** : parts détenues dans des sociétés, avec leur valeur déclarée ;
-  - **Déclarations** : toutes les déclarations HATVP, avec leurs dates et leur statut ;
-  - **Profil** : circonscription, commissions, biographie, contact.
-- **Précisions et sources** en bas de la fiche : le détail de chaque calcul. Les astérisques du coût y
-  renvoient directement.
-- **Les données manquantes restent visibles** : la fiche distingue une déclaration non déposée, déposée mais
-  pas encore publiée, une partie laissée vide, et « aucun » déclaré.
-- La fiche reste ouverte quand on clique sur un autre siège, pour comparer facilement.
-- Thème clair ou sombre au choix, avec le bouton à côté de la recherche (par défaut, celui de l'appareil),
-  et affichage adapté au téléphone.
+Données sous [Licence Ouverte 2.0](https://www.etalab.gouv.fr/licence-ouverte-open-licence/). Les informations
+de la HATVP respectent ses [mentions légales](https://www.hatvp.fr/mentions-legales/) : reproduction sans
+modification, droits réservés et strictement limités, aucun usage commercial.
 
 ## Développement
 
-### Démarrage rapide
-
 ```bash
 npm install
-npm run data   # télécharge les données publiques et génère public/data/deputies.json et senators.json
-npm run dev    # http://localhost:5173
+npm run data    # télécharge les données publiques (~170 Mo) et génère public/data/*.json
+npm run dev     # http://localhost:5173
+npm run build   # vérifie les types et construit dans dist/
+npm run lint
 ```
 
-Les fichiers de `public/data/` sont générés et ne sont pas versionnés : lancez `npm run data` après un clone, puis à
-nouveau pour obtenir des données plus récentes. Le script télécharge environ 170 Mo (HATVP et Répertoire
-national des élus).
+React 19, TypeScript, Vite, Tailwind CSS et shadcn/ui. Site statique, sans backend : chaque page lit un
+fichier JSON généré. Il n'y a pas de tests : vérifiez une modification avec `npm run build`, puis dans le
+navigateur.
 
-| Commande          | Rôle                                                                        |
-| ----------------- | --------------------------------------------------------------------------- |
-| `npm run data`    | Télécharge les données de l'AN, du Sénat, de la HATVP et du RNE, et régénère `public/data/*.json` |
-| `npm run dev`     | Lance le serveur de développement Vite                                      |
-| `npm run build`   | Vérifie les types (`tsc -b`) et construit dans `dist/`                      |
-| `npm run preview` | Sert la version de production                                               |
-| `npm run lint`    | Lance Oxlint                                                                |
+Le site est déployé sur GitHub Pages par `.github/workflows/deploy.yml`, à chaque push sur `main` et chaque
+lundi. Certaines données (barèmes, composition du Gouvernement, budgets, comptes de campagne) sont saisies à la
+main dans `scripts/` : voir [docs/data.md](docs/data.md). L'interface est décrite dans
+[docs/frontend.md](docs/frontend.md), la suite dans [docs/roadmap.md](docs/roadmap.md).
 
-Il n'y a pas de tests automatisés : vérifiez une modification avec `npm run build`, puis en ouvrant la fiche
-d'un député dans le navigateur.
+## Contribuer
 
-### Stack
+Une erreur, une donnée qui ne correspond pas à sa source ? [Ouvrez un ticket](https://github.com/leopard577/hemicycle/issues).
 
-React 19, TypeScript 7, Vite 8, React Router 7, Tailwind CSS v4 et [shadcn/ui](https://ui.shadcn.com) (Radix, preset
-« Nova », icônes Lucide). Les scripts de données sont en Node ESM, avec `adm-zip` et `fast-xml-parser`.
-L'application est un front statique : son seul « backend » est le fichier JSON généré.
+## Licence
 
-### Mettre à jour les barèmes
-
-Les montants de rémunération (`deputyPayScales`, `DEPUTY_SPECIAL_ALLOWANCES`) et le SMIC (`minimumWage`) sont
-saisis à la main dans `scripts/pay-scales.mjs`. Mettez-les à jour quand l'Assemblée publie une nouvelle fiche n° 7 ou quand
-le SMIC est revalorisé, puis relancez `npm run data`.
-
-### Déploiement
-
-Le workflow `.github/workflows/deploy.yml` publie le site sur GitHub Pages. Il télécharge les données,
-construit le site et le déploie :
-
-- à chaque push sur `main` ;
-- chaque lundi à 5 h UTC, pour rafraîchir les données ;
-- à la demande, depuis l'onglet **Actions** (« Run workflow »).
-
-Pour l'activer, choisir **GitHub Actions** dans **Settings → Pages → Build and deployment → Source**. Si une
-source de données est indisponible, le build échoue et la version déjà en ligne reste en place.
-
-Le site utilise des chemins relatifs (`base: './'` dans `vite.config.ts`) : il fonctionne aussi bien à la
-racine d'un domaine que dans un sous-dossier comme `/hemicycle/`.
-
-### Limites connues
-
-- La disposition des sièges est un schéma d'hémicycle générique, pas le plan de placement réel. Le numéro
-  de place réel figure dans la fiche.
-- Les mandats déclarés à la HATVP sont saisis en texte libre : leur rapprochement avec le Répertoire national
-  des élus est approximatif. Vérifiez un signalement à la main avant de le citer.
-- Les autres réserves sur les données sont détaillées dans [docs/data.md](docs/data.md#limitations).
-
-### Licence
-
-Le code est publié sous licence [MIT](LICENSE). Les données restent sous Licence Ouverte 2.0 : en les
-réutilisant, citez leur source (Assemblée nationale, HATVP, ministère de l'Intérieur) et la date de leur
-dernière mise à jour.
+Code sous licence [MIT](LICENSE). En réutilisant les données, citez leur source et leur date de mise à jour.

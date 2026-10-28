@@ -85,8 +85,6 @@ export function CandidatesPage() {
             (calcul). La campagne officielle (affiches, professions de foi, bulletins), payée directement par l'État,
             n'est pas comptée.
           </p>
-
-          <Timeline data={data} />
         </section>
 
         <section className="space-y-4">
@@ -114,6 +112,12 @@ export function CandidatesPage() {
               <CandidateRow key={c.id} candidate={c} maxSpending={maxSpending} data={data} />
             ))}
           </ul>
+        </section>
+
+        {/* After the chart: the page opens on what the campaigns cost, the dates come next */}
+        <section className="space-y-4">
+          <h2 className="font-heading text-xl font-semibold">Les étapes de l'élection</h2>
+          <Timeline data={data} />
         </section>
 
         <section className="grid gap-8 md:grid-cols-2">
@@ -211,8 +215,9 @@ function NetWorthChart({ data }: { data: CandidatesDataset }) {
     { id: 'mean', label: 'Ménage moyen', amount: households.mean, reference: 'mean' as const },
   ].sort((a, b) => b.amount - a.amount)
   const max = rows[0].amount
+  // The "×" ratio columns only fit from the sm breakpoint: phones get name, bar and amount
   const grid =
-    'grid grid-cols-[7rem_1fr_4rem_2.75rem_2.75rem] items-center gap-2 sm:grid-cols-[14rem_1fr_6rem_5rem_5rem] sm:gap-3'
+    'grid grid-cols-[10rem_1fr_4rem] items-center gap-2 sm:grid-cols-[14rem_1fr_6rem_5rem_5rem] sm:gap-3'
   return (
     <section className="space-y-4">
       <div className="space-y-1">
@@ -227,7 +232,7 @@ function NetWorthChart({ data }: { data: CandidatesDataset }) {
       </div>
 
       <div className="space-y-2">
-        <div className={cn(grid, 'text-xs text-muted-foreground')}>
+        <div className={cn(grid, 'text-xs text-muted-foreground max-sm:hidden')}>
           <span className="col-span-3" />
           <span className="text-right">× médiane</span>
           <span className="text-right">× moyenne</span>
@@ -261,10 +266,10 @@ function NetWorthChart({ data }: { data: CandidatesDataset }) {
                 />
               </svg>
               <span className="text-right font-medium tabular-nums">{formatEuro(r.amount, { compact: true })}</span>
-              <span className="text-right text-xs text-muted-foreground tabular-nums">
+              <span className="text-right text-xs text-muted-foreground tabular-nums max-sm:hidden">
                 {r.reference ? '' : `× ${multiple(r.amount / households.median)}`}
               </span>
-              <span className="text-right text-xs text-muted-foreground tabular-nums">
+              <span className="text-right text-xs text-muted-foreground tabular-nums max-sm:hidden">
                 {r.reference ? '' : `× ${multiple(r.amount / households.mean)}`}
               </span>
             </li>
@@ -272,7 +277,10 @@ function NetWorthChart({ data }: { data: CandidatesDataset }) {
         </ul>
       </div>
       <Note>
-        « × » : patrimoine du candidat divisé par celui du ménage médian ou moyen (calcul). Les chiffres de l'Insee
+        <span className="max-sm:hidden">
+          « × » : patrimoine du candidat divisé par celui du ménage médian ou moyen (calcul).{' '}
+        </span>
+        Les chiffres de l'Insee
         portent sur un ménage (toutes les personnes d'un même logement) au début de {households.date}, ceux des
         candidats sur leur propre déclaration en mars 2022 : la comparaison donne un ordre de grandeur. Source :{' '}
         <ExternalLink href={households.source.url}>{households.source.label}</ExternalLink>.
