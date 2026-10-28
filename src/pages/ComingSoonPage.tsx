@@ -4,14 +4,7 @@ import { Link } from 'react-router'
 import { type Page, pathTo } from '@/lib/pages'
 
 // What each page will show, and where its data will come from
-const CONTENT: Record<Exclude<Page, 'deputies'>, { title: string; eyebrow: string; overview: string; sources: string[] }> = {
-  senators: {
-    title: 'Le Sénat',
-    eyebrow: 'Sénat · 348 sièges',
-    overview:
-      "Ce que coûte chaque siège de sénateur, ce que chacun cumule en plus de son mandat, et l'état de ses déclarations auprès de la HATVP.",
-    sources: ['Open data du Sénat', 'HATVP', 'Répertoire national des élus (ministère de l’Intérieur)'],
-  },
+const CONTENT: Partial<Record<Page, { title: string; eyebrow: string; overview: string; sources: string[] }>> = {
   government: {
     title: 'Le Gouvernement',
     eyebrow: 'Présidence de la République · Gouvernement',
@@ -33,8 +26,10 @@ const CONTENT: Record<Exclude<Page, 'deputies'>, { title: string; eyebrow: strin
 }
 
 /** Page whose data is not integrated yet: it announces its content without showing any figure */
-export function ComingSoonPage({ page }: { page: Exclude<Page, 'deputies'> }) {
-  const { title, eyebrow, overview, sources } = CONTENT[page]
+export function ComingSoonPage({ page }: { page: Page }) {
+  const content = CONTENT[page]
+  if (!content) return null
+  const { title, eyebrow, overview, sources } = content
   return (
     <>
       <div className="border-b">

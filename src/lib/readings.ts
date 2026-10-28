@@ -1,5 +1,6 @@
 // Hemicycle readings: every seat is coloured according to an indicator taken from `summary`
 import type { Summary } from '@/lib/money'
+import type { Office } from '@/lib/offices'
 import { formatEuro } from '@/lib/format'
 
 export type Reading = 'group' | 'overlaps' | 'sideIncome' | 'capital' | 'alerts'
@@ -17,7 +18,7 @@ interface ReadingDefinition {
   /** Ranking value; 0 = left out of the ranking */
   value: (s: Summary) => number
   detail: (s: Summary) => string | null
-  overview: (count: number, summaries: Summary[]) => string
+  overview: (count: number, summaries: Summary[], office: Office) => string
 }
 
 const NONE = { fill: 'fill-muted-foreground/25', bg: 'bg-muted-foreground/25' }
@@ -37,7 +38,7 @@ export const READINGS: Record<Exclude<Reading, 'group'>, ReadingDefinition> = {
       s.overlaps
         ? `${s.overlaps} mandat${s.overlaps > 1 ? 's' : ''} ou activité${s.overlaps > 1 ? 's' : ''} en plus`
         : null,
-    overview: (n) => `${n} députés exercent au moins un autre mandat ou une activité rémunérée en même temps.`,
+    overview: (n, _, o) => `${n} ${o.plural} exercent au moins un autre mandat ou une activité rémunérée en même temps.`,
   },
   sideIncome: {
     label: 'Autres revenus',
@@ -50,8 +51,8 @@ export const READINGS: Record<Exclude<Reading, 'group'>, ReadingDefinition> = {
     ],
     value: (s) => s.sideIncome,
     detail: (s) => (s.sideIncome > 0 ? `+${formatEuro(s.sideIncome, { round: true })} par an` : null),
-    overview: (n, summaries) =>
-      `${n} députés déclarent des revenus en plus de leur indemnité : ${formatEuro(
+    overview: (n, summaries, o) =>
+      `${n} ${o.plural} déclarent des revenus en plus de leur indemnité : ${formatEuro(
         summaries.reduce((sum, s) => sum + s.sideIncome, 0),
         { compact: true },
       )} par an au total.`,
@@ -67,8 +68,8 @@ export const READINGS: Record<Exclude<Reading, 'group'>, ReadingDefinition> = {
     ],
     value: (s) => s.capital,
     detail: (s) => (s.capital > 0 ? formatEuro(s.capital, { compact: true }) : null),
-    overview: (n, summaries) =>
-      `${n} députés déclarent des parts dans des sociétés, pour une valeur totale de ${formatEuro(
+    overview: (n, summaries, o) =>
+      `${n} ${o.plural} déclarent des parts dans des sociétés, pour une valeur totale de ${formatEuro(
         summaries.reduce((sum, s) => sum + s.capital, 0),
         { compact: true },
       )}. Le patrimoine immobilier et l'épargne n'y figurent pas.`,
@@ -95,8 +96,8 @@ export const READINGS: Record<Exclude<Reading, 'group'>, ReadingDefinition> = {
       const n = s.serious + s.warnings
       return n ? `${n} signalement${n > 1 ? 's' : ''}` : null
     },
-    overview: (n) =>
-      `${n} députés ont au moins un point signalé dans leurs déclarations, en comparant les registres de l'Assemblée, de la HATVP et du Répertoire national des élus.`,
+    overview: (n, _, o) =>
+      `${n} ${o.plural} ont au moins un point signalé dans leurs déclarations, en comparant les registres ${o.ofInstitution}, de la HATVP et du Répertoire national des élus.`,
   },
 }
 

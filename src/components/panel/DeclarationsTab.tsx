@@ -1,11 +1,16 @@
 import { Badge } from '@/components/ui/badge'
 import { ASSETS, declarationsOf, declarationStatus, INTERESTS, KIND } from '@/lib/declarations'
 import { formatDate } from '@/lib/format'
-import type { DeclarationType, Deputy, HatvpDeclaration } from '@/types'
+import { pendingDeadline } from '@/lib/money'
+import type { Office } from '@/lib/offices'
+import type { DeclarationType, HatvpDeclaration, Parliamentarian } from '@/types'
 import { ExternalLink, MissingData, Section } from './parts'
 
-export function DeclarationsTab({ deputy }: { deputy: Deputy }) {
-  const { declarations, page } = deputy.hatvp
+export function DeclarationsTab({ member, office }: { member: Parliamentarian; office: Office }) {
+  const { declarations, page } = member.hatvp
+  // Still within the legal deadline after taking office: a missing declaration is expected, not late
+  const dueDate = pendingDeadline(member.startDate)
+  const who = office.the(member.honorific === 'Mme')
 
   return (
     <div className="divide-y">
@@ -18,6 +23,8 @@ export function DeclarationsTab({ deputy }: { deputy: Deputy }) {
           declarations={declarations}
           types={INTERESTS}
           emptyTitle="Aucune déclaration d'intérêts enregistrée"
+          dueDate={dueDate}
+          who={who}
         />
       </Section>
 
@@ -30,6 +37,8 @@ export function DeclarationsTab({ deputy }: { deputy: Deputy }) {
           declarations={declarations}
           types={ASSETS}
           emptyTitle="Aucune déclaration de situation patrimoniale enregistrée"
+          dueDate={dueDate}
+          who={who}
         />
       </Section>
 
@@ -52,13 +61,25 @@ function DeclarationList({
   declarations,
   types,
   emptyTitle,
+  dueDate,
+  who,
 }: {
   declarations: HatvpDeclaration[]
   types: DeclarationType[]
   emptyTitle: string
+  /** End of the legal deadline when it has not passed yet */
+  dueDate: string | null
+  who: string
 }) {
   const items = declarationsOf(declarations, types)
-  if (!items.length) return <MissingData missing title={emptyTitle} />
+  if (!items.length)
+    return dueDate ? (
+      <MissingData title="Déclaration attendue">
+        {`La HATVP n'en enregistre pas encore : ${who} a jusqu'au ${formatDate(dueDate)} pour la déposer.`}
+      </MissingData>
+    ) : (
+      <MissingData missing title={emptyTitle} />
+    )
 
   return (
     <ul className="divide-y rounded-lg border">

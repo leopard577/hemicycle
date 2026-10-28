@@ -8,26 +8,42 @@ import {
   incomeLines,
   isExecutive,
   isMandateDeclared,
+  pendingDeadline,
   sideIncome,
   type YearIncome,
 } from '@/lib/money'
 import { formatDate, formatEuro } from '@/lib/format'
-import type { Deputy, Income, LocalMandate, PayScales } from '@/types'
+import type { Office } from '@/lib/offices'
+import type { Income, LocalMandate, Parliamentarian, PayScales } from '@/types'
 import { MissingData, Note, Section } from './parts'
 
-export function OverlapsTab({ deputy, payScales }: { deputy: Deputy; payScales: PayScales }) {
-  const lines = incomeLines(deputy)
+interface TabProps {
+  member: Parliamentarian
+  payScales: PayScales
+  office: Office
+}
+
+// Parliamentary mandates whose past terms are listed among "other mandates"
+const PARLIAMENTS = ['deputy', 'european', 'senate'] as const
+
+export function OverlapsTab({ member, payScales, office }: TabProps) {
+  const lines = incomeLines(member)
   const years = incomeByYear(lines)
-  const side = sideIncome(lines)
-  const pastOffices = lines.filter((l) => (l.category === 'european' || l.category === 'senate') && !l.ongoing)
-  const { interests, otherMandates } = deputy.hatvp
+  const side = sideIncome(lines, office)
+  const pastOffices = lines.filter(
+    (l) => PARLIAMENTS.some((c) => c === l.category && c !== office.category) && !l.ongoing,
+  )
+  const { interests, otherMandates } = member.hatvp
+  const due = pendingDeadline(member.startDate)
 
   return (
     <div className="divide-y">
       <Section title="Revenus déclarés, année par année">
         {!interests ? (
           <MissingData title="Déclaration d'intérêts non disponible">
-            Sans contenu publié, impossible de reconstituer ses revenus déclarés.
+            {due
+              ? `Sa première déclaration d'intérêts du mandat est attendue d'ici le ${formatDate(due)}.`
+              : 'Sans contenu publié, impossible de reconstituer ses revenus déclarés.'}
           </MissingData>
         ) : years.length ? (
           <IncomeChart years={years} yearlyMinimumWage={payScales.minimumWage.gross * 12} />
@@ -53,19 +69,19 @@ export function OverlapsTab({ deputy, payScales }: { deputy: Deputy; payScales: 
             ))}
           </ul>
         ) : (
-          <Note>Aucune activité ni aucun mandat déclarés en parallèle du mandat de député.</Note>
+          <Note>Aucune activité ni aucun mandat déclarés en parallèle du mandat de {office.noun}.</Note>
         )}
       </Section>
 
       <Section title="Mandats locaux en cours" aside={<Badge variant="outline">Répertoire national des élus</Badge>}>
-        {deputy.localMandates.length ? (
+        {member.localMandates.length ? (
           <>
             <ul className="divide-y rounded-lg border">
-              {deputy.localMandates.map((m, i) => (
-                <RneMandate key={i} mandate={m} declared={interests?.mandates ?? null} />
+              {member.localMandates.map((m, i) => (
+                <RneMandate key={i} mandate={m} declared={interests?.mandates ?? null} office={office} />
               ))}
             </ul>
-            <LocalAllowanceCap declared={side.local} monthlyCap={payScales.localAllowanceCap} />
+            <LocalAllowanceCap declared={side.local} monthlyCap={payScales.localAllowanceCap} office={office} />
           </>
         ) : (
           <Note>Aucun mandat local en cours au Répertoire national des élus.</Note>
@@ -113,12 +129,12 @@ export function OverlapsTab({ deputy, payScales }: { deputy: Deputy; payScales: 
 }
 
 /** Notes for the tab, shown in "Précisions et sources" at the bottom of the panel */
-export function OverlapsNotes({ deputy, payScales }: { deputy: Deputy; payScales: PayScales }) {
-  const rneUpdatedAt = deputy.localMandates[0]?.updatedAt
+export function OverlapsNotes({ member, payScales, office }: TabProps) {
+  const rneUpdatedAt = member.localMandates[0]?.updatedAt
   return (
     <>
       <Note>
-        Revenus : montants que le député a lui-même déclarés à la HATVP, bruts ou nets selon les déclarations, pour les
+        Revenus : montants que {office.the(false)} a lui-même déclarés à la HATVP, bruts ou nets selon les déclarations, pour les
         cinq années précédant sa déclaration. Ils ne sont pas vérifiés par l'application.
       </Note>
       <Note>
@@ -134,7 +150,7 @@ export function OverlapsNotes({ deputy, payScales }: { deputy: Deputy; payScales
         Les indemnités de mandats locaux s'ajoutent à l'indemnité parlementaire dans la limite de{' '}
         {formatEuro(payScales.localAllowanceCap)} par mois ; au-delà, elles sont écrêtées. Les fonctions exécutives locales
         (maire, adjoint, président ou vice-président d'une collectivité ou d'une intercommunalité) sont incompatibles
-        avec le mandat de député depuis 2017.
+        avec le mandat de {office.noun} depuis 2017.
       </Note>
     </>
   )
@@ -271,7 +287,7 @@ function SideIncomeRow({ line }: { line: IncomeLine }) {
   )
 }
 
-function RneMandate({ mandate, declared }: { mandate: LocalMandate; declared: Income[] | null }) {
+function RneMandate({ mandate, declared, office }: { mandate: LocalMandate; declared: Income[] | null; office: Office }) {
   const executive = isExecutive(mandate)
   const isDeclared = declared ? isMandateDeclared(mandate, declared) : null
   const role = displayedRole(mandate)
@@ -286,7 +302,7 @@ function RneMandate({ mandate, declared }: { mandate: LocalMandate; declared: In
         </div>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">
-        {executive && <Badge variant="destructive">Interdit avec le mandat de député</Badge>}
+        {executive && <Badge variant="destructive">Interdit avec le mandat de {office.noun}</Badge>}
         {isDeclared === true && <Badge variant="secondary">Déclaré à la HATVP</Badge>}
         {isDeclared === false && (
           <Badge variant="outline" className="border-orange-500/60 text-orange-700 dark:text-orange-400">
@@ -299,7 +315,7 @@ function RneMandate({ mandate, declared }: { mandate: LocalMandate; declared: In
 }
 
 /** Declared local allowances against the cap above which they are cut */
-function LocalAllowanceCap({ declared, monthlyCap }: { declared: number; monthlyCap: number }) {
+function LocalAllowanceCap({ declared, monthlyCap, office }: { declared: number; monthlyCap: number; office: Office }) {
   const cap = monthlyCap * 12
   const share = Math.min(1, declared / cap)
   return (
@@ -316,7 +332,7 @@ function LocalAllowanceCap({ declared, monthlyCap }: { declared: number; monthly
         <rect width={share} height={1} className="fill-amber-500" />
       </svg>
       <Note>
-        Un député peut toucher jusqu'à {formatEuro(cap, { round: true })} par an d'indemnités locales en plus de son
+        Un {office.noun} peut toucher jusqu'à {formatEuro(cap, { round: true })} par an d'indemnités locales en plus de son
         indemnité parlementaire.
       </Note>
     </div>

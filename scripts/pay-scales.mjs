@@ -11,8 +11,12 @@ export const minimumWage = {
 // Source: Assemblée nationale, fiche de synthèse n° 7 "La situation matérielle du député"
 // (updated January 2026). Monthly amounts in euros.
 export const deputyPayScales = {
-  source:
-    'https://www.assemblee-nationale.fr/dyn/synthese/deputes-groupes-parlementaires/la-situation-materielle-du-depute',
+  sources: [
+    {
+      label: 'Assemblée nationale, fiche n° 7',
+      url: 'https://www.assemblee-nationale.fr/dyn/synthese/deputes-groupes-parlementaires/la-situation-materielle-du-depute',
+    },
+  ],
   updatedAt: '2026-01',
   allowance: { base: 5931.95, residence: 177.96, office: 1527.48, gross: 7637.39, net: 5953.34 },
   expenseAllowance: 7238.04,
@@ -31,4 +35,46 @@ export const DEPUTY_SPECIAL_ALLOWANCES = [
   { organType: 'COMPER', role: 'Président', label: 'Président de commission permanente', amount: 931.76 },
   { organType: 'COMPER', role: 'Rapporteur général', label: 'Rapporteur général', amount: 931.76 },
   { organType: 'OFFPAR', organ: /choix scientifiques et technologiques/i, role: 'Président', label: "Président de l'OPECST", amount: 931.76 },
+]
+
+// Sources: Sénat, "L'indemnité parlementaire" (updated 30 March 2026), "Les frais de mandat" (updated
+// 20 January 2025) and "Les moyens mis à la disposition des sénateurs" (staff credit as of 1 July 2023).
+// Monthly amounts in euros. The allowance is set by the same ordinance as the deputies'.
+export const senatorPayScales = {
+  sources: [
+    {
+      label: 'Sénat, « L’indemnité parlementaire »',
+      url: 'https://www.senat.fr/connaitre-le-senat/role-et-fonctionnement/lindemnite-parlementaire.html',
+    },
+    {
+      label: 'Sénat, « Les frais de mandat »',
+      url: 'https://www.senat.fr/connaitre-le-senat/role-et-fonctionnement/les-frais-de-mandat.html',
+    },
+    {
+      label: 'Sénat, « Les moyens mis à la disposition des sénateurs »',
+      url: 'https://www.senat.fr/connaitre-le-senat/role-et-fonctionnement/les-moyens-mis-a-la-disposition-des-senateurs.html',
+    },
+  ],
+  updatedAt: '2026-03',
+  allowance: { base: 5931.95, residence: 177.96, office: 1527.48, gross: 7637.39, net: 5676.12 },
+  // General monthly expense advance; the dedicated advances (IT, Paris lodging, representation) are left out
+  expenseAllowance: 6600,
+  staffBudget: 8827.4,
+  maxStaff: 5,
+  localAllowanceCap: 2965.98,
+  minimumWage,
+}
+
+// Senators' function allowances (gross per month, "L'indemnité parlementaire"). `source` names the Sénat
+// file the role is read from, `role` matches its function column.
+export const SENATOR_SPECIAL_ALLOWANCES = [
+  { source: 'bureau', role: /^Président du Sénat$/, label: 'Président du Sénat', amount: 7591.58 },
+  { source: 'bureau', role: /^Vice-président(e)? du Sénat$/, label: 'Vice-président du Sénat', amount: 2184.3 },
+  { source: 'bureau', role: /^Questeure? du Sénat$/, label: 'Questeur', amount: 4444.97 },
+  { source: 'bureau', role: /^Secrétaire du Sénat$/, label: 'Secrétaire du Bureau', amount: 748.7 },
+  { source: 'group', role: /^Président$/, label: 'Président de groupe politique', amount: 2184.3 },
+  { source: 'committee', role: /^Président$/, label: 'Président de commission permanente', amount: 2184.3 },
+  { source: 'committee', role: /^Rapporteur général$/, label: 'Rapporteur général', amount: 2184.3 },
+  { source: 'delegation', role: /^Président$/, label: 'Président de délégation', amount: 2016.27 },
+  { source: 'opecst', role: /^Président$/, label: "Président de l'OPECST", amount: 931.76 },
 ]

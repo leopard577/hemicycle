@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { type ReactNode, useRef, useState } from 'react'
 import { XIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -6,29 +6,41 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { alerts } from '@/lib/money'
-import type { Deputy, Group, PayScales } from '@/types'
-import { Alerts } from './deputy/Alerts'
-import { CostNotes, CostSummary } from './deputy/CostSummary'
-import { DeclarationsTab } from './deputy/DeclarationsTab'
-import { InterestsTab } from './deputy/InterestsTab'
-import { OverlapsNotes, OverlapsTab } from './deputy/OverlapsTab'
-import { PayNotes, PayTab } from './deputy/PayTab'
-import { ProfileTab } from './deputy/ProfileTab'
-import { NoteGroup, NotesAndSources } from './deputy/parts'
+import type { Office } from '@/lib/offices'
+import type { Group, Parliamentarian, PayScales } from '@/types'
+import { Alerts } from './panel/Alerts'
+import { CostNotes, CostSummary } from './panel/CostSummary'
+import { DeclarationsTab } from './panel/DeclarationsTab'
+import { InterestsTab } from './panel/InterestsTab'
+import { OverlapsNotes, OverlapsTab } from './panel/OverlapsTab'
+import { PayNotes, PayTab } from './panel/PayTab'
+import { NoteGroup, NotesAndSources } from './panel/parts'
 
-interface Props {
-  deputy: Deputy | null
+interface Props<T extends Parliamentarian> {
+  member: T | null
   group: Group | undefined
   payScales: PayScales
+  office: Office
+  /** Content of the "Profil" tab, specific to each chamber */
+  profile: (m: T) => ReactNode
   onClose: () => void
+}
+
+interface DetailsProps {
+  member: Parliamentarian
+  group: Group | undefined
+  payScales: PayScales
+  office: Office
+  profile: ReactNode
 }
 
 const TAB_TRIGGER = 'max-sm:px-1 max-sm:text-[0.8125rem] max-[22.5rem]:px-0.5 max-[22.5rem]:text-xs'
 
-export function DeputyPanel({ deputy, group, payScales, onClose }: Props) {
+/** Side panel of a member of Parliament: cost, alerts, then tabs */
+export function MemberPanel<T extends Parliamentarian>({ member, group, payScales, office, profile, onClose }: Props<T>) {
   return (
-    // Non-modal: the hemicycle stays clickable to switch from one deputy to another
-    <Sheet open={deputy !== null} modal={false} onOpenChange={(open) => !open && onClose()}>
+    // Non-modal: the hemicycle stays clickable to switch from one member to another
+    <Sheet open={member !== null} modal={false} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
         showCloseButton={false}
@@ -36,14 +48,23 @@ export function DeputyPanel({ deputy, group, payScales, onClose }: Props) {
         onInteractOutside={(e) => e.preventDefault()}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        {deputy && <DeputyDetails key={deputy.id} deputy={deputy} group={group} payScales={payScales} />}
+        {member && (
+          <MemberDetails
+            key={member.id}
+            member={member}
+            group={group}
+            payScales={payScales}
+            office={office}
+            profile={profile(member)}
+          />
+        )}
       </SheetContent>
     </Sheet>
   )
 }
 
-function DeputyDetails({ deputy, group, payScales }: { deputy: Deputy; group: Group | undefined; payScales: PayScales }) {
-  const feminine = deputy.honorific === 'Mme'
+function MemberDetails({ member, group, payScales, office, profile }: DetailsProps) {
+  const feminine = member.honorific === 'Mme'
   const body = useRef<HTMLDivElement>(null)
   const tabs = useRef<HTMLDivElement>(null)
   const [notesOpen, setNotesOpen] = useState(false)
@@ -73,17 +94,17 @@ function DeputyDetails({ deputy, group, payScales }: { deputy: Deputy; group: Gr
       >
         <div className="shrink-0 rounded-full bg-border p-[3px]" style={{ background: group?.color }}>
           <Avatar className="size-14 border-2 border-background sm:size-16">
-            <AvatarImage src={deputy.photo} alt="" className="object-cover" />
+            <AvatarImage src={member.photo} alt="" className="object-cover" />
             <AvatarFallback className="font-heading text-xl font-bold">
-              {deputy.firstName[0]}
-              {deputy.lastName[0]}
+              {member.firstName[0]}
+              {member.lastName[0]}
             </AvatarFallback>
           </Avatar>
         </div>
         <div className="min-w-0 space-y-1">
-          <p className="text-xs tracking-wider text-muted-foreground uppercase">{feminine ? 'Députée' : 'Député'}</p>
+          <p className="text-xs tracking-wider text-muted-foreground uppercase">{office.title(feminine)}</p>
           <SheetTitle className="text-xl leading-tight font-semibold sm:text-2xl">
-            {deputy.firstName} {deputy.lastName}
+            {member.firstName} {member.lastName}
           </SheetTitle>
           <SheetDescription asChild>
             <div>
@@ -105,13 +126,13 @@ function DeputyDetails({ deputy, group, payScales }: { deputy: Deputy; group: Gr
         </SheetClose>
       </SheetHeader>
 
-      {/* Only the body scrolls; it is recreated for every deputy, so it starts from the top */}
+      {/* Only the body scrolls; it is recreated for every member, so it starts from the top */}
       <div
         ref={body}
         className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth motion-reduce:scroll-auto"
       >
-        <CostSummary deputy={deputy} payScales={payScales} onNoteRef={showNote} />
-        <Alerts alerts={alerts(deputy)} />
+        <CostSummary member={member} payScales={payScales} office={office} onNoteRef={showNote} />
+        <Alerts alerts={alerts(member, office)} />
 
         <Tabs ref={tabs} defaultValue="overlaps" onValueChange={scrollToTabs} className="gap-0 px-6 pb-4">
           <div className="sticky top-0 z-10 -mx-6 bg-popover px-6 py-2">
@@ -134,32 +155,30 @@ function DeputyDetails({ deputy, group, payScales }: { deputy: Deputy; group: Gr
             </TabsList>
           </div>
           <TabsContent value="overlaps">
-            <OverlapsTab deputy={deputy} payScales={payScales} />
+            <OverlapsTab member={member} payScales={payScales} office={office} />
           </TabsContent>
-          <TabsContent value="profile">
-            <ProfileTab deputy={deputy} />
-          </TabsContent>
+          <TabsContent value="profile">{profile}</TabsContent>
           <TabsContent value="pay">
-            <PayTab deputy={deputy} payScales={payScales} />
+            <PayTab member={member} payScales={payScales} office={office} />
           </TabsContent>
           <TabsContent value="interests">
-            <InterestsTab deputy={deputy} />
+            <InterestsTab member={member} office={office} />
           </TabsContent>
           <TabsContent value="declarations">
-            <DeclarationsTab deputy={deputy} />
+            <DeclarationsTab member={member} office={office} />
           </TabsContent>
         </Tabs>
 
         <div className="border-t px-6 pb-6">
           <NotesAndSources open={notesOpen} onOpenChange={setNotesOpen}>
             <NoteGroup title="Calcul du coût du siège">
-              <CostNotes deputy={deputy} payScales={payScales} />
+              <CostNotes member={member} payScales={payScales} office={office} />
             </NoteGroup>
             <NoteGroup title="Cumuls et revenus déclarés">
-              <OverlapsNotes deputy={deputy} payScales={payScales} />
+              <OverlapsNotes member={member} payScales={payScales} office={office} />
             </NoteGroup>
             <NoteGroup title="Salaire et frais de mandat">
-              <PayNotes deputy={deputy} payScales={payScales} />
+              <PayNotes member={member} payScales={payScales} office={office} />
             </NoteGroup>
           </NotesAndSources>
         </div>

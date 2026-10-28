@@ -2,7 +2,9 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { declarationsOf, declarationStatus, INTERESTS } from '@/lib/declarations'
 import { formatDate, formatEuro } from '@/lib/format'
-import type { Deputy, Holding, Income, Interests } from '@/types'
+import { pendingDeadline } from '@/lib/money'
+import type { Office } from '@/lib/offices'
+import type { Holding, Income, Interests, Parliamentarian } from '@/types'
 import { ExternalLink, MissingData, Note, Section } from './parts'
 
 const SECTIONS: { key: 'jobs' | 'mandates' | 'consulting' | 'directorships'; title: string }[] = [
@@ -12,10 +14,15 @@ const SECTIONS: { key: 'jobs' | 'mandates' | 'consulting' | 'directorships'; tit
   { key: 'directorships', title: 'Fonctions de dirigeant (sociétés, associations…)' },
 ]
 
-export function InterestsTab({ deputy }: { deputy: Deputy }) {
-  const { interests, page } = deputy.hatvp
+interface TabProps {
+  member: Parliamentarian
+  office: Office
+}
 
-  if (!interests) return <MissingInterests deputy={deputy} />
+export function InterestsTab({ member, office }: TabProps) {
+  const { interests, page } = member.hatvp
+
+  if (!interests) return <MissingInterests member={member} office={office} />
 
   return (
     <div className="divide-y">
@@ -46,9 +53,22 @@ export function InterestsTab({ deputy }: { deputy: Deputy }) {
 }
 
 /** Explains why the content is unavailable, from the filing status */
-function MissingInterests({ deputy }: { deputy: Deputy }) {
-  const latest = declarationsOf(deputy.hatvp.declarations, INTERESTS)[0]
-  const page = deputy.hatvp.page
+function MissingInterests({ member, office }: TabProps) {
+  const declarations = declarationsOf(member.hatvp.declarations, INTERESTS)
+  const latest = declarations[0]
+  const page = member.hatvp.page
+  const due = pendingDeadline(member.startDate)
+
+  // Newly in office and still within the legal deadline: nothing is missing yet
+  if (due && !declarations.some((d) => (d.filedAt ?? '') >= member.startDate))
+    return (
+      <div className="py-4">
+        <MissingData title="Déclaration attendue">
+          En fonction depuis le {formatDate(member.startDate)}, {office.the(member.honorific === 'Mme')} a jusqu'au{' '}
+          {formatDate(due)} pour déposer sa déclaration d'intérêts et d'activités auprès de la HATVP.
+        </MissingData>
+      </div>
+    )
 
   if (!latest)
     return (

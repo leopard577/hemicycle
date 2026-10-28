@@ -46,3 +46,40 @@ export const nameTokens = (...parts) =>
   )
 
 export const intersects = (a, b) => [...a].some((t) => b.has(t))
+
+/** Comma-separated CSV with quoted fields (Sénat open data); lines starting with `%` are comments */
+export function parseQuotedCsv(text) {
+  const body = text
+    .split(/\r?\n/)
+    .filter((l) => l && !l.startsWith('%'))
+    .join('\n')
+  const rows = []
+  let row = []
+  let field = ''
+  let quoted = false
+  const endField = () => {
+    row.push(field)
+    field = ''
+  }
+  const endRow = () => {
+    endField()
+    rows.push(row)
+    row = []
+  }
+  for (let i = 0; i < body.length; i++) {
+    const c = body[i]
+    if (quoted) {
+      if (c !== '"') field += c
+      else if (body[i + 1] === '"') {
+        field += '"'
+        i++
+      } else quoted = false
+    } else if (c === '"') quoted = true
+    else if (c === ',') endField()
+    else if (c === '\n') endRow()
+    else field += c
+  }
+  if (field || row.length) endRow()
+  const [header, ...lines] = rows
+  return lines.map((values) => Object.fromEntries(header.map((c, i) => [c, values[i] ?? ''])))
+}

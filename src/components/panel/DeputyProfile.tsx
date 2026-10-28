@@ -3,7 +3,8 @@ import { age, formatDate } from '@/lib/format'
 import type { Deputy } from '@/types'
 import { ExternalLink, Field, Fields, Section } from './parts'
 
-export function ProfileTab({ deputy }: { deputy: Deputy }) {
+/** "Profil" tab of a deputy */
+export function DeputyProfile({ deputy }: { deputy: Deputy }) {
   const feminine = deputy.honorific === 'Mme'
   const born = formatDate(deputy.birthDate)
 

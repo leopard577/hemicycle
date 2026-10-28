@@ -1,44 +1,55 @@
 # Front end
 
-A single-page React app with no global state library. `App.tsx` is a shell: the navbar, then the page named
-by the URL hash. Each page fetches its own `public/data/<page>.json` when it mounts, so a visitor only
+A single-page React app with no global state library, routed with react-router. `App.tsx` is the layout:
+the navbar, then the page of the current route. Each page fetches its own `public/data/<page>.json` when it mounts, so a visitor only
 downloads the data of the pages they open.
 
 ## Routing
 
-`src/lib/router.ts` is a minimal hash router: `#/deputes`, `#/senateurs`, `#/gouvernement`, `#/candidats`.
-GitHub Pages cannot rewrite URLs to `index.html`, and a hash keeps every path relative (`base: './'`). An
-empty or unknown hash shows the default page (deputies). `usePage()` subscribes to `hashchange`, so links,
-the back button and a pasted URL all work. Links are plain `<a href={linkTo(page)}>`. Page ids are English (`senators`), URL paths French (`#/senateurs`). `App` sets
-`document.title` and scrolls to the top on every page change.
+`src/router.tsx` builds a react-router **hash** router (`createHashRouter`): `#/deputes`, `#/senateurs`,
+`#/gouvernement`, `#/candidats`. GitHub Pages cannot rewrite URLs to `index.html`, so a path-based router
+would 404 on reload; the hash also keeps every path relative (`base: './'`). The empty path and unknown
+paths redirect to `#/deputes`.
 
-To add a page: add its id and label to `PAGES`, then render it in `App.tsx`. Pages not built yet render
+- `src/lib/pages.ts` lists the pages (`PAGES`: English id, French path, label) and `pathTo(page)`.
+- Each page route carries its `PageInfo` as `handle`. `useCurrentPage()` (`src/lib/layout.ts`) reads it;
+  the layout uses it for `document.title` and the navbar's active link.
+- The layout passes `{ onPanelChange }` to pages through the `<Outlet>` context (`useLayout()`).
+- `<ScrollRestoration />` scrolls to the top on a new page and restores the position on back / forward.
+- Links use react-router's `<Link to={pathTo(page)}>`.
+
+To add a page: add it to `PAGES`, then give it its element in `router.tsx`. Pages not built yet render
 `ComingSoonPage`, which describes what the page will show and its planned sources, without any figure.
 
 ## Components
 
 | File | Role |
 | --- | --- |
-| `src/App.tsx` | Shell: navbar, current page, and the padding reserved for the deputy panel when it is open |
-| `src/lib/router.ts` | `PAGES`, `linkTo()`, `usePage()` |
+| `src/main.tsx` | Applies the theme, renders `<RouterProvider>` |
+| `src/router.tsx` | Route table (hash router) |
+| `src/App.tsx` | Layout: navbar, `<Outlet>`, scroll restoration, and the padding reserved for a side panel when it is open |
+| `src/lib/pages.ts` | `PAGES`, `DEFAULT_PAGE`, `pathTo()` |
+| `src/lib/layout.ts` | `useLayout()` (outlet context), `useCurrentPage()` |
 | `src/components/Navbar.tsx` | Site name, page links (shadcn `NavigationMenu`), theme toggle. On a phone the links take their own row and scroll horizontally; the active link is scrolled into view |
 | `src/components/SiteFooter.tsx` | Footer: the page's own sources (children), then the HATVP reproduction notice, on every page |
-| `src/pages/DeputiesPage.tsx` | Deputies page: data loading, search box and results, hemicycle, readings, legend, panel |
+| `src/pages/ChamberPage.tsx` | Generic chamber page, configured by a `ChamberConfig`: data loading, search box and results, hemicycle, readings, legend, panel |
+| `src/pages/DeputiesPage.tsx`, `SenatorsPage.tsx` | The configuration of each chamber: data file, `Office`, title, constituency line, search text, profile tab, footer sources |
 | `src/pages/ComingSoonPage.tsx` | Placeholder for the senators, government and candidates pages |
-| `src/components/Hemicycle.tsx` | SVG chart. `deputes[i]` sits on `layout.seats[i]`, so the order of the dataset decides who sits where. The centre label shows the hovered deputy. |
+| `src/components/Hemicycle.tsx` | SVG chart, generic over `Parliamentarian`. `members[i]` sits on `layout.seats[i]`, so the order of the dataset decides who sits where. The centre label shows the hovered member. |
+| `src/lib/offices.ts` | `Office` descriptors (`DEPUTY`, `SENATOR`): every wording that differs between chambers ("député" / "sénateur", "l'Assemblée" / "le Sénat", envelope and expense notes), passed to the panel, alerts and readings |
 | `src/lib/hemicycle.ts` | `hemicycleLayout(count)`: seats spread over 12 arcs, proportionally to arc length, then sorted by angle (left to right) |
 | `src/components/Legend.tsx` | Group filter, a single-select `ToggleGroup`; clicking the active group clears the filter |
-| `src/components/DeputyPanel.tsx` | Right-hand `Sheet`: header tinted with the group colour, key-figure tiles, then `Tabs` |
+| `src/components/MemberPanel.tsx` | Right-hand `Sheet`, generic over `Parliamentarian`; the "Profil" tab comes from the page config: header tinted with the group colour, key-figure tiles, then `Tabs` |
 | `src/components/Readings.tsx` | Hemicycle reading picker (groups, overlaps, side income, capital, declarations), colour scale, top-10 list; definitions in `src/lib/readings.ts` |
-| `src/components/deputy/CostSummary.tsx` | Top of the panel: monthly seat cost, breakdown bar, SMIC comparison, live counter since taking office, three key figures |
-| `src/components/deputy/Alerts.tsx` | Facts from crossing AN × HATVP × RNE, by severity |
-| `src/components/deputy/OverlapsTab.tsx` | Default ("Cumuls") tab: income by year (stacked SVG bars, SMIC line), activities in parallel, RNE local mandates vs declaration, local allowance cap, other mandates |
-| `src/lib/money.ts` | Cost, income classification, alerts, per-deputy summary used by the readings |
-| `src/components/deputy/ProfileTab.tsx` | Constituency, mandate, committees, biography, contact |
-| `src/components/deputy/PayTab.tsx` | Allowance, special allowances, expense envelopes, staff |
-| `src/components/deputy/InterestsTab.tsx` | Holdings table and declared income; explains why content is missing |
-| `src/components/deputy/DeclarationsTab.tsx` | HATVP declarations grouped into assets and interests |
-| `src/components/deputy/parts.tsx` | Shared blocks: `Section` (optional `aside`), `Fields`/`Field`, `ExternalLink`, `MissingData`, `Note`, `KeyFigure` (tiles under the panel header), `NotesAndSources` (the collapsed "Précisions et sources"), `NoteGroup` |
+| `src/components/panel/CostSummary.tsx` | Top of the panel: monthly seat cost, breakdown bar, SMIC comparison, live counter since taking office, three key figures |
+| `src/components/panel/Alerts.tsx` | Facts from crossing AN × HATVP × RNE, by severity |
+| `src/components/panel/OverlapsTab.tsx` | Default ("Cumuls") tab: income by year (stacked SVG bars, SMIC line), activities in parallel, RNE local mandates vs declaration, local allowance cap, other mandates |
+| `src/lib/money.ts` | Cost, income classification, alerts, per-member summary used by the readings; `pendingDeadline()` tells whether the two-month filing deadline is still running |
+| `src/components/panel/DeputyProfile.tsx`, `SenatorProfile.tsx` | "Profil" tab of each chamber: constituency, mandate, committees, biography, contact |
+| `src/components/panel/PayTab.tsx` | Allowance, special allowances, expense envelopes, staff |
+| `src/components/panel/InterestsTab.tsx` | Holdings table and declared income; explains why content is missing |
+| `src/components/panel/DeclarationsTab.tsx` | HATVP declarations grouped into assets and interests |
+| `src/components/panel/parts.tsx` | Shared blocks: `Section` (optional `aside`), `Fields`/`Field`, `ExternalLink`, `MissingData`, `Note`, `KeyFigure` (tiles under the panel header), `NotesAndSources` (the collapsed "Précisions et sources"), `NoteGroup` |
 | `src/lib/declarations.ts` | Maps raw HATVP statuses to labels and states (`published`, `pending`, `missing`) |
 | `src/lib/format.ts` | `formatDate`, `formatEuro`, `age` (fr-FR) |
 

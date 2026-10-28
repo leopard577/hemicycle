@@ -1,25 +1,43 @@
-import { type PointerEvent, useMemo, useRef, useState } from 'react'
+import { type PointerEvent, type ReactNode, useMemo, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { hemicycleLayout } from '@/lib/hemicycle'
-import type { Deputy, Group } from '@/types'
+import type { Group, Parliamentarian } from '@/types'
 
-interface Props {
-  deputies: Deputy[]
+interface Props<T extends Parliamentarian> {
+  /** Seat order: `members[i]` sits on seat `i` */
+  members: T[]
   groups: Map<string, Group>
   selectedId: string | null
-  isHighlighted: (d: Deputy) => boolean
-  onSelect: (d: Deputy) => void
+  isHighlighted: (m: T) => boolean
+  onSelect: (m: T) => void
   /** Fill class for the chosen reading; null = group colour */
-  tint: ((d: Deputy) => string) | null
+  tint: ((m: T) => string) | null
   /** Line added on hover for the chosen reading */
-  detail: ((d: Deputy) => string | null) | null
+  detail: ((m: T) => string | null) | null
+  /** Constituency line shown on hover */
+  place: (m: T) => ReactNode
+  /** Accessible name of the chart */
+  label: string
+  /** Word under the seat count in the centre ("députés") */
+  countLabel: string
 }
 
 const FALLBACK_COLOR = '#8D949A'
 
-export function Hemicycle({ deputies, groups, selectedId, isHighlighted, onSelect, tint, detail }: Props) {
-  const layout = useMemo(() => hemicycleLayout(deputies.length), [deputies.length])
-  const [hovered, setHovered] = useState<Deputy | null>(null)
+export function Hemicycle<T extends Parliamentarian>({
+  members,
+  groups,
+  selectedId,
+  isHighlighted,
+  onSelect,
+  tint,
+  detail,
+  place,
+  label,
+  countLabel,
+}: Props<T>) {
+  const layout = useMemo(() => hemicycleLayout(members.length), [members.length])
+  const [hovered, setHovered] = useState<T | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
 
   // Seat closest to the pointer: on a phone the dots are 6 to 8 px wide, too small to aim at with a finger
@@ -34,7 +52,7 @@ export function Hemicycle({ deputies, groups, selectedId, isHighlighted, onSelec
       if (d < distance) [closest, distance] = [i, d]
     })
     const radius = (layout.seats[0]?.r ?? 0) * 2.5
-    return closest >= 0 && distance <= radius ** 2 ? deputies[closest] : null
+    return closest >= 0 && distance <= radius ** 2 ? members[closest] : null
   }
 
   const hoveredGroup = hovered?.groupId ? groups.get(hovered.groupId) : undefined
@@ -48,7 +66,7 @@ export function Hemicycle({ deputies, groups, selectedId, isHighlighted, onSelec
           ref={svgRef}
           viewBox={`0 0 ${layout.width} ${layout.height}`}
           role="list"
-          aria-label="Hémicycle de l'Assemblée nationale"
+          aria-label={label}
           className={cn('block h-auto w-full touch-pan-y overflow-visible select-none', hovered && 'cursor-pointer')}
           onPointerDown={(e) => e.pointerType !== 'mouse' && setHovered(seatAtPointer(e))}
           onPointerMove={(e) => setHovered(seatAtPointer(e))}
@@ -60,7 +78,7 @@ export function Hemicycle({ deputies, groups, selectedId, isHighlighted, onSelec
           onPointerLeave={() => setHovered(null)}
           onPointerCancel={() => setHovered(null)}
         >
-          {deputies.map((d, i) => {
+          {members.map((d, i) => {
             const seat = layout.seats[i]
             const color = (d.groupId && groups.get(d.groupId)?.color) || FALLBACK_COLOR
             const selected = d.id === selectedId
@@ -108,20 +126,15 @@ export function Hemicycle({ deputies, groups, selectedId, isHighlighted, onSelec
               <span className="font-bold brightness-90" style={{ color: hoveredGroup?.color }}>
                 {hoveredGroup?.abbrev ?? 'Sans groupe'}
               </span>
-              {hovered.department && (
-                <span>
-                  {hovered.department} ({hovered.departmentCode}) · {hovered.constituency}
-                  <sup>{hovered.constituency === '1' ? 're' : 'e'}</sup> circ.
-                </span>
-              )}
+              <span>{place(hovered)}</span>
               {detail?.(hovered) && <span className="font-semibold text-foreground">{detail(hovered)}</span>}
             </>
           ) : (
             <>
               <strong className="font-heading text-3xl leading-none font-semibold text-foreground tabular-nums sm:text-5xl">
-                {deputies.length}
+                {members.length}
               </strong>
-              <span>députés</span>
+              <span>{countLabel}</span>
             </>
           )}
         </div>

@@ -29,26 +29,42 @@ export interface Official {
   localMandates: LocalMandate[]
 }
 
-export interface Deputy extends Official {
+/** Member of either chamber of Parliament: what the hemicycle, the panel and the readings need */
+export interface Parliamentarian extends Official {
   sortName: string
-  birthPlace: string | null
   profession: string | null
   groupId: string | null
   groupRole: string | null
+  /** Real seat number in the hemicycle */
+  seat: number | null
+  committees: Committee[]
+  email: string | null
+  twitter: string | null
+  specialAllowances: SpecialAllowance[]
+}
+
+export interface Deputy extends Parliamentarian {
+  birthPlace: string | null
   party: string | null
   department: string | null
   departmentCode: string | null
   constituency: string | null
   region: string | null
   firstTerm: boolean
-  /** Real seat number in the hemicycle */
-  seat: number | null
-  committees: Committee[]
-  email: string | null
   website: string | null
-  twitter: string | null
-  specialAllowances: SpecialAllowance[]
   staffCount: number
+}
+
+export interface Senator extends Parliamentarian {
+  /** "Apparenté" or "Rattaché administrativement" when not a full group member */
+  affiliation: string | null
+  /** Department (or "Français établis hors de France") the senator represents */
+  constituency: string | null
+  constituencyCode: string | null
+  /** Renewal series, "1" or "2" */
+  series: string | null
+  bureauRole: string | null
+  senatPage: string | null
 }
 
 export type LocalMandateType =
@@ -148,7 +164,7 @@ export interface MinimumWage {
 }
 
 export interface PayScales {
-  source: string
+  sources: { label: string; url: string }[]
   updatedAt: string
   allowance: { base: number; residence: number; office: number; gross: number; net: number }
   expenseAllowance: number
@@ -159,9 +175,11 @@ export interface PayScales {
   minimumWage: MinimumWage
 }
 
-export interface DeputiesDataset {
+/** One chamber's page dataset (deputies.json, senators.json) */
+export interface ChamberDataset<T extends Parliamentarian> {
   generatedAt: string
   payScales: PayScales
   groups: Group[]
-  deputies: Deputy[]
+  /** Ordered by group, then seat number: `members[i]` sits on seat `i` */
+  members: T[]
 }

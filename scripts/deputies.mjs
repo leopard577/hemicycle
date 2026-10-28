@@ -141,5 +141,5 @@ export function buildDeputies({ organs, actors }, { hatvpFor, rneFor }) {
       `${deputies.filter((d) => d.hatvp.otherMandates.length).length} with another office declared to the HATVP`,
   )
 
-  return { payScales: deputyPayScales, groups: sortedGroups, deputies }
+  return { payScales: deputyPayScales, groups: sortedGroups, members: deputies }
 }

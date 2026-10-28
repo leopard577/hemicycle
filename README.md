@@ -25,9 +25,11 @@ Toutes les données sont publiques et officielles :
 | Source | Ce qu'on y prend |
 | --- | --- |
 | [Assemblée nationale](https://data.assemblee-nationale.fr) (open data) | Députés, groupes, commissions, fonctions, collaborateurs, place dans l'hémicycle |
+| [Sénat](https://data.senat.fr) (open data et liste des sénateurs de senat.fr) | Sénateurs, groupes, commissions, délégations, fonctions au Bureau, dates de mandat, place dans l'hémicycle |
 | [HATVP](https://www.hatvp.fr/open-data/), Haute Autorité pour la transparence de la vie publique | Liste et dates des déclarations, contenu des déclarations d'intérêts (revenus, sociétés, mandats), autres fonctions déclarées |
 | [Répertoire national des élus](https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/) (ministère de l'Intérieur) | Mandats locaux en cours : maire, adjoint, conseiller municipal, départemental, régional, intercommunal |
 | [Assemblée nationale, fiche n° 7](https://www.assemblee-nationale.fr/dyn/synthese/deputes-groupes-parlementaires/la-situation-materielle-du-depute) (janvier 2026) | Montant de l'indemnité, des indemnités spéciales, des frais de mandat et du crédit collaborateurs |
+| [Sénat, indemnité, frais de mandat et collaborateurs](https://www.senat.fr/connaitre-le-senat/role-et-fonctionnement/lindemnite-parlementaire.html) (mars 2026) | Montant de l'indemnité, des indemnités de fonction, de l'avance de frais de mandat et du crédit collaborateurs |
 | [service-public.gouv.fr](https://www.service-public.gouv.fr/particuliers/vosdroits/F2300) | Montant du SMIC (juin 2026), pour les comparaisons |
 
 Les données sont mises à jour automatiquement chaque lundi. La date d'extraction figure en bas de la page.
@@ -47,7 +49,7 @@ Les données sont mises à jour automatiquement chaque lundi. La date d'extracti
   **déclaration d'intérêts**, que la HATVP publie.
 
 Les données sont réutilisées sous [Licence Ouverte 2.0 (Etalab)](https://www.etalab.gouv.fr/licence-ouverte-open-licence/).
-Les photos des députés ne sont pas copiées : elles sont chargées depuis assemblee-nationale.fr.
+Les photos ne sont pas copiées : elles sont chargées depuis assemblee-nationale.fr et senat.fr.
 
 Les informations issues de la HATVP respectent en plus ses [mentions légales](https://www.hatvp.fr/mentions-legales/) :
 elles sont reproduites sans modification (un passage masqué par la HATVP reste affiché « [Données non publiées] »),
@@ -69,6 +71,14 @@ droit à l'image, ne sont pas utilisées.
   - **Déclarations** : fonction interdite avec le mandat, déclaration en retard ou incomplète.
 - Pour chaque coloration, un **résumé chiffré** et le **classement des dix premiers**, cliquable.
 - **Recherche** par nom ou par département, et **filtre** par groupe politique.
+
+### Le Sénat
+
+- Les **348 sénateurs**, avec les mêmes colorations, la même recherche et la même fiche que pour les députés.
+- Les **indemnités de fonction** (Président du Sénat, questeurs, vice-présidents, présidents de groupe, de
+  commission permanente ou de délégation, rapporteurs généraux) sont comptées dans le coût du siège.
+- Juste après un renouvellement, la fiche donne la **date limite de dépôt** des déclarations au lieu de
+  signaler leur absence.
 
 ### La fiche d'un député
 
@@ -102,17 +112,17 @@ droit à l'image, ne sont pas utilisées.
 
 ```bash
 npm install
-npm run data   # télécharge les données publiques et génère public/data/deputies.json
+npm run data   # télécharge les données publiques et génère public/data/deputies.json et senators.json
 npm run dev    # http://localhost:5173
 ```
 
-`public/data/deputies.json` est généré et n'est pas versionné : lancez `npm run data` après un clone, puis à
+Les fichiers de `public/data/` sont générés et ne sont pas versionnés : lancez `npm run data` après un clone, puis à
 nouveau pour obtenir des données plus récentes. Le script télécharge environ 170 Mo (HATVP et Répertoire
 national des élus).
 
 | Commande          | Rôle                                                                        |
 | ----------------- | --------------------------------------------------------------------------- |
-| `npm run data`    | Télécharge les données de l'AN, de la HATVP et du RNE, et régénère `public/data/deputies.json` |
+| `npm run data`    | Télécharge les données de l'AN, du Sénat, de la HATVP et du RNE, et régénère `public/data/*.json` |
 | `npm run dev`     | Lance le serveur de développement Vite                                      |
 | `npm run build`   | Vérifie les types (`tsc -b`) et construit dans `dist/`                      |
 | `npm run preview` | Sert la version de production                                               |
@@ -123,7 +133,7 @@ d'un député dans le navigateur.
 
 ### Stack
 
-React 19, TypeScript 7, Vite 8, Tailwind CSS v4 et [shadcn/ui](https://ui.shadcn.com) (Radix, preset
+React 19, TypeScript 7, Vite 8, React Router 7, Tailwind CSS v4 et [shadcn/ui](https://ui.shadcn.com) (Radix, preset
 « Nova », icônes Lucide). Les scripts de données sont en Node ESM, avec `adm-zip` et `fast-xml-parser`.
 L'application est un front statique : son seul « backend » est le fichier JSON généré.
 

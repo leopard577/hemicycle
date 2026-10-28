@@ -1,10 +1,18 @@
 // Hash routing (#/senateurs): GitHub Pages cannot rewrite URLs to index.html, so a path-based router would
 // return a 404 on reload. The hash also keeps every path relative (base './').
+import type { ReactNode } from 'react'
 import { createHashRouter, Navigate } from 'react-router'
 import App from '@/App'
-import { DEFAULT_PAGE, PAGES } from '@/lib/pages'
+import { DEFAULT_PAGE, type Page, PAGES } from '@/lib/pages'
 import { ComingSoonPage } from '@/pages/ComingSoonPage'
 import { DeputiesPage } from '@/pages/DeputiesPage'
+import { SenatorsPage } from '@/pages/SenatorsPage'
+
+// Pages that are built; the others show `ComingSoonPage`
+const ELEMENTS: Partial<Record<Page, ReactNode>> = {
+  deputies: <DeputiesPage />,
+  senators: <SenatorsPage />,
+}
 
 export const router = createHashRouter([
   {
@@ -16,7 +24,7 @@ export const router = createHashRouter([
       ...PAGES.map((page) => ({
         path: page.path,
         handle: page,
-        element: page.id === 'deputies' ? <DeputiesPage /> : <ComingSoonPage page={page.id} />,
+        element: ELEMENTS[page.id] ?? <ComingSoonPage page={page.id} />,
       })),
       // Unknown path: back to the default page
       { path: '*', element: <Navigate to={DEFAULT_PAGE.path} replace /> },

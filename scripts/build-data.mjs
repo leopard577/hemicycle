@@ -6,10 +6,11 @@ import { fileURLToPath } from 'node:url'
 import { buildDeputies, loadDeputies } from './deputies.mjs'
 import { loadHatvp } from './lib/hatvp.mjs'
 import { loadRne } from './lib/rne.mjs'
+import { buildSenators, loadSenators } from './senators.mjs'
 
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'data')
 
-const [hatvpFor, rneFor, assembly] = await Promise.all([loadHatvp(), loadRne(), loadDeputies()])
+const [hatvpFor, rneFor, assembly, senate] = await Promise.all([loadHatvp(), loadRne(), loadDeputies(), loadSenators()])
 const shared = { hatvpFor, rneFor }
 const generatedAt = new Date().toISOString()
 
@@ -21,3 +22,4 @@ function write(page, data) {
 }
 
 write('deputies', buildDeputies(assembly, shared))
+write('senators', buildSenators(senate, shared))

@@ -2,8 +2,9 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { Summary } from '@/lib/money'
+import type { Office } from '@/lib/offices'
 import { type Reading, READINGS, tierOf } from '@/lib/readings'
-import type { Deputy, Group } from '@/types'
+import type { Group, Parliamentarian } from '@/types'
 
 const RANKING_SIZE = 10
 
@@ -28,20 +29,28 @@ export function ReadingPicker({ reading, onChange }: { reading: Reading; onChang
   )
 }
 
-interface DetailProps {
+interface DetailProps<T extends Parliamentarian> {
   reading: Exclude<Reading, 'group'>
-  deputies: Deputy[]
+  members: T[]
   summaries: Map<string, Summary>
   groups: Map<string, Group>
-  onSelect: (d: Deputy) => void
+  office: Office
+  onSelect: (m: T) => void
 }
 
 /** Colour scale, overview figure and ranking for the active reading */
-export function ReadingDetail({ reading, deputies, summaries, groups, onSelect }: DetailProps) {
+export function ReadingDetail<T extends Parliamentarian>({
+  reading,
+  members,
+  summaries,
+  groups,
+  office,
+  onSelect,
+}: DetailProps<T>) {
   const def = READINGS[reading]
-  const all = deputies.map((d) => summaries.get(d.id)!)
-  const value = (d: Deputy) => def.value(summaries.get(d.id)!)
-  const ranking = deputies
+  const all = members.map((m) => summaries.get(m.id)!)
+  const value = (m: T) => def.value(summaries.get(m.id)!)
+  const ranking = members
     .filter((d) => value(d) > 0)
     .sort((a, b) => value(b) - value(a))
     .slice(0, RANKING_SIZE)
@@ -59,7 +68,7 @@ export function ReadingDetail({ reading, deputies, summaries, groups, onSelect }
           </li>
         ))}
       </ul>
-      <p className="text-center font-medium">{def.overview(all.filter((s) => def.value(s) > 0).length, all)}</p>
+      <p className="text-center font-medium">{def.overview(all.filter((s) => def.value(s) > 0).length, all, office)}</p>
 
       {ranking.length > 0 && (
         <Card className="mx-auto w-full max-w-xl gap-0 p-2">

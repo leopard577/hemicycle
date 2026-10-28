@@ -1,9 +1,10 @@
-// What a deputy costs and what they hold on top of their mandate, from public data only.
-// Everything is computed client side from deputies.json: nothing is invented or estimated beyond the
+// What a parliamentarian costs and what they hold on top of their mandate, from public data only.
+// Everything is computed client side from the page dataset: nothing is invented or estimated beyond the
 // official pay scales.
 import { ASSETS, declarationsOf, INTERESTS } from '@/lib/declarations'
 import { formatDate } from '@/lib/format'
-import type { Deputy, Income, LocalMandate, Official, PayScales } from '@/types'
+import type { Office } from '@/lib/offices'
+import type { Income, LocalMandate, Official, Parliamentarian, PayScales } from '@/types'
 
 /* ---------- Seat cost ---------- */
 
@@ -15,10 +16,10 @@ export interface MonthlyCost {
   total: number
 }
 
-/** Monthly amounts tied to a seat, according to the Assemblée's pay scales */
-export function monthlyCost(deputy: Deputy, payScales: PayScales): MonthlyCost {
+/** Monthly amounts tied to a seat, according to the chamber's pay scales */
+export function monthlyCost(member: Parliamentarian, payScales: PayScales): MonthlyCost {
   const allowance = payScales.allowance.gross
-  const special = deputy.specialAllowances.reduce((sum, s) => sum + s.amount, 0)
+  const special = member.specialAllowances.reduce((sum, s) => sum + s.amount, 0)
   const expenses = payScales.expenseAllowance
   const staff = payScales.staffBudget
   return { allowance, special, expenses, staff, total: allowance + special + expenses + staff }
@@ -141,8 +142,8 @@ export function incomeByYear(lines: IncomeLine[]): YearIncome[] {
 }
 
 /** What the official declares earning on top of their allowance, for the latest published year */
-export function sideIncome(lines: IncomeLine[]) {
-  const side = lines.filter((l) => l.ongoing && l.category !== 'deputy')
+export function sideIncome(lines: IncomeLine[], office: Office) {
+  const side = lines.filter((l) => l.ongoing && l.category !== office.category)
   const sum = (ls: IncomeLine[]) => ls.reduce((total, l) => total + (l.duplicate ? 0 : (l.latest?.amount ?? 0)), 0)
   return { lines: side, total: sum(side), local: sum(side.filter((l) => l.category === 'local')) }
 }
@@ -199,12 +200,21 @@ export interface Alert {
 const DAY = 86_400_000
 const days = (a: string, b: string) => Math.round((new Date(b).getTime() - new Date(a).getTime()) / DAY)
 
-/** Two-month legal deadline, plus a week of tolerance (filed on the Monday after a weekend…) */
-function deadline(iso: string) {
+/** Two-month legal deadline to file a declaration after taking office or after a change */
+export function legalDeadline(iso: string) {
   const d = new Date(iso)
   d.setMonth(d.getMonth() + 2)
-  return d.getTime() + 7 * DAY
+  return d
 }
+
+/** End of the legal deadline to file after taking office, as an ISO date, or null once it has passed */
+export function pendingDeadline(startDate: string, now = Date.now()) {
+  const due = legalDeadline(startDate)
+  return due.getTime() > now ? due.toISOString().slice(0, 10) : null
+}
+
+/** Legal deadline plus a week of tolerance (filed on the Monday after a weekend…) */
+const deadline = (iso: string) => legalDeadline(iso).getTime() + 7 * DAY
 
 const frDate = (iso: string | null) => formatDate(iso) ?? 'date inconnue'
 
@@ -219,11 +229,11 @@ const lowercaseRole = (m: LocalMandate) => {
  * Verifiable facts from crossing AN × HATVP × RNE. Every alert quotes its dates:
  * it describes a situation without presuming whether it is justified.
  */
-export function alerts(official: Official, now = Date.now()): Alert[] {
+export function alerts(official: Official, office: Office, now = Date.now()): Alert[] {
   const result: Alert[] = []
   const { interests, declarations } = official.hatvp
 
-  // 1. Local executive roles, incompatible with the deputy mandate since 2017
+  // 1. Local executive roles, incompatible with a parliamentary mandate since 2017
   for (const m of official.localMandates.filter(isExecutive)) {
     const roleStart = m.roleStart ?? m.start
     const overlapStart = [official.startDate, roleStart ?? ''].sort().at(-1)!
@@ -233,12 +243,12 @@ export function alerts(official: Official, now = Date.now()): Alert[] {
         ? {
             severity: 'serious',
             title: `Également ${lowercaseRole(m)}${m.place ? ` (${m.place})` : ''}`,
-            detail: `D'après le Répertoire national des élus, mis à jour le ${frDate(m.updatedAt)}, cette fonction est occupée depuis le ${frDate(roleStart)}, soit depuis ${observed} jours en même temps que le mandat de député. La loi interdit à un député d'être aussi maire, adjoint au maire, ou président ou vice-président d'une collectivité ou d'une intercommunalité. Un élu dans ce cas a 30 jours pour abandonner l'une des deux fonctions.`,
+            detail: `D'après le Répertoire national des élus, mis à jour le ${frDate(m.updatedAt)}, cette fonction est occupée depuis le ${frDate(roleStart)}, soit depuis ${observed} jours en même temps que le mandat de ${office.noun}. La loi interdit à un ${office.noun} d'être aussi maire, adjoint au maire, ou président ou vice-président d'une collectivité ou d'une intercommunalité. Un élu dans ce cas a 30 jours pour abandonner l'une des deux fonctions.`,
           }
         : {
             severity: 'info',
             title: `Également ${lowercaseRole(m)}${m.place ? ` (${m.place})` : ''}`,
-            detail: `D'après le Répertoire national des élus, cette fonction est occupée depuis le ${frDate(roleStart)}. La loi interdit de la cumuler avec le mandat de député, mais le délai de 30 jours pour choisir n'était pas encore écoulé à la date du fichier (${frDate(m.updatedAt)}).`,
+            detail: `D'après le Répertoire national des élus, cette fonction est occupée depuis le ${frDate(roleStart)}. La loi interdit de la cumuler avec le mandat de ${office.noun}, mais le délai de 30 jours pour choisir n'était pas encore écoulé à la date du fichier (${frDate(m.updatedAt)}).`,
           },
     )
   }
@@ -299,7 +309,7 @@ export function alerts(official: Official, now = Date.now()): Alert[] {
       .sort()
     const limit = deadline(official.startDate)
     if (!sinceStartDates.length) {
-      // A re-elected deputy can be exempt from a new asset declaration: only a missing declaration of
+      // A re-elected parliamentarian can be exempt from a new asset declaration: only a missing declaration of
       // interests is flagged
       if (limit < now && types === INTERESTS)
         result.push({
@@ -319,7 +329,7 @@ export function alerts(official: Official, now = Date.now()): Alert[] {
 
   // 5. Unpublished amounts for ongoing activities
   const withoutAmount = incomeLines(official).filter(
-    (l) => l.ongoing && l.category !== 'deputy' && l.income.amounts.some((m) => m.amount === null),
+    (l) => l.ongoing && l.category !== office.category && l.income.amounts.some((m) => m.amount === null),
   )
   if (withoutAmount.length)
     result.push({
@@ -344,10 +354,10 @@ export interface Summary {
   capital: number
 }
 
-export function summary(official: Official, now = Date.now()): Summary {
-  const side = sideIncome(incomeLines(official))
+export function summary(official: Official, office: Office, now = Date.now()): Summary {
+  const side = sideIncome(incomeLines(official), office)
   const paid = side.lines.filter((l) => l.category !== 'local' && (l.latest?.amount ?? 0) > 0).length
-  const all = alerts(official, now)
+  const all = alerts(official, office, now)
   return {
     sideIncome: side.total,
     overlaps: official.localMandates.filter((m) => m.type !== 'intercommunal').length + paid,

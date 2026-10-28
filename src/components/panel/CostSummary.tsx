@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { incomeLines, monthlyCost, sideIncome, sinceStart } from '@/lib/money'
 import { formatDate, formatEuro } from '@/lib/format'
-import type { Deputy, PayScales } from '@/types'
+import type { Office } from '@/lib/offices'
+import type { Parliamentarian, PayScales } from '@/types'
 import { ExternalLink, KeyFigure } from './parts'
 
 const PARTS = [
@@ -13,22 +14,24 @@ const PARTS = [
 
 /** What the seat costs, at the top of the panel: the figure that should strike first, then its breakdown */
 export function CostSummary({
-  deputy,
+  member,
   payScales,
+  office,
   onNoteRef,
 }: {
-  deputy: Deputy
+  member: Parliamentarian
   payScales: PayScales
+  office: Office
   /** Opens "Précisions et sources" on the given note */
   onNoteRef: (n: number) => void
 }) {
-  const cost = monthlyCost(deputy, payScales)
+  const cost = monthlyCost(member, payScales)
   const yearly = cost.total * 12
   const minimumWageYears = yearly / (payScales.minimumWage.gross * 12)
-  const side = sideIncome(incomeLines(deputy))
+  const side = sideIncome(incomeLines(member), office)
   const latestYear = Math.max(0, ...side.lines.map((l) => l.latest?.year ?? 0))
-  const mandates = deputy.localMandates.filter((m) => m.type !== 'intercommunal')
-  const holdings = deputy.hatvp.interests?.holdings
+  const mandates = member.localMandates.filter((m) => m.type !== 'intercommunal')
+  const holdings = member.hatvp.interests?.holdings
   const capital = holdings?.reduce((sum, h) => sum + (h.value ?? 0), 0) ?? 0
 
   return (
@@ -57,9 +60,9 @@ export function CostSummary({
         <Breakdown cost={cost} />
 
         <div className="border-t border-red-600/20 pt-3">
-          <p className="text-xs text-muted-foreground">Depuis son entrée en fonction, le {formatDate(deputy.startDate)}</p>
+          <p className="text-xs text-muted-foreground">Depuis son entrée en fonction, le {formatDate(member.startDate)}</p>
           <div className="flex items-start">
-            <LiveCounter monthly={cost.total} startDate={deputy.startDate} />
+            <LiveCounter monthly={cost.total} startDate={member.startDate} />
             <NoteRef n={3} onClick={onNoteRef} />
           </div>
         </div>
@@ -69,10 +72,10 @@ export function CostSummary({
         <KeyFigure
           label="En plus du mandat"
           value={
-            !deputy.hatvp.interests ? '—' : side.total > 0 ? `+${formatEuro(side.total, { compact: true })}` : '0 €'
+            !member.hatvp.interests ? '—' : side.total > 0 ? `+${formatEuro(side.total, { compact: true })}` : '0 €'
           }
           hint={
-            !deputy.hatvp.interests
+            !member.hatvp.interests
               ? 'Déclaration indisponible'
               : side.total > 0
                 ? `par an (${latestYear})`
@@ -159,9 +162,10 @@ function NoteRef({ n, onClick }: { n: number; onClick: (n: number) => void }) {
 }
 
 /** Calculation notes, in "Précisions et sources": every figure of the summary is rebuilt from the pay scales */
-export function CostNotes({ deputy, payScales }: { deputy: Deputy; payScales: PayScales }) {
+export function CostNotes({ member, payScales, office }: { member: Parliamentarian; payScales: PayScales; office: Office }) {
+  const feminine = member.honorific === 'Mme'
   const { allowance, minimumWage } = payScales
-  const cost = monthlyCost(deputy, payScales)
+  const cost = monthlyCost(member, payScales)
   const yearlyMinimumWage = minimumWage.gross * 12
   const euro = (n: number) => formatEuro(n)
   const updated = (iso: string) => iso.split('-').reverse().join('/')
@@ -172,10 +176,10 @@ export function CostNotes({ deputy, payScales }: { deputy: Deputy; payScales: Pa
         <span className="shrink-0 font-semibold text-red-700 dark:text-red-400">{stars(1)}</span>
         <div className="space-y-1">
           <p>
-            Somme des montants mensuels que l'Assemblée consacre à chaque siège :{' '}
+            Somme des montants mensuels que {office.institution} consacre à chaque siège :{' '}
             <strong className="text-foreground">indemnité parlementaire brute</strong> {euro(allowance.gross)} (base{' '}
             {euro(allowance.base)} + résidence {euro(allowance.residence)} + fonction {euro(allowance.office)})
-            {deputy.specialAllowances.map((s) => (
+            {member.specialAllowances.map((s) => (
               <span key={s.label + s.body}>
                 {' '}
                 + <strong className="text-foreground">{s.label.toLowerCase()}</strong> {euro(s.amount)}
@@ -186,18 +190,22 @@ export function CostNotes({ deputy, payScales }: { deputy: Deputy; payScales: Pa
             <strong className="text-foreground">{euro(cost.total)}</strong>.
           </p>
           <p>
-            Ce sont des enveloppes maximales. Le crédit collaborateurs paie les salaires de ses assistants et n'est pas
-            versé au député ; la part non utilisée n'est pas dépensée. Les frais de mandat non utilisés sont reversés en fin
-            de mandat. L'indemnité est comptée en brut : {deputy.honorific === 'Mme' ? 'la députée' : 'le député'} touche{' '}
+            {office.envelopeNote(feminine)} L'indemnité est comptée en brut : {office.the(feminine)} touche{' '}
             {euro(allowance.net)} net par mois, avant impôt.
           </p>
           <p>
-            Ne sont pas comptés : les cotisations à la charge de l'Assemblée, les facilités de transport et les autres
-            avantages que l'Assemblée ne chiffre pas.
+            Ne sont pas comptés : les cotisations à la charge {office.ofInstitution}, les facilités de transport et les
+            autres avantages que {office.institution} ne chiffre pas.
           </p>
           <p>
-            Barèmes : <ExternalLink href={payScales.source}>Assemblée nationale, fiche n° 7</ExternalLink>, mise à jour{' '}
-            {updated(payScales.updatedAt)}.
+            Barèmes :{' '}
+            {payScales.sources.map((source, i) => (
+              <span key={source.url}>
+                {i > 0 && ', '}
+                <ExternalLink href={source.url}>{source.label}</ExternalLink>
+              </span>
+            ))}
+            , mise à jour {updated(payScales.updatedAt)}.
           </p>
         </div>
       </li>
@@ -214,7 +222,7 @@ export function CostNotes({ deputy, payScales }: { deputy: Deputy; payScales: Pa
       <li id="note-3" className="flex gap-1.5">
         <span className="shrink-0 font-semibold text-red-700 dark:text-red-400">{stars(3)}</span>
         <p>
-          {euro(cost.total)} par mois × nombre de mois écoulés depuis le {formatDate(deputy.startDate)} (mois moyen de
+          {euro(cost.total)} par mois × nombre de mois écoulés depuis le {formatDate(member.startDate)} (mois moyen de
           30,44 jours), recalculé en direct. Montant théorique : il suppose toutes les enveloppes consommées chaque mois,
           au barème actuel.
         </p>
