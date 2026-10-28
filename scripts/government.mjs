@@ -5,6 +5,7 @@
 // below is copied by hand from the decrees. Update it at every reshuffle; the build fails when the HATVP knows
 // a member of the Government that is missing here.
 import { deputyPhoto } from './deputies.mjs'
+import { cabinets, elyseeBudget, ministryBudgets } from './government-costs.mjs'
 import { governmentPayScales } from './pay-scales.mjs'
 import { senatorPhoto } from './senators.mjs'
 import { normalizeName } from './lib/util.mjs'
@@ -145,9 +146,10 @@ function photoFinder(assemblyActors, senate) {
 
 /**
  * Builds the page dataset. `hatvpRows` is liste.csv, used to check that no current member of the Government is
- * missing from MEMBERS; `assemblyActors` and `senate` give the photos of members who sit or sat in Parliament.
+ * missing from MEMBERS; `assemblyActors` and `senate` give the photos of members who sit or sat in Parliament;
+ * `ministries` is table 6 of the finance bill (`loadMinistryBudgets`).
  */
-export function buildGovernment({ hatvpFor, rneFor, hatvpRows, senate, assemblyActors }) {
+export function buildGovernment({ hatvpFor, rneFor, hatvpRows, senate, assemblyActors, ministries }) {
 
   const members = MEMBERS.map((m) => {
     const decree = DECREES[m.decree ?? 'gov20251012']
@@ -203,6 +205,22 @@ export function buildGovernment({ hatvpFor, rneFor, hatvpRows, senate, assemblyA
   const photoOf = photoFinder(assemblyActors, senate)
   for (const m of members) m.photo = m.birthDate ? photoOf(m) : ''
 
+  // Cabinets from the PLF annex: every row must be a member or a departure, every member but the President must
+  // have a row, and the rows must add up to the annex totals
+  const sum = (i) => Object.values(cabinets.byMinister).reduce((s, row) => s + row[i], 0)
+  const { totals } = cabinets
+  if (sum(0) !== totals.members || sum(1) !== totals.support || sum(2) !== totals.isp)
+    throw new Error('Government: the cabinet rows do not add up to the annex totals')
+  const departed = new Set(DEPARTURES.map((d) => d.lastName))
+  for (const lastName of Object.keys(cabinets.byMinister))
+    if (!members.some((m) => m.lastName === lastName) && !departed.has(lastName))
+      throw new Error(`Government: cabinet of unknown member ${lastName}`)
+  for (const m of members) {
+    const row = cabinets.byMinister[m.lastName]
+    if (!row && m.rank !== 'president') throw new Error(`Government: no cabinet row for ${m.lastName}`)
+    m.cabinet = row ? { members: row[0], support: row[1], isp: row[2] } : null
+  }
+
   const departures = DEPARTURES.map((d) => ({
     honorific: d.honorific,
     firstName: d.firstName,
@@ -220,5 +238,26 @@ export function buildGovernment({ hatvpFor, rneFor, hatvpRows, senate, assemblyA
   console.log(`  RNE: ${members.filter((m) => m.localMandates.length).length} with at least one current local mandate`)
   console.log(`  Photos: ${members.filter((m) => m.photo).length} from the Assemblée nationale or the Sénat`)
 
-  return { payScales: governmentPayScales, members, departures }
+  const spent = elyseeBudget.spending.reduce((s, item) => s + item.amount, 0)
+  if (spent !== elyseeBudget.spendingTotal) throw new Error('Government: the Élysée spending items do not add up')
+  console.log(`  Cabinets on ${cabinets.asOf}: ${totals.members} members, ${totals.support} support staff`)
+
+  // Per-minister rows are already on each member (`cabinet`)
+  const cabinetSummary = {
+    asOf: cabinets.asOf,
+    source: cabinets.source,
+    totals,
+    byFunction: cabinets.byFunction,
+    contractMembers: cabinets.contractMembers,
+  }
+  const budgets = ministryBudgets(ministries, members)
+  console.log(`  Budgets: ${budgets.items.length} ministries in the PLF for ${budgets.year}`)
+  return {
+    payScales: governmentPayScales,
+    members,
+    departures,
+    cabinets: cabinetSummary,
+    elysee: elyseeBudget,
+    ministryBudgets: budgets,
+  }
 }

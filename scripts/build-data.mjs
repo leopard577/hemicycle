@@ -6,19 +6,21 @@ import { fileURLToPath } from 'node:url'
 import { buildCandidates, loadCandidates } from './candidates.mjs'
 import { buildDeputies, loadAssemblyActors, loadDeputies } from './deputies.mjs'
 import { buildGovernment } from './government.mjs'
+import { loadMinistryBudgets } from './government-costs.mjs'
 import { loadHatvp } from './lib/hatvp.mjs'
 import { loadRne } from './lib/rne.mjs'
 import { buildSenators, loadSenators } from './senators.mjs'
 
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'data')
 
-const [hatvpFor, rneFor, assembly, assemblyActors, senate, elections] = await Promise.all([
+const [hatvpFor, rneFor, assembly, assemblyActors, senate, elections, ministries] = await Promise.all([
   loadHatvp(),
   loadRne(),
   loadDeputies(),
   loadAssemblyActors(),
   loadSenators(),
   loadCandidates(),
+  loadMinistryBudgets(),
 ])
 const shared = { hatvpFor, rneFor }
 const generatedAt = new Date().toISOString()
@@ -32,5 +34,5 @@ function write(page, data) {
 
 write('deputies', buildDeputies(assembly, shared))
 write('senators', buildSenators(senate, shared))
-write('government', buildGovernment({ ...shared, hatvpRows: hatvpFor.rows, senate, assemblyActors }))
+write('government', buildGovernment({ ...shared, hatvpRows: hatvpFor.rows, senate, assemblyActors, ministries }))
 write('candidates', buildCandidates(elections))

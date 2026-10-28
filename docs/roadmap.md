@@ -11,7 +11,7 @@ HATVP and the RNE are joined to it, and a hand-entered pay scale, with its sourc
 | 1 | Split the data pipeline into shared sources (`scripts/lib/`) and one module per page; one JSON per page; shared `Official` type | Done |
 | 2 | Navbar and routing (react-router, hash router) | Done |
 | 3 | Senators page | Done |
-| 4 | Government page | Done (cabinets and the Élysée budget still to add) |
+| 4 | Government page, with ministerial cabinets and the Élysée budget | Done |
 | 5 | Candidates page, starting with the 2022 presidential election | Done for 2022 (legislative elections and 2027 still to add) |
 
 Also done along the way: the HATVP legal notice is applied (partial redactions kept verbatim, reproduction
@@ -38,10 +38,15 @@ Done: composition from the Journal officiel decrees (hand-maintained, checked ag
 computed from decree no. 2012-983, HATVP declarations of interests and RNE. The owner decided to keep the asset
 declaration rule (status and dates only) for ministers and the President.
 
+Also done: ministerial cabinets and the Élysée budget, from two annexes to the PLF for 2027
+(`scripts/government-costs.mjs`): headcount of each cabinet on 1 July 2026 and the yearly envelope of the
+special-duty allowance (ISP), then the presidency's allocation and its 2026 spending forecast by item.
+
 Still to do:
-- **Ministerial offices**: the PLF annex "Personnels affectés dans les cabinets ministériels" gives staff and
-  pay per ministry (CSV on data.gouv.fr up to 2017, PDF since). The annex lags a Government behind.
-- **Élysée budget**: programme 501 of the finance act, and the Cour des comptes' yearly report.
+- **Cabinet pay**: the 2027 annex no longer publishes the total pay of the cabinets, only the ISP envelope.
+  Earlier editions did (CSV on data.gouv.fr up to 2017, PDF since); add it back if a later edition does.
+- **Cour des comptes**: its yearly report on the presidency's accounts would give executed spending rather than
+  a forecast.
 - **Photos** for the 15 members who never sat in Parliament (or only before 2024): no official source yet.
   Wikimedia Commons would cover most of them, with a licence and an author to credit on each photo.
 

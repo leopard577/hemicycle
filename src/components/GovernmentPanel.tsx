@@ -23,11 +23,13 @@ const TAB_TRIGGER = 'max-sm:px-1 max-sm:text-[0.8125rem]'
 interface Props {
   member: GovernmentMember | null
   payScales: GovernmentPayScales
+  /** Date of the cabinet headcounts */
+  cabinetsAsOf: string
   onClose: () => void
 }
 
 /** Side panel of the President or a member of the Government: pay, alerts, then tabs */
-export function GovernmentPanel({ member, payScales, onClose }: Props) {
+export function GovernmentPanel({ member, payScales, cabinetsAsOf, onClose }: Props) {
   return (
     // Non-modal, like the chamber panel: the cards stay clickable to switch from one member to another
     <Sheet open={member !== null} modal={false} onOpenChange={(open) => !open && onClose()}>
@@ -38,13 +40,21 @@ export function GovernmentPanel({ member, payScales, onClose }: Props) {
         onInteractOutside={(e) => e.preventDefault()}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        {member && <Details key={member.id} member={member} payScales={payScales} />}
+        {member && <Details key={member.id} member={member} payScales={payScales} cabinetsAsOf={cabinetsAsOf} />}
       </SheetContent>
     </Sheet>
   )
 }
 
-function Details({ member, payScales }: { member: GovernmentMember; payScales: GovernmentPayScales }) {
+function Details({
+  member,
+  payScales,
+  cabinetsAsOf,
+}: {
+  member: GovernmentMember
+  payScales: GovernmentPayScales
+  cabinetsAsOf: string
+}) {
   const office = member.rank === 'president' ? PRESIDENT : GOVERNMENT_MEMBER
   const [notesOpen, setNotesOpen] = useState(false)
   const pay = payScales.ranks[member.rank]
@@ -95,7 +105,10 @@ function Details({ member, payScales }: { member: GovernmentMember; payScales: G
                   {(yearly / (payScales.minimumWage.gross * 12)).toLocaleString('fr-FR', { maximumFractionDigits: 1 })}{' '}
                   années
                 </strong>{' '}
-                de SMIC brut. Rémunération seule : le cabinet n'est pas compté.
+                de SMIC brut. Rémunération seule :{' '}
+                {member.cabinet
+                  ? `son cabinet comptait ${member.cabinet.members} membres et ${member.cabinet.support.toLocaleString('fr-FR')} personnels de soutien au ${formatDate(cabinetsAsOf)}, présentés sur la page.`
+                  : "le budget de l'Élysée est présenté sur la page."}
               </p>
             </div>
             <Fields>

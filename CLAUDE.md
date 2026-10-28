@@ -87,6 +87,9 @@ opening a deputy's and a senator's panel.
   for filings) unless the law says otherwise.
 - **The RNE has no stable URL.** `scripts/lib/rne.mjs` finds each file by title through the data.gouv API; if a
   title changes the build fails on purpose.
+- **Cabinets and the Élysée budget are hand-copied** from the PLF annexes into `scripts/government-costs.mjs`.
+  Update them every October with the new PLF; keep `cabinets.byMinister` keyed by the surnames used in
+  `government.mjs`, or the build fails. The cabinet annex is a 1 July snapshot, so it lags any later reshuffle.
 - **Campaign accounts are hand-copied** from the CNCCFP decisions in `ACCOUNTS` (`scripts/candidates.mjs`).
   The build checks each refund against the legal cap (`presidentialFunding2022` in `pay-scales.mjs`) and the
   decision's own arithmetic (entitlement − irregular − penalty = refund), and fails on a mismatch. Never name

@@ -206,6 +206,42 @@ export interface GovernmentMember extends Official {
   roleDecree: Decree | null
   /** Ids of the Prime Minister or ministers a minister delegate is placed with ("auprès de"); empty otherwise */
   reportsTo: string[]
+  /** Cabinet at the date of `GovernmentDataset.cabinets.asOf`; null for the President */
+  cabinet: CabinetStaff | null
+}
+
+export interface CabinetStaff {
+  /** Members appointed in the Journal officiel */
+  members: number
+  /** Support staff: protection, security, assistance, catering, drivers */
+  support: number
+  /** Yearly envelope of the special-duty allowance (ISP), euros */
+  isp: number
+}
+
+/** All ministerial cabinets, from the finance bill annex */
+export interface CabinetsSummary {
+  asOf: string
+  source: { label: string; url: string }
+  totals: CabinetStaff
+  byFunction: { label: string; count: number; group: 'members' | 'support' }[]
+  contractMembers: number
+}
+
+/** Budget of the Présidence de la République, from the finance bill annex */
+export interface ElyseeBudget {
+  source: { label: string; url: string }
+  dossier: string
+  /** State allocation by year */
+  allocation: Record<string, number>
+  allocationSince: number
+  /** Year of `spending` (forecast of execution) */
+  year: number
+  spending: { id: string; label: string; amount: number }[]
+  spendingTotal: number
+  ownRevenue: number
+  staff: { count: number; asOf: string; ceiling: number }
+  internationalTrips: { count: number; cost: number }
 }
 
 export interface GovernmentDeparture {
@@ -239,6 +275,35 @@ export interface GovernmentDataset {
   /** President first, then the Prime Minister, ministers and ministers delegate, in decree order */
   members: GovernmentMember[]
   departures: GovernmentDeparture[]
+  cabinets: CabinetsSummary
+  elysee: ElyseeBudget
+  ministryBudgets: MinistryBudgets
+}
+
+/** Credits of one programme or ministry, euros */
+export interface Credits {
+  label: string
+  /** Commitment authorisations (autorisations d'engagement) */
+  ae: number
+  /** Payment credits (crédits de paiement): what can be spent in the year */
+  cp: number
+}
+
+export interface MinistryBudget extends Credits {
+  /** Minister at the head of the ministry */
+  ministerId: string
+  /** Part of `cp` in "crédits évaluatifs" (debt interest, tax refunds…), set by law rather than by policy */
+  evaluative: number
+  /** Largest first */
+  programmes: Credits[]
+}
+
+/** General budget of the State by ministry, from the finance bill */
+export interface MinistryBudgets {
+  source: { label: string; url: string }
+  year: number
+  /** Largest payment credits first */
+  items: MinistryBudget[]
 }
 
 /** Text published by the Conseil constitutionnel */

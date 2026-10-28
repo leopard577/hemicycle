@@ -118,8 +118,18 @@ Conseil constitutionnel decision for the President's term.
 - **Pay** (`governmentPayScales` in `pay-scales.mjs`) is computed from decree no. 2012-983 rather than typed
   in: 1.4 × the "hors échelle" average for ministers and ministers delegate, 2 × the average + 5% for the
   President and the Prime Minister, plus 3% residence allowance and 25% function allowance. The average is the
-  deputies' base allowance (same definition), so both move together. Cabinets, the Élysée budget, official
-  housing and cars are not counted.
+  deputies' base allowance (same definition), so both move together. Official housing and cars are not counted.
+- **Cabinets and Élysée** (`government-costs.mjs`), copied by hand from two annexes to the PLF, published as PDF
+  in the PLF file of the Assemblée nationale; update them every October with the next PLF:
+  - `cabinets`: the annex "Personnels affectés dans les cabinets ministériels", situation on 1 July of the
+    current year. `byMinister` maps a surname (as in `MEMBERS` / `DEPARTURES`) to [cabinet members, support
+    staff, yearly ISP envelope in euros]. The build fails if a row matches no member nor departure, if a member
+    other than the President has no row, or if the rows do not add up to `totals`. Each member gets `cabinet`
+    (`null` for the President); the dataset gets the summary (`asOf`, `totals`, `byFunction`). The 2027 edition
+    publishes no total pay, only the ISP envelope.
+  - `elyseeBudget`: dotation no. 501 and the presidency's own budget pages in the "Pouvoirs publics" PAP:
+    allocation by year, 2026 spending forecast by item (the build checks that the items add up to
+    `spendingTotal`), own revenue, staff, international trips.
 - **HATVP**: `liste.csv` has no `id_origine` for these offices, so the join is on surname and first name. The
   XML declarations of interests of ministers have type `DI` (not `DIA`) and `codTypeMandatFichier` =
   `gouvernement`; the CSV calls them `di`/`dim`. The President's 2022 declaration is listed but its content is

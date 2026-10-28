@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CouncilTable } from '@/components/CouncilTable'
+import { CabinetsCard, ElyseeCard, MinistriesCard } from '@/components/GovernmentCosts'
 import { GovernmentPanel } from '@/components/GovernmentPanel'
 import { ExternalLink } from '@/components/panel/parts'
 import { ReadingDetail, ReadingPicker } from '@/components/Readings'
@@ -83,8 +84,10 @@ export function GovernmentPage() {
             <strong className="font-heading text-2xl text-red-700 tabular-nums dark:text-red-400">
               {formatEuro(totalCost, { round: true })}
             </strong>{' '}
-            bruts, soit {formatEuro(totalCost * 12, { compact: true })} par an, sans compter les cabinets. Choisissez
-            une place pour voir ce que chacun touche et déclare.
+            bruts, soit {formatEuro(totalCost * 12, { compact: true })} par an. S'y ajoutent{' '}
+            {(data.cabinets.totals.members + data.cabinets.totals.support).toLocaleString('fr-FR')} personnes dans les
+            cabinets et un budget de {formatEuro(data.elysee.spendingTotal, { compact: true })} pour l'Élysée (voir plus
+            bas). Choisissez une place pour voir ce que chacun touche et déclare.
           </p>
 
           <div>
@@ -163,7 +166,8 @@ export function GovernmentPage() {
               />
             ))}
 
-          <div className="grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Columns rather than a grid: cards of very different heights stack without leaving gaps */}
+          <div className="gap-3 sm:columns-2 lg:columns-3">
             {members
               .filter((m) => m.rank === 'pm' || m.rank === 'minister')
               .map((head) => (
@@ -173,9 +177,29 @@ export function GovernmentPage() {
                   delegates={delegatesOf(head)}
                   selectedId={selectedId}
                   onSelect={select}
-                  className={cn(head.rank === 'pm' && 'border-red-600/40 dark:border-red-400/40')}
+                  className={cn(
+                    'mb-3 break-inside-avoid',
+                    head.rank === 'pm' && 'border-red-600/40 dark:border-red-400/40',
+                  )}
                 />
               ))}
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <div className="space-y-1">
+            <h2 className="font-heading text-2xl font-semibold">Les cabinets et l'Élysée</h2>
+            <p className="text-sm text-muted-foreground">
+              Ce que le Gouvernement et la Présidence mobilisent au-delà de la rémunération de leurs membres, d'après
+              les annexes au projet de loi de finances.
+            </p>
+          </div>
+          <div className="grid items-start gap-4 lg:grid-cols-2">
+            <CabinetsCard cabinets={data.cabinets} members={members} selectedId={selectedId} onSelect={select} />
+            <div className="space-y-4">
+              <ElyseeCard elysee={data.elysee} />
+              <MinistriesCard budgets={data.ministryBudgets} members={members} onSelect={select} />
+            </div>
           </div>
         </section>
 
@@ -206,7 +230,12 @@ export function GovernmentPage() {
         {new Date(data.generatedAt).toLocaleDateString('fr-FR')}. Rémunérations calculées selon le décret n° 2012-983.
       </SiteFooter>
 
-      <GovernmentPanel member={selected} payScales={data.payScales} onClose={() => setSelectedId(null)} />
+      <GovernmentPanel
+        member={selected}
+        payScales={data.payScales}
+        cabinetsAsOf={data.cabinets.asOf}
+        onClose={() => setSelectedId(null)}
+      />
     </>
   )
 }
@@ -298,7 +327,10 @@ function PersonButton({
           {member.firstName} {member.lastName}
         </span>
         {member.rank !== 'president' && member.rank !== 'pm' && (
-          <span className="line-clamp-2 block text-xs text-muted-foreground">{title}</span>
+          // No `block` here: it would override the -webkit-box display that `line-clamp-2` needs
+          <span title={title} className="line-clamp-2 text-xs text-muted-foreground">
+            {title}
+          </span>
         )}
       </span>
     </Button>

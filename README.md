@@ -90,7 +90,11 @@ droit à l'image, ne sont pas utilisées.
   avec leur intitulé exact et le décret qui les a nommés.
 - Pour chacun : la **rémunération** calculée selon le décret n° 2012-983 (traitement, indemnités de résidence
   et de fonction), un compteur depuis la nomination, ses **revenus et mandats déclarés**, ses mandats locaux
-  et ses **déclarations HATVP**. Les cabinets ministériels ne sont pas encore comptés.
+  et ses **déclarations HATVP**.
+- Les **cabinets ministériels** : effectifs de chaque cabinet (membres et personnels de soutien) et enveloppe
+  des indemnités de sujétion, d'après l'annexe au projet de loi de finances.
+- Le **budget de l'Élysée** : dotation de l'État et dépenses prévues poste par poste (personnel, déplacements,
+  réceptions, fonctionnement, investissement), d'après la même source.
 - Les **départs** du Gouvernement en cours, avec le décret qui y met fin.
 - Comme pour les parlementaires, le contenu des déclarations de patrimoine n'est pas repris, bien que la HATVP
   publie celui des ministres.
