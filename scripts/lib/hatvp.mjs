@@ -32,14 +32,12 @@ const DOCUMENT_LABELS = {
   dspfm: 'Déclaration de situation patrimoniale de fin de mandat',
 }
 
-const REDACTED = '[Données non publiées]'
-
-// A fully redacted field becomes null. A partial redaction ("SCI [Données non publiées]") is kept as is:
-// the HATVP legal notice requires reproduced information to stay intact
+// Redactions, full ("[Données non publiées]") or partial ("SCI [Données non publiées]"), are kept as is: the
+// HATVP legal notice requires reproduced information to stay intact. null = field left empty
 const clean = (v) => {
   if (v == null || typeof v === 'object') return null
   const s = String(v).replace(/\s+/g, ' ').trim()
-  return s && s !== REDACTED ? s : null
+  return s || null
 }
 
 const parseAmount = (v) => {
@@ -49,6 +47,9 @@ const parseAmount = (v) => {
   return Number.isFinite(n) ? n : null
 }
 
+// An amount that is not a number keeps its text as published ("[Données non publiées]"…), for display
+const amountText = (v) => (parseAmount(v) === null ? clean(v) : null)
+
 function income(item, { title, organization }) {
   return {
     title: clean(item[title]),
@@ -57,7 +58,7 @@ function income(item, { title, organization }) {
     end: clean(item.dateFin),
     grossNet: clean(item.remuneration?.brutNet),
     amounts: asArray(item.remuneration?.montant?.[0]?.montant ?? item.remuneration?.montant)
-      .map((m) => ({ year: Number(m.annee), amount: parseAmount(m.montant) }))
+      .map((m) => ({ year: Number(m.annee), amount: parseAmount(m.montant), text: amountText(m.montant) }))
       .filter((m) => Number.isFinite(m.year)),
   }
 }
@@ -83,8 +84,9 @@ function extractInterests(decl) {
       income(i, { title: 'activite', organization: 'nomSociete' }),
     ),
     holdings: section(decl, 'participationFinanciereDto', (i) => ({
-      company: clean(i.nomSociete) ?? 'Société (nom non publié)',
+      company: clean(i.nomSociete),
       value: parseAmount(i.evaluation),
+      valueText: amountText(i.evaluation),
       capitalShare: clean(i.capitalDetenu),
       shareCount: clean(i.nombreParts),
       income: clean(i.remuneration),

@@ -106,6 +106,8 @@ export interface SpecialAllowance {
 export interface YearlyAmount {
   year: number
   amount: number | null
+  /** Text as published when the amount is not a number ("[Données non publiées]"), null when it is one or empty */
+  text: string | null
 }
 
 export interface Income {
@@ -118,8 +120,10 @@ export interface Income {
 }
 
 export interface Holding {
-  company: string
+  company: string | null
   value: number | null
+  /** Text as published when the value is not a number, like `YearlyAmount.text` */
+  valueText: string | null
   capitalShare: string | null
   shareCount: string | null
   income: string | null

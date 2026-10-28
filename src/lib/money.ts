@@ -1,10 +1,10 @@
 // What a parliamentarian costs and what they hold on top of their mandate, from public data only.
 // Everything is computed client side from the page dataset: nothing is invented or estimated beyond the
 // official pay scales.
-import { ASSETS, declarationsOf, INTERESTS } from '@/lib/declarations'
+import { ASSETS, declarationsOf, INITIAL_ASSETS, INITIAL_INTERESTS, INTERESTS, REDACTED } from '@/lib/declarations'
 import { formatDate } from '@/lib/format'
 import type { Office } from '@/lib/offices'
-import type { Income, LocalMandate, Official, Parliamentarian, PayScales } from '@/types'
+import type { Income, LocalMandate, Official, Parliamentarian, PayScales, YearlyAmount } from '@/types'
 
 /* ---------- Seat cost ---------- */
 
@@ -72,8 +72,10 @@ function mandateCategory(i: Income): Category | null {
 export interface IncomeLine {
   income: Income
   category: Category
-  /** Activity with no end date, or ended after taking office */
+  /** Still running when declared: no end date, or one after the month of the declaration */
   ongoing: boolean
+  /** Held alongside the office for a while, then stopped before the declaration */
+  endedInOffice: boolean
   /** Latest published yearly amount */
   latest: { year: number; amount: number } | null
   /** Same amounts as in another section: income declared twice, counted once */
@@ -90,6 +92,7 @@ export function incomeLines(official: Official): IncomeLine[] {
   const interests = official.hatvp.interests
   if (!interests) return []
   const mandateStart = official.startDate.slice(0, 7)
+  const filedMonth = interests.filedAt?.slice(0, 7) ?? null
   const sources: [Income[] | null, Category][] = [
     [interests.mandates, 'local'],
     [interests.jobs, 'private'],
@@ -102,15 +105,17 @@ export function incomeLines(official: Official): IncomeLine[] {
   return sources.flatMap(([items, fallback]) =>
     (items ?? []).map((income) => {
       const end = isoMonth(income.end)
-      const published = income.amounts.filter((m): m is { year: number; amount: number } => m.amount !== null)
+      const published = income.amounts.filter((m): m is YearlyAmount & { amount: number } => m.amount !== null)
       const latest = published.sort((a, b) => b.year - a.year)[0] ?? null
       const fingerprint = latest && latest.amount > 0 && fallback !== 'local' ? `${latest.year}:${latest.amount}` : null
       const already = fingerprint ? seen.get(fingerprint) : undefined
       if (fingerprint && !already) seen.set(fingerprint, fallback)
+      const ongoing = end === null || (filedMonth !== null && end > filedMonth)
       return {
         income,
         category: mandateCategory(income) ?? fallback,
-        ongoing: end === null || end > mandateStart,
+        ongoing,
+        endedInOffice: !ongoing && end !== null && end > mandateStart,
         latest,
         duplicate: already !== undefined && already !== fallback,
       }
@@ -146,11 +151,17 @@ export function incomeByYear(lines: IncomeLine[]): YearIncome[] {
   return [...years.values()].sort((a, b) => a.year - b.year)
 }
 
-/** What the official declares earning on top of their allowance, for the latest published year */
+/**
+ * What the official declares earning on top of their allowance, for the latest published year. Activities stopped
+ * since taking office are listed apart (`ended`) and not counted: their amounts are no longer earned.
+ */
 export function sideIncome(lines: IncomeLine[], office: Office) {
-  const side = lines.filter((l) => l.ongoing && !office.ownCategories.includes(l.category))
+  const other = (l: IncomeLine) => !office.ownCategories.includes(l.category)
+  const side = lines.filter((l) => l.ongoing && other(l))
+  // Past parliamentary mandates are listed among "other mandates and offices" instead
+  const ended = lines.filter((l) => l.endedInOffice && other(l) && !office.pastOfficeCategories.includes(l.category))
   const sum = (ls: IncomeLine[]) => ls.reduce((total, l) => total + (l.duplicate ? 0 : (l.latest?.amount ?? 0)), 0)
-  return { lines: side, total: sum(side), local: sum(side.filter((l) => l.category === 'local')) }
+  return { lines: side, ended, total: sum(side), local: sum(side.filter((l) => l.category === 'local')) }
 }
 
 /* ---------- Local mandates (RNE) and declarations ---------- */
@@ -186,7 +197,13 @@ export function isMandateDeclared(m: LocalMandate, declared: Income[]) {
 
 const EXECUTIVE_ROLE = /maire|adjoint|president|organe executif/
 
-export const isExecutive = (m: LocalMandate) => EXECUTIVE_ROLE.test(normalize(m.role))
+// Chairing a committee of a council is not an executive role
+const NOT_EXECUTIVE = /president de commission/
+
+export const isExecutive = (m: LocalMandate) => {
+  const role = normalize(m.role)
+  return EXECUTIVE_ROLE.test(role) && !NOT_EXECUTIVE.test(role)
+}
 
 /** Role to display: the RNE writes "Autre membre" or "Membre" for a plain councillor */
 export const displayedRole = (m: LocalMandate) =>
@@ -273,9 +290,9 @@ export function alerts(official: Official, office: Office, now = Date.now()): Al
             : "Mandat local non retrouvé dans sa déclaration d'intérêts",
         detail: `${missing.map((m) => `${mandateTitle(m)}, depuis le ${frDate(m.start)}`).join(' ; ')}. ${
           missing.length > 1
-            ? 'Ces mandats figurent au Répertoire national des élus, mais pas'
-            : 'Ce mandat figure au Répertoire national des élus, mais pas'
-        } dans la liste des mandats de sa déclaration d'intérêts du ${frDate(filedAt)}.`,
+            ? "Ces mandats figurent au Répertoire national des élus, mais le rapprochement automatique ne les retrouve pas"
+            : "Ce mandat figure au Répertoire national des élus, mais le rapprochement automatique ne le retrouve pas"
+        } dans la liste des mandats de sa déclaration d'intérêts du ${frDate(filedAt)}, saisie en texte libre.`,
       })
   }
 
@@ -298,22 +315,36 @@ export function alerts(official: Official, office: Office, now = Date.now()): Al
     if (undeclared.length)
       result.push({
         severity: 'warning',
-        title: undeclared.length > 1 ? 'Nouveaux mandats non déclarés' : 'Nouveau mandat non déclaré',
-        detail: `${undeclared.map((m) => `${mandateTitle(m)}, depuis le ${frDate(m.start)}`).join(' ; ')}. Sa dernière déclaration d'intérêts date du ${frDate(lastInterests)}, ${undeclared.length > 1 ? 'avant ces mandats' : 'avant ce mandat'}. La loi impose de signaler tout changement important à la HATVP dans les deux mois.`,
+        title:
+          undeclared.length > 1
+            ? 'Nouveaux mandats non retrouvés dans ses déclarations'
+            : 'Nouveau mandat non retrouvé dans ses déclarations',
+        detail: `${undeclared.map((m) => `${mandateTitle(m)}, depuis le ${frDate(m.start)}`).join(' ; ')}. Sa dernière déclaration d'intérêts publiée par la HATVP date du ${frDate(lastInterests)}, ${undeclared.length > 1 ? 'avant ces mandats' : 'avant ce mandat'}. La loi impose de signaler tout changement important à la HATVP dans les deux mois ; une modification déposée mais pas encore publiée n'apparaît pas ici.`,
       })
   }
 
   // 4. Entry declarations filed late or missing. A presidential candidate files before the election: any
-  // declaration counts then, whatever its date
+  // declaration counts then, whatever its date. Only an initial declaration can be late: a modification (diam,
+  // dspm…) is a separate obligation. A re-elected member files the initial one before the new term starts, or is
+  // exempt from it. A member of the Government whose title changed files again for the new title, and the open data
+  // may only list those filings: each one is measured from the latest start (appointment or new title) before it.
   const entryFrom = office.declaresBeforeOffice ? '' : official.startDate
-  for (const [types, name] of [
-    [INTERESTS, "d'intérêts"],
-    [ASSETS, 'de patrimoine'],
-  ] as const) {
-    const sinceStartDates = declarationsOf(declarations, types)
+  const roleStart = 'roleStart' in official && typeof official.roleStart === 'string' ? official.roleStart : null
+  const starts = [official.startDate, roleStart].filter((d): d is string => d !== null).sort()
+  const startBefore = (filedAt: string) => starts.filter((s) => s <= filedAt).at(-1) ?? official.startDate
+  const yearBefore = new Date(official.startDate)
+  yearBefore.setFullYear(yearBefore.getFullYear() - 1)
+  const yearBeforeStart = yearBefore.toISOString().slice(0, 10)
+  const filedDates = (types: typeof INTERESTS) =>
+    declarationsOf(declarations, types)
       .map((d) => d.filedAt)
-      .filter((d): d is string => d !== null && d >= entryFrom)
+      .filter((d): d is string => d !== null)
       .sort()
+  for (const [types, initialTypes, name] of [
+    [INTERESTS, INITIAL_INTERESTS, "d'intérêts"],
+    [ASSETS, INITIAL_ASSETS, 'de patrimoine'],
+  ] as const) {
+    const sinceStartDates = filedDates(types).filter((d) => d >= entryFrom)
     const limit = deadline(official.startDate)
     if (!sinceStartDates.length) {
       // A re-elected parliamentarian can be exempt from a new asset declaration: only a missing declaration of
@@ -321,28 +352,34 @@ export function alerts(official: Official, office: Office, now = Date.now()): Al
       if (limit < now && types === INTERESTS)
         result.push({
           severity: 'serious',
-          title: `Aucune déclaration ${name} depuis son entrée en fonction`,
-          detail: `En fonction depuis le ${frDate(official.startDate)}, aucune déclaration n'est enregistrée par la HATVP, alors que la loi laisse deux mois pour la déposer.`,
+          title: `Aucune déclaration ${name} retrouvée depuis son entrée en fonction`,
+          detail: `En fonction depuis le ${frDate(official.startDate)} : aucune déclaration à ce nom n'est retrouvée dans la liste publiée par la HATVP, alors que la loi laisse deux mois pour la déposer.`,
         })
       continue
     }
-    if (new Date(sinceStartDates[0]).getTime() > limit)
+    const initials = filedDates(initialTypes)
+    // An initial declaration filed in the year before taking office covers it (re-election, earlier filing)
+    if (initials.some((d) => d >= yearBeforeStart && d < official.startDate)) continue
+    const first = initials.find((d) => d >= entryFrom)
+    if (!first) continue
+    const from = startBefore(first)
+    if (new Date(first).getTime() > deadline(from))
       result.push({
         severity: 'warning',
         title: `Déclaration ${name} déposée en retard`,
-        detail: `Déposée le ${frDate(sinceStartDates[0])}, soit ${days(official.startDate, sinceStartDates[0])} jours après son entrée en fonction le ${frDate(official.startDate)}, alors que la loi laisse deux mois.`,
+        detail: `Déposée le ${frDate(first)} d'après la HATVP, soit ${days(from, first)} jours après ${from === official.startDate ? 'son entrée en fonction' : 'le changement de ses fonctions'} le ${frDate(from)}, alors que la loi laisse deux mois.`,
       })
   }
 
-  // 5. Unpublished amounts for ongoing activities
+  // 5. Amounts the HATVP does not publish, for ongoing activities (an empty field is not one)
   const withoutAmount = incomeLines(official).filter(
-    (l) => l.ongoing && !office.ownCategories.includes(l.category) && l.income.amounts.some((m) => m.amount === null),
+    (l) => l.ongoing && !office.ownCategories.includes(l.category) && l.income.amounts.some((m) => m.text === REDACTED),
   )
   if (withoutAmount.length)
     result.push({
       severity: 'info',
       title: 'Montants non publiés',
-      detail: `${withoutAmount.map((l) => l.income.title ?? 'Activité').join(', ')} : au moins un montant annuel n'est pas rendu public dans sa déclaration.`,
+      detail: `${withoutAmount.map((l) => l.income.title ?? 'Activité').join(', ')} : au moins un montant annuel figure comme « ${REDACTED} » dans la déclaration publiée par la HATVP.`,
     })
 
   const order: Record<Severity, number> = { serious: 0, warning: 1, info: 2 }

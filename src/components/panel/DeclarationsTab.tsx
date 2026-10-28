@@ -25,6 +25,7 @@ export function DeclarationsTab({ member, office }: { member: Official; office: 
           emptyTitle="Aucune déclaration d'intérêts enregistrée"
           dueDate={dueDate}
           who={who}
+          office={office}
         />
       </Section>
 
@@ -36,6 +37,7 @@ export function DeclarationsTab({ member, office }: { member: Official; office: 
           emptyTitle="Aucune déclaration de situation patrimoniale enregistrée"
           dueDate={dueDate}
           who={who}
+          office={office}
         />
       </Section>
 
@@ -60,6 +62,7 @@ function DeclarationList({
   emptyTitle,
   dueDate,
   who,
+  office,
 }: {
   declarations: HatvpDeclaration[]
   types: DeclarationType[]
@@ -67,6 +70,7 @@ function DeclarationList({
   /** End of the legal deadline when it has not passed yet */
   dueDate: string | null
   who: string
+  office: Office
 }) {
   const items = declarationsOf(declarations, types)
   if (!items.length)
@@ -81,7 +85,7 @@ function DeclarationList({
   return (
     <ul className="divide-y rounded-lg border">
       {items.map((d, i) => {
-        const { label, status } = declarationStatus(d)
+        const { label, status } = declarationStatus(d, office)
         const dates = [
           d.filedAt && `Déposée le ${formatDate(d.filedAt)}`,
           d.publishedAt && `publiée le ${formatDate(d.publishedAt)}`,

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -11,7 +12,7 @@ import {
 import { type Page, PAGES, pathTo } from "@/lib/pages";
 import { cn } from "@/lib/utils";
 
-/** Top bar shared by every page: site name, navigation, theme choice */
+/** Top bar shared by every page: navigation, then the aside pages (À propos) and the theme choice */
 export function Navbar({ page }: { page: Page | undefined }) {
   const nav = useRef<HTMLElement>(null);
 
@@ -24,23 +25,24 @@ export function Navbar({ page }: { page: Page | undefined }) {
 
   return (
     <header className="border-b">
-      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-4 px-6 py-2">
-        {/* On a phone the links take their own row and scroll horizontally when needed */}
+      <div className="mx-auto flex w-full max-w-5xl items-center gap-x-1 px-4 py-1 sm:gap-x-4 sm:px-6 sm:py-2">
+        {/* One row everywhere: on a phone the links are tightened to fit beside the theme button, and only
+            scroll on the narrowest screens */}
         <NavigationMenu
           ref={nav}
           viewport={false}
           aria-label="Pages"
-          className="order-last -mx-2 max-w-none basis-full justify-start overflow-x-auto py-1 [scrollbar-width:none] sm:order-none sm:mx-0 sm:basis-0"
+          className="-ml-1 max-w-none min-w-0 flex-1 justify-start overflow-x-auto py-1 [scrollbar-width:none] sm:ml-0"
         >
-          <NavigationMenuList>
-            {PAGES.map((p) => (
+          <NavigationMenuList className="justify-start">
+            {PAGES.filter((p) => !p.aside).map((p) => (
               <NavigationMenuItem key={p.id}>
                 <NavigationMenuLink
                   asChild
                   active={p.id === page}
                   className={cn(
                     navigationMenuTriggerStyle(),
-                    "data-active:bg-muted data-active:text-foreground",
+                    "px-1 text-[14px] data-active:bg-muted data-active:text-foreground sm:px-2.5 sm:text-sm",
                   )}
                 >
                   <Link to={pathTo(p.id)}>{p.label}</Link>
@@ -50,7 +52,19 @@ export function Navbar({ page }: { page: Page | undefined }) {
           </NavigationMenuList>
         </NavigationMenu>
 
-        <div className="ml-auto">
+        <div className="flex shrink-0 items-center gap-1">
+          {PAGES.filter((p) => p.aside).map((p) => (
+            <Button
+              key={p.id}
+              asChild
+              variant="ghost"
+              className="hidden aria-[current=page]:bg-muted aria-[current=page]:text-foreground sm:inline-flex"
+            >
+              <Link to={pathTo(p.id)} aria-current={p.id === page ? "page" : undefined}>
+                {p.label}
+              </Link>
+            </Button>
+          ))}
           <ThemeToggle />
         </div>
       </div>

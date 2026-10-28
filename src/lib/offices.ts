@@ -13,6 +13,11 @@ export interface Office {
   localExecutiveBanned: boolean
   /** What the app shows of asset declarations, and why */
   assetsNote: string
+  /**
+   * Asset declarations can only be consulted in a prefecture (parliamentarians, art. LO 135-2 of the electoral code);
+   * otherwise the HATVP publishes them online (members of the Government, the President)
+   */
+  assetsInPrefecture: boolean
   /** Declarations are filed before taking office (presidential candidates), so none is "late" */
   declaresBeforeOffice: boolean
   noun: string
@@ -46,6 +51,7 @@ export const DEPUTY: Office = {
   mandate: { the: 'le mandat de député', of: 'du mandat de député' },
   localExecutiveBanned: true,
   assetsNote: PARLIAMENTARY_ASSETS,
+  assetsInPrefecture: true,
   declaresBeforeOffice: false,
   noun: 'député',
   plural: 'députés',
@@ -68,6 +74,7 @@ export const SENATOR: Office = {
   mandate: { the: 'le mandat de sénateur', of: 'du mandat de sénateur' },
   localExecutiveBanned: true,
   assetsNote: PARLIAMENTARY_ASSETS,
+  assetsInPrefecture: true,
   declaresBeforeOffice: false,
   noun: 'sénateur',
   plural: 'sénateurs',
@@ -96,6 +103,7 @@ export const GOVERNMENT_MEMBER: Office = {
   mandate: { the: 'la fonction ministérielle', of: 'de la fonction ministérielle' },
   // No law forbids a minister to stay a local councillor or mayor
   localExecutiveBanned: false,
+  assetsInPrefecture: false,
   declaresBeforeOffice: false,
   assetsNote:
     "Patrimoine en début et en fin de fonctions. La HATVP publie le contenu des déclarations de patrimoine des membres du Gouvernement sur son site ; l'application n'en reprend que le dépôt et ses dates.",

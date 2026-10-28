@@ -130,6 +130,14 @@ Conseil constitutionnel decision for the President's term.
   - `elyseeBudget`: dotation no. 501 and the presidency's own budget pages in the "Pouvoirs publics" PAP:
     allocation by year, 2026 spending forecast by item (the build checks that the items add up to
     `spendingTotal`), own revenue, staff, international trips.
+  - **Ministry budgets** (`loadMinistryBudgets`, `ministryBudgets`): downloaded, not copied. The PLF as tabled is
+    published as HTML in the Assemblée's open data (`PRJLANR5L17B3210.html` for 2027); its annex table 6,
+    "Présentation, regroupée par ministère, des crédits proposés … par programme du budget général", has one row
+    per ministry (class `assnatetatagr`) followed by its programmes (`assnatetatalr`), AE and CP in euros. The
+    grouping by ministry is the Government's own. `MINISTRY_HEADS` links each ministry to its minister's surname;
+    the build fails on an unknown ministry, on a minister missing from `MEMBERS`, or if a ministry's programmes do
+    not add up to its total. Programmes labelled "crédits évaluatifs" (debt interest, tax refunds) are summed as
+    `evaluative`. For a new PLF, change `PLF_2027_BILL` to the new bill number.
 - **HATVP**: `liste.csv` has no `id_origine` for these offices, so the join is on surname and first name. The
   XML declarations of interests of ministers have type `DI` (not `DIA`) and `codTypeMandatFichier` =
   `gouvernement`; the CSV calls them `di`/`dim`. The President's 2022 declaration is listed but its content is
@@ -256,10 +264,13 @@ Interests {
 `null` means the section is missing from the declaration. The UI shows them differently.
 
 Amounts in `Income.amounts` are yearly amounts as declared. `grossNet` says whether they are gross or net.
-A field the HATVP redacts entirely (`[Données non publiées]`) becomes `null`. A partly redacted field
-(`SCI [Données non publiées]`, about 3,500 cases, mostly company names) is kept verbatim, marker included:
+Redacted fields are kept verbatim, marker included, whether the HATVP redacts them entirely
+(`[Données non publiées]`) or partly (`SCI [Données non publiées]`, about 3,500 cases, mostly company names):
 the HATVP's [legal notice](https://www.hatvp.fr/mentions-legales/) requires reproduced information to stay
-intact, and stripping the marker would turn the redacted name into "SCI".
+intact, and stripping the marker would turn the redacted name into "SCI". `null` only means the field is
+empty, shown as "Non renseigné". An amount that is not a number (`YearlyAmount.amount`, `Holding.value`) is
+`null`, with the published text in `text` (`valueText` for holdings). The UI shows declared amounts to the cent,
+never rounded, and labels any sum it computes as "(calcul)".
 
 `status` keeps the raw HATVP value: `Livrée`, `Déclaration déposée - publication à venir`,
 `Déclaration déposée - publication en préfecture à venir` or `En cours`. `src/lib/declarations.ts` turns it
