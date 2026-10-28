@@ -1,194 +1,25 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { SearchIcon } from 'lucide-react'
-import { DeputyPanel } from '@/components/DeputyPanel'
-import { Hemicycle } from '@/components/Hemicycle'
-import { Legend } from '@/components/Legend'
-import { ThemeToggle } from '@/components/ThemeToggle'
-import { ChoixLecture, DetailLecture } from '@/components/Lectures'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { coutMensuel, synthese } from '@/lib/argent'
-import { formatEuro } from '@/lib/format'
-import { type Lecture, LECTURES, palier } from '@/lib/lectures'
+import { useEffect, useState } from 'react'
+import { Outlet, ScrollRestoration } from 'react-router'
+import { Navbar } from '@/components/Navbar'
+import { type LayoutContext, useCurrentPage } from '@/lib/layout'
 import { cn } from '@/lib/utils'
-import type { Dataset, Depute } from '@/types'
 
-const MAX_SUGGESTIONS = 8
-
-const normalize = (s: string) =>
-  s
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-
+/** Shared layout: the navbar, then the page of the current route */
 export default function App() {
-  const [data, setData] = useState<Dataset | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [groupFilter, setGroupFilter] = useState<string | null>(null)
-  const [query, setQuery] = useState('')
-  const [lecture, setLecture] = useState<Lecture>('groupe')
+  const page = useCurrentPage()
+  const [panelOpen, setPanelOpen] = useState(false)
 
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}data/deputes.json`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`)
-        return r.json() as Promise<Dataset>
-      })
-      .then(setData)
-      .catch((e: Error) => setError(e.message))
-  }, [])
-
-  const groupes = useMemo(() => new Map(data?.groupes.map((g) => [g.id, g])), [data])
-  const counts = useMemo(() => {
-    const m = new Map<string, number>()
-    data?.deputes.forEach((d) => d.groupeId && m.set(d.groupeId, (m.get(d.groupeId) ?? 0) + 1))
-    return m
-  }, [data])
-
-  const syntheses = useMemo(() => new Map(data?.deputes.map((d) => [d.id, synthese(d)])), [data])
-  const coutTotal = useMemo(
-    () => data?.deputes.reduce((sum, d) => sum + coutMensuel(d, data.baremes).total, 0) ?? 0,
-    [data],
-  )
-
-  const q = normalize(query.trim())
-  const isHighlighted = useCallback(
-    (d: Depute) => {
-      if (groupFilter && d.groupeId !== groupFilter) return false
-      if (!q) return true
-      return normalize(`${d.prenom} ${d.nom} ${d.departement ?? ''} ${d.numDepartement ?? ''}`).includes(q)
-    },
-    [groupFilter, q],
-  )
-
-  const matches = useMemo(
-    () => (data && (q || groupFilter) ? data.deputes.filter(isHighlighted) : []),
-    [data, q, groupFilter, isHighlighted],
-  )
-
-  const selected = data?.deputes.find((d) => d.id === selectedId) ?? null
-
-  if (error)
-    return (
-      <p className="p-12 text-center text-muted-foreground">
-        Impossible de charger les données ({error}). Lancez <code>npm run data</code>.
-      </p>
-    )
-  if (!data) return <p className="p-12 text-center text-muted-foreground">Chargement…</p>
+    document.title = page ? `${page.label} · Hémicycle` : 'Hémicycle'
+  }, [page])
 
   return (
-    // Le panneau ouvert réserve sa largeur en padding : l'hémicycle reste centré dans l'espace libre
-    <div
-      className={cn('flex min-h-svh flex-col transition-[padding] duration-300', selected && 'lg:pr-[30rem]')}
-    >
-      <header className="border-b">
-        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-end justify-between gap-4 px-6 py-5">
-          <div>
-            <p className="text-xs font-medium tracking-widest text-primary uppercase">Assemblée nationale · 17ᵉ législature</p>
-            <h1 className="font-heading text-4xl font-semibold tracking-tight">L'hémicycle</h1>
-          </div>
-
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            <div className="relative flex-1 sm:w-80 sm:flex-none">
-              <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Nom, département…"
-                aria-label="Rechercher un député"
-                className="pl-8"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-              {q && (
-                <Card className="absolute inset-x-0 top-full z-10 mt-1 gap-0 p-1 shadow-lg">
-                  {matches.slice(0, MAX_SUGGESTIONS).map((d) => (
-                    <Button
-                      key={d.id}
-                      variant="ghost"
-                      className="w-full justify-start font-normal"
-                      onClick={() => setSelectedId(d.id)}
-                    >
-                      <span
-                        className="size-2.5 shrink-0 rounded-full"
-                        style={{ background: groupes.get(d.groupeId ?? '')?.couleur }}
-                      />
-                      {d.prenom} {d.nom}
-                      <span className="truncate text-muted-foreground">· {d.departement}</span>
-                    </Button>
-                  ))}
-                  {matches.length === 0 && (
-                    <p className="px-3 py-2 text-sm text-muted-foreground">Aucun député ne correspond.</p>
-                  )}
-                  {matches.length > MAX_SUGGESTIONS && (
-                    <p className="px-3 py-2 text-xs text-muted-foreground">
-                      … et {matches.length - MAX_SUGGESTIONS} autres, en surbrillance sur l'hémicycle.
-                    </p>
-                  )}
-                </Card>
-              )}
-            </div>
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 py-8">
-        <p className="mx-auto mb-6 max-w-2xl text-center text-lg text-balance">
-          Chaque mois, ces {data.deputes.length} sièges coûtent{' '}
-          <strong className="font-heading text-2xl text-red-700 tabular-nums dark:text-red-400">
-            {formatEuro(coutTotal, { compact: true })}
-          </strong>{' '}
-          aux contribuables, soit {formatEuro(coutTotal * 12, { compact: true })} par an. Choisissez un siège pour voir
-          ce que chacun touche et cumule.
-        </p>
-
-        <ChoixLecture lecture={lecture} onChange={setLecture} />
-
-        <Hemicycle
-          deputes={data.deputes}
-          groupes={groupes}
-          selectedId={selectedId}
-          isHighlighted={isHighlighted}
-          onSelect={(d) => setSelectedId(d.id)}
-          teinte={lecture === 'groupe' ? null : (d) => palier(lecture, syntheses.get(d.id)!).fill}
-          detail={lecture === 'groupe' ? null : (d) => LECTURES[lecture].detail(syntheses.get(d.id)!)}
-        />
-
-        {lecture !== 'groupe' && (
-          <DetailLecture
-            lecture={lecture}
-            deputes={data.deputes}
-            syntheses={syntheses}
-            groupes={groupes}
-            onSelect={(d) => setSelectedId(d.id)}
-          />
-        )}
-
-        <Legend groupes={data.groupes} counts={counts} activeId={groupFilter} onChange={setGroupFilter} />
-
-        <p aria-live="polite" className="min-h-5 text-center text-sm text-muted-foreground">
-          {(q || groupFilter) && `${matches.length} député${matches.length > 1 ? 's' : ''} sur ${data.deputes.length}`}
-        </p>
-      </main>
-
-      <footer className="border-t px-6 py-4 text-center text-xs text-muted-foreground">
-        Données publiques : Assemblée nationale, HATVP et Répertoire national des élus (ministère de l'Intérieur),
-        extraites le {new Date(data.generatedAt).toLocaleDateString('fr-FR')}. Revenus et mandats tels que déclarés ;
-        les montants de rémunération suivent les barèmes officiels. Les sièges sont regroupés par groupe politique.
-        <br />
-        Informations des déclarations reproduites sans modification depuis l'open data de la HATVP (Licence Ouverte
-        Etalab) : droits de reproduction réservés et strictement limités, toute utilisation commerciale ou publicitaire
-        est interdite.
-      </footer>
-
-      <DeputyPanel
-        depute={selected}
-        groupe={selected?.groupeId ? groupes.get(selected.groupeId) : undefined}
-        baremes={data.baremes}
-        onClose={() => setSelectedId(null)}
-      />
+    // While the panel is open its width is reserved as padding: the content stays centred in the free space
+    <div className={cn('flex min-h-svh flex-col transition-[padding] duration-300', panelOpen && 'lg:pr-[30rem]')}>
+      <Navbar page={page?.id} />
+      <Outlet context={{ onPanelChange: setPanelOpen } satisfies LayoutContext} />
+      {/* Back to the top on a new page, previous position on back / forward */}
+      <ScrollRestoration />
     </div>
   )
 }

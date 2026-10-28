@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { MoonIcon, SunIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { choisirTheme, themeActuel } from '@/lib/theme'
+import { chooseTheme, currentTheme } from '@/lib/theme'
 
-/** Bascule entre thème clair et thème sombre */
+/** Switches between the light and dark themes */
 export function ThemeToggle() {
-  const [theme, setTheme] = useState(themeActuel)
-  const sombre = theme === 'sombre'
-  const label = sombre ? 'Passer en thème clair' : 'Passer en thème sombre'
+  const [theme, setTheme] = useState(currentTheme)
+  const dark = theme === 'dark'
+  const label = dark ? 'Passer en thème clair' : 'Passer en thème sombre'
 
   return (
     <Button
@@ -16,12 +16,12 @@ export function ThemeToggle() {
       aria-label={label}
       title={label}
       onClick={() => {
-        const suivant = sombre ? 'clair' : 'sombre'
-        choisirTheme(suivant)
-        setTheme(suivant)
+        const next = dark ? 'light' : 'dark'
+        chooseTheme(next)
+        setTheme(next)
       }}
     >
-      {sombre ? <SunIcon /> : <MoonIcon />}
+      {dark ? <SunIcon /> : <MoonIcon />}
     </Button>
   )
 }

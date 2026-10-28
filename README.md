@@ -25,9 +25,15 @@ Toutes les données sont publiques et officielles :
 | Source | Ce qu'on y prend |
 | --- | --- |
 | [Assemblée nationale](https://data.assemblee-nationale.fr) (open data) | Députés, groupes, commissions, fonctions, collaborateurs, place dans l'hémicycle |
+| [Sénat](https://data.senat.fr) (open data et liste des sénateurs de senat.fr) | Sénateurs, groupes, commissions, délégations, fonctions au Bureau, dates de mandat, place dans l'hémicycle |
 | [HATVP](https://www.hatvp.fr/open-data/), Haute Autorité pour la transparence de la vie publique | Liste et dates des déclarations, contenu des déclarations d'intérêts (revenus, sociétés, mandats), autres fonctions déclarées |
 | [Répertoire national des élus](https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/) (ministère de l'Intérieur) | Mandats locaux en cours : maire, adjoint, conseiller municipal, départemental, régional, intercommunal |
 | [Assemblée nationale, fiche n° 7](https://www.assemblee-nationale.fr/dyn/synthese/deputes-groupes-parlementaires/la-situation-materielle-du-depute) (janvier 2026) | Montant de l'indemnité, des indemnités spéciales, des frais de mandat et du crédit collaborateurs |
+| [Sénat, indemnité, frais de mandat et collaborateurs](https://www.senat.fr/connaitre-le-senat/role-et-fonctionnement/lindemnite-parlementaire.html) (mars 2026) | Montant de l'indemnité, des indemnités de fonction, de l'avance de frais de mandat et du crédit collaborateurs |
+| [Journal officiel](https://www.legifrance.gouv.fr) (décrets de nomination) et [Conseil constitutionnel](https://www.conseil-constitutionnel.fr/decision/2022/2022197PDR.htm) | Composition du Gouvernement, dates de nomination, début du mandat présidentiel |
+| [Décret n° 2012-983](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000026310466) | Rémunération du Président de la République et des membres du Gouvernement |
+| [Conseil constitutionnel](https://www.data.gouv.fr/datasets/parrainages-des-candidats-a-lelection-presidentielle-francaise-de-2022) (parrainages, liste des candidats) et [ministère de l'Intérieur](https://www.data.gouv.fr/datasets/election-presidentielle-des-10-et-24-avril-2022-resultats-definitifs-du-1er-tour) (résultats) | Candidats à l'élection présidentielle de 2022, parrainages, voix aux deux tours |
+| [CNCCFP](https://cnccfp.fr/election-presidentielle-des-10-et-24-avril-2022-publication-au-journal-officiel-des-decisions-de-la-commission/), décisions publiées au Journal officiel | Comptes de campagne de 2022 : dépenses, recettes, remboursement dû par l'État, dépenses irrégulières et réductions |
 | [service-public.gouv.fr](https://www.service-public.gouv.fr/particuliers/vosdroits/F2300) | Montant du SMIC (juin 2026), pour les comparaisons |
 
 Les données sont mises à jour automatiquement chaque lundi. La date d'extraction figure en bas de la page.
@@ -47,7 +53,7 @@ Les données sont mises à jour automatiquement chaque lundi. La date d'extracti
   **déclaration d'intérêts**, que la HATVP publie.
 
 Les données sont réutilisées sous [Licence Ouverte 2.0 (Etalab)](https://www.etalab.gouv.fr/licence-ouverte-open-licence/).
-Les photos des députés ne sont pas copiées : elles sont chargées depuis assemblee-nationale.fr.
+Les photos ne sont pas copiées : elles sont chargées depuis assemblee-nationale.fr et senat.fr.
 
 Les informations issues de la HATVP respectent en plus ses [mentions légales](https://www.hatvp.fr/mentions-legales/) :
 elles sont reproduites sans modification (un passage masqué par la HATVP reste affiché « [Données non publiées] »),
@@ -70,6 +76,41 @@ droit à l'image, ne sont pas utilisées.
 - Pour chaque coloration, un **résumé chiffré** et le **classement des dix premiers**, cliquable.
 - **Recherche** par nom ou par département, et **filtre** par groupe politique.
 
+### Le Sénat
+
+- Les **348 sénateurs**, avec les mêmes colorations, la même recherche et la même fiche que pour les députés.
+- Les **indemnités de fonction** (Président du Sénat, questeurs, vice-présidents, présidents de groupe, de
+  commission permanente ou de délégation, rapporteurs généraux) sont comptées dans le coût du siège.
+- Juste après un renouvellement, la fiche donne la **date limite de dépôt** des déclarations au lieu de
+  signaler leur absence.
+
+### Le Gouvernement
+
+- Le **Président de la République**, le **Premier ministre**, les **ministres** et les **ministres délégués**,
+  avec leur intitulé exact et le décret qui les a nommés.
+- Pour chacun : la **rémunération** calculée selon le décret n° 2012-983 (traitement, indemnités de résidence
+  et de fonction), un compteur depuis la nomination, ses **revenus et mandats déclarés**, ses mandats locaux
+  et ses **déclarations HATVP**.
+- Les **cabinets ministériels** : effectifs de chaque cabinet (membres et personnels de soutien) et enveloppe
+  des indemnités de sujétion, d'après l'annexe au projet de loi de finances.
+- Le **budget de l'Élysée** : dotation de l'État et dépenses prévues poste par poste (personnel, déplacements,
+  réceptions, fonctionnement, investissement), d'après la même source.
+- Les **départs** du Gouvernement en cours, avec le décret qui y met fin.
+- Comme pour les parlementaires, le contenu des déclarations de patrimoine n'est pas repris, bien que la HATVP
+  publie celui des ministres.
+
+### Les candidats
+
+- Les **12 candidats à l'élection présidentielle de 2022**, par ordre de voix au premier tour, avec leur score
+  aux deux tours.
+- Pour chacun : les **dépenses de campagne** retenues par la CNCCFP et le **remboursement dû par l'État**,
+  avec le plafond légal, les dépenses jugées irrégulières et les réductions décidées, et le lien vers la
+  décision.
+- Ses **parrainages** : leur nombre, la répartition par type d'élu et le nombre de départements. Les
+  parrains ne sont pas nommés, ni les personnes parrainées qui ne figurent pas sur la liste officielle.
+- La campagne officielle (affiches, professions de foi, bulletins), payée directement par l'État, n'est pas
+  comptée : aucune source ne la détaille par candidat.
+
 ### La fiche d'un député
 
 - **L'addition** : ce que le siège coûte par mois et par an, l'équivalent en années de SMIC, et un compteur
@@ -83,9 +124,9 @@ droit à l'image, ne sont pas utilisées.
 - **Cinq onglets** :
   - **Cumuls** : revenus déclarés année par année comparés au SMIC, activités exercées en parallèle du
     mandat, mandats locaux en cours, plafond des indemnités locales, anciens mandats (Parlement européen,
-    Sénat…) ;
+    Sénat, Gouvernement…), puis le détail de sa déclaration d'intérêts, rubrique par rubrique ;
   - **Salaire** : indemnité parlementaire, indemnités spéciales, frais de mandat, collaborateurs ;
-  - **Intérêts** : parts détenues dans des sociétés et revenus déclarés, rubrique par rubrique ;
+  - **Capital** : parts détenues dans des sociétés, avec leur valeur déclarée ;
   - **Déclarations** : toutes les déclarations HATVP, avec leurs dates et leur statut ;
   - **Profil** : circonscription, commissions, biographie, contact.
 - **Précisions et sources** en bas de la fiche : le détail de chaque calcul. Les astérisques du coût y
@@ -102,17 +143,17 @@ droit à l'image, ne sont pas utilisées.
 
 ```bash
 npm install
-npm run data   # télécharge les données publiques et génère public/data/deputes.json
+npm run data   # télécharge les données publiques et génère public/data/deputies.json et senators.json
 npm run dev    # http://localhost:5173
 ```
 
-`public/data/deputes.json` est généré et n'est pas versionné : lancez `npm run data` après un clone, puis à
+Les fichiers de `public/data/` sont générés et ne sont pas versionnés : lancez `npm run data` après un clone, puis à
 nouveau pour obtenir des données plus récentes. Le script télécharge environ 170 Mo (HATVP et Répertoire
 national des élus).
 
 | Commande          | Rôle                                                                        |
 | ----------------- | --------------------------------------------------------------------------- |
-| `npm run data`    | Télécharge les données de l'AN, de la HATVP et du RNE, et régénère `public/data/deputes.json` |
+| `npm run data`    | Télécharge les données de l'AN, du Sénat, de la HATVP et du RNE, et régénère `public/data/*.json` |
 | `npm run dev`     | Lance le serveur de développement Vite                                      |
 | `npm run build`   | Vérifie les types (`tsc -b`) et construit dans `dist/`                      |
 | `npm run preview` | Sert la version de production                                               |
@@ -123,14 +164,14 @@ d'un député dans le navigateur.
 
 ### Stack
 
-React 19, TypeScript 7, Vite 8, Tailwind CSS v4 et [shadcn/ui](https://ui.shadcn.com) (Radix, preset
+React 19, TypeScript 7, Vite 8, React Router 7, Tailwind CSS v4 et [shadcn/ui](https://ui.shadcn.com) (Radix, preset
 « Nova », icônes Lucide). Les scripts de données sont en Node ESM, avec `adm-zip` et `fast-xml-parser`.
 L'application est un front statique : son seul « backend » est le fichier JSON généré.
 
 ### Mettre à jour les barèmes
 
-Les montants de rémunération (`baremes`, `INDEMNITES_SPECIALES`) et le SMIC (`baremes.smic`) sont saisis à la
-main dans `scripts/hatvp.mjs`. Mettez-les à jour quand l'Assemblée publie une nouvelle fiche n° 7 ou quand
+Les montants de rémunération (`deputyPayScales`, `DEPUTY_SPECIAL_ALLOWANCES`) et le SMIC (`minimumWage`) sont
+saisis à la main dans `scripts/pay-scales.mjs`. Mettez-les à jour quand l'Assemblée publie une nouvelle fiche n° 7 ou quand
 le SMIC est revalorisé, puis relancez `npm run data`.
 
 ### Déploiement

@@ -1,147 +1,413 @@
-export interface Groupe {
+export interface Group {
   id: string
-  abrev: string
-  libelle: string
-  couleur: string
+  abbrev: string
+  label: string
+  color: string
 }
 
-export interface Commission {
-  libelle: string
-  qualite: string
+export interface Committee {
+  label: string
+  role: string
 }
 
-export interface Depute {
+/**
+ * Fields shared by every public official, whatever the page (deputies, senators, government…):
+ * identity, HATVP declarations and RNE local mandates.
+ */
+export interface Official {
   id: string
-  civ: string
-  prenom: string
-  nom: string
-  alpha: string
-  dateNais: string | null
-  villeNais: string | null
-  profession: string | null
-  groupeId: string | null
-  qualiteGroupe: string | null
-  parti: string | null
-  departement: string | null
-  numDepartement: string | null
-  numCirco: string | null
-  region: string | null
-  dateDebut: string
-  premiereElection: boolean
-  placeHemicycle: number | null
-  commissions: Commission[]
-  email: string | null
-  site: string | null
-  twitter: string | null
-  hatvp: Hatvp
+  /** "M." or "Mme" */
+  honorific: string
+  firstName: string
+  lastName: string
+  birthDate: string | null
   photo: string
-  indemnitesSpeciales: IndemniteSpeciale[]
-  nbCollaborateurs: number
-  /** Mandats locaux en cours selon le Répertoire national des élus */
-  mandatsLocaux: MandatLocal[]
+  /** Start date of the office the page is about */
+  startDate: string
+  hatvp: Hatvp
+  /** Local mandates currently held, according to the Répertoire national des élus */
+  localMandates: LocalMandate[]
 }
 
-export type TypeMandatLocal =
+/** Member of either chamber of Parliament: what the hemicycle, the panel and the readings need */
+export interface Parliamentarian extends Official {
+  sortName: string
+  profession: string | null
+  groupId: string | null
+  groupRole: string | null
+  /** Real seat number in the hemicycle */
+  seat: number | null
+  committees: Committee[]
+  email: string | null
+  twitter: string | null
+  specialAllowances: SpecialAllowance[]
+}
+
+export interface Deputy extends Parliamentarian {
+  birthPlace: string | null
+  party: string | null
+  department: string | null
+  departmentCode: string | null
+  constituency: string | null
+  region: string | null
+  firstTerm: boolean
+  website: string | null
+  staffCount: number
+}
+
+export interface Senator extends Parliamentarian {
+  /** "Apparenté" or "Rattaché administrativement" when not a full group member */
+  affiliation: string | null
+  /** Department (or "Français établis hors de France") the senator represents */
+  constituency: string | null
+  constituencyCode: string | null
+  /** Renewal series, "1" or "2" */
+  series: string | null
+  bureauRole: string | null
+  senatPage: string | null
+}
+
+export type LocalMandateType =
   | 'municipal'
-  | 'arrondissement'
-  | 'communautaire'
-  | 'departemental'
+  | 'district'
+  | 'intercommunal'
+  | 'departmental'
   | 'regional'
-  | 'collectivite'
-  | 'europeen'
+  | 'territorial'
+  | 'european'
 
-export interface MandatLocal {
-  type: TypeMandatLocal
-  libelle: string
-  lieu: string | null
-  /** Maire, adjoint, vice-président… ; null pour un simple conseiller */
-  fonction: string | null
-  debut: string | null
-  debutFonction: string | null
-  /** Date de mise à jour du fichier RNE */
-  miseAJour: string | null
+export interface LocalMandate {
+  type: LocalMandateType
+  label: string
+  place: string | null
+  /** Mayor, deputy mayor, vice-president…; null for a plain councillor */
+  role: string | null
+  start: string | null
+  roleStart: string | null
+  /** Update date of the RNE file */
+  updatedAt: string | null
 }
 
-/** Fonction pour laquelle la même personne a déposé une déclaration auprès de la HATVP */
-export interface AutreMandatHatvp {
+/** Office for which the same person filed a declaration with the HATVP */
+export interface OtherHatvpMandate {
   type: string
   institution: string
-  qualite: string | null
-  dernierDepot: string | null
+  role: string | null
+  lastFiledAt: string | null
 }
 
-export interface IndemniteSpeciale {
-  libelle: string
-  organe: string
-  montant: number
+export interface SpecialAllowance {
+  label: string
+  /** Organ whose role grants the allowance */
+  body: string
+  amount: number
 }
 
-export interface MontantAnnuel {
-  annee: number
-  montant: number | null
+export interface YearlyAmount {
+  year: number
+  amount: number | null
 }
 
-export interface Revenu {
-  intitule: string | null
-  organisme: string | null
-  debut: string | null
-  fin: string | null
-  brutNet: string | null
-  montants: MontantAnnuel[]
+export interface Income {
+  title: string | null
+  organization: string | null
+  start: string | null
+  end: string | null
+  grossNet: string | null
+  amounts: YearlyAmount[]
 }
 
-export interface Participation {
-  societe: string
-  evaluation: number | null
-  capitalDetenu: string | null
-  nombreParts: string | null
-  remuneration: string | null
+export interface Holding {
+  company: string
+  value: number | null
+  capitalShare: string | null
+  shareCount: string | null
+  income: string | null
 }
 
-/** null = rubrique absente de la déclaration, [] = « néant » déclaré */
-type Rubrique<T> = T[] | null
+/** null = section missing from the declaration, [] = "néant" (none) declared */
+type DeclarationSection<T> = T[] | null
 
-export interface Interets {
-  dateDepot: string | null
-  modificative: boolean
-  activites: Rubrique<Revenu>
-  mandats: Rubrique<Revenu>
-  consultant: Rubrique<Revenu>
-  dirigeant: Rubrique<Revenu>
-  participations: Rubrique<Participation>
+export interface Interests {
+  filedAt: string | null
+  amended: boolean
+  jobs: DeclarationSection<Income>
+  mandates: DeclarationSection<Income>
+  consulting: DeclarationSection<Income>
+  directorships: DeclarationSection<Income>
+  holdings: DeclarationSection<Holding>
 }
 
-export type TypeDeclaration = 'dia' | 'diam' | 'dsp' | 'dspm' | 'dspfm'
+/** `dia`/`diam` for parliamentarians, `di`/`dim` for members of the Government */
+export type DeclarationType = 'dia' | 'diam' | 'di' | 'dim' | 'dsp' | 'dspm' | 'dspfm'
 
-export interface DeclarationHatvp {
-  type: TypeDeclaration
-  libelle: string
-  dateDepot: string | null
-  datePublication: string | null
-  statut: string | null
+export interface HatvpDeclaration {
+  type: DeclarationType
+  label: string
+  filedAt: string | null
+  publishedAt: string | null
+  /** Raw HATVP status ("Livrée", "En cours"…) */
+  status: string | null
 }
 
 export interface Hatvp {
   page: string | null
-  declarations: DeclarationHatvp[]
-  interets: Interets | null
-  autresMandats: AutreMandatHatvp[]
+  declarations: HatvpDeclaration[]
+  interests: Interests | null
+  otherMandates: OtherHatvpMandate[]
 }
 
-export interface Baremes {
+export interface MinimumWage {
+  gross: number
+  net: number
+  updatedAt: string
   source: string
-  miseAJour: string
-  indemnite: { base: number; residence: number; fonction: number; brut: number; net: number }
-  dotationFonctionnement: number
-  creditCollaborateurs: number
-  maxCollaborateurs: number
-  plafondCumul: number
-  smic: { brut: number; net: number; miseAJour: string; source: string }
 }
 
-export interface Dataset {
+export interface PayScales {
+  sources: { label: string; url: string }[]
+  updatedAt: string
+  allowance: { base: number; residence: number; office: number; gross: number; net: number }
+  expenseAllowance: number
+  staffBudget: number
+  maxStaff: number
+  /** Monthly cap on local allowances on top of the parliamentary allowance */
+  localAllowanceCap: number
+  minimumWage: MinimumWage
+}
+
+/** One chamber's page dataset (deputies.json, senators.json) */
+export interface ChamberDataset<T extends Parliamentarian> {
   generatedAt: string
-  baremes: Baremes
-  groupes: Groupe[]
-  deputes: Depute[]
+  payScales: PayScales
+  groups: Group[]
+  /** Ordered by group, then seat number: `members[i]` sits on seat `i` */
+  members: T[]
+}
+
+export type GovernmentRank = 'president' | 'pm' | 'minister' | 'delegate'
+
+/** Text published in the Journal officiel (or a Conseil constitutionnel decision for the President) */
+export interface Decree {
+  title: string
+  date: string
+  url: string
+}
+
+export interface GovernmentMember extends Official {
+  rank: GovernmentRank
+  /** Title as worded in the decree */
+  role: string
+  /** First appointment in the current Government (`startDate` too) */
+  appointedBy: Decree
+  /** Date of the current title, later than `startDate` when the title changed */
+  roleStart: string
+  /** Decree that gave the current title, when it is not `appointedBy` */
+  roleDecree: Decree | null
+  /** Ids of the Prime Minister or ministers a minister delegate is placed with ("auprès de"); empty otherwise */
+  reportsTo: string[]
+  /** Cabinet at the date of `GovernmentDataset.cabinets.asOf`; null for the President */
+  cabinet: CabinetStaff | null
+}
+
+export interface CabinetStaff {
+  /** Members appointed in the Journal officiel */
+  members: number
+  /** Support staff: protection, security, assistance, catering, drivers */
+  support: number
+  /** Yearly envelope of the special-duty allowance (ISP), euros */
+  isp: number
+}
+
+/** All ministerial cabinets, from the finance bill annex */
+export interface CabinetsSummary {
+  asOf: string
+  source: { label: string; url: string }
+  totals: CabinetStaff
+  byFunction: { label: string; count: number; group: 'members' | 'support' }[]
+  contractMembers: number
+}
+
+/** Budget of the Présidence de la République, from the finance bill annex */
+export interface ElyseeBudget {
+  source: { label: string; url: string }
+  dossier: string
+  /** State allocation by year */
+  allocation: Record<string, number>
+  allocationSince: number
+  /** Year of `spending` (forecast of execution) */
+  year: number
+  spending: { id: string; label: string; amount: number }[]
+  spendingTotal: number
+  ownRevenue: number
+  staff: { count: number; asOf: string; ceiling: number }
+  internationalTrips: { count: number; cost: number }
+}
+
+export interface GovernmentDeparture {
+  honorific: string
+  firstName: string
+  lastName: string
+  role: string
+  startDate: string
+  endedBy: Decree
+}
+
+export interface GovernmentPay {
+  salary: number
+  residence: number
+  office: number
+  gross: number
+}
+
+export interface GovernmentPayScales {
+  sources: { label: string; url: string }[]
+  updatedAt: string
+  /** Average of the lowest and highest "hors échelle" civil-service salaries */
+  horsEchelleAverage: number
+  ranks: Record<GovernmentRank, GovernmentPay>
+  minimumWage: MinimumWage
+}
+
+export interface GovernmentDataset {
+  generatedAt: string
+  payScales: GovernmentPayScales
+  /** President first, then the Prime Minister, ministers and ministers delegate, in decree order */
+  members: GovernmentMember[]
+  departures: GovernmentDeparture[]
+  cabinets: CabinetsSummary
+  elysee: ElyseeBudget
+  ministryBudgets: MinistryBudgets
+}
+
+/** Credits of one programme or ministry, euros */
+export interface Credits {
+  label: string
+  /** Commitment authorisations (autorisations d'engagement) */
+  ae: number
+  /** Payment credits (crédits de paiement): what can be spent in the year */
+  cp: number
+}
+
+export interface MinistryBudget extends Credits {
+  /** Minister at the head of the ministry */
+  ministerId: string
+  /** Part of `cp` in "crédits évaluatifs" (debt interest, tax refunds…), set by law rather than by policy */
+  evaluative: number
+  /** Largest first */
+  programmes: Credits[]
+}
+
+/** General budget of the State by ministry, from the finance bill */
+export interface MinistryBudgets {
+  source: { label: string; url: string }
+  year: number
+  /** Largest payment credits first */
+  items: MinistryBudget[]
+}
+
+/** Text published by the Conseil constitutionnel */
+export interface ElectionDecision {
+  title: string
+  date: string
+  url: string
+}
+
+export interface RoundTurnout {
+  date: string
+  registered: number
+  voters: number
+  blank: number
+  invalid: number
+  /** Votes cast ("suffrages exprimés") */
+  cast: number
+}
+
+export interface RoundResult {
+  votes: number
+  /** Share of the votes cast, 0 to 1 */
+  share: number
+}
+
+/** Office of a sponsor, grouped from the Conseil constitutionnel's "Mandat" column */
+export type SponsorOffice = 'mayor' | 'parliament' | 'departmental' | 'regional' | 'other'
+
+/** Campaign account as settled by the CNCCFP, in euros */
+export interface CampaignAccount {
+  /** Total revenue and spending subject to the ceiling, as filed by the candidate */
+  declared: { revenue: number; spending: number }
+  /** The same, as settled by the CNCCFP */
+  retained: { revenue: number; spending: number }
+  /** Personal contribution retained, the State's 200,000 euro advance included */
+  personal: number
+  partyPayments: number
+  donations: number
+  /** Spending paid directly or in kind by parties */
+  partyContributions: number
+  /** Other in-kind help */
+  inKind: number
+  ceiling: number
+  /** 4.75% or 47.5% of the ceiling */
+  refundCap: number
+  /** Refund before deductions: the lowest of the cap, the refundable spending and the personal contribution */
+  entitlement: number
+  /** Spending found irregular, not refunded */
+  irregular: number
+  /** Reduction for irregularities (art. L. 52-11-1 of the electoral code) */
+  penalty: number
+  /** Amount owed by the State, advance included */
+  refund: number
+  decision: { title: string; date: string; url: string; nor: string; publishedAt: string }
+}
+
+/** Candidate on the official list. Not an `Official`: standing for office is not holding one */
+export interface Candidate {
+  id: string
+  honorific: string
+  firstName: string
+  lastName: string
+  /** Ballot board number, drawn by lot */
+  panel: number
+  sponsorships: { total: number; byOffice: Record<SponsorOffice, number>; departments: number }
+  firstRound: RoundResult
+  secondRound: RoundResult | null
+  /** Net worth (assets minus debts) as reported by the press in March 2022, rounded; see `election.pressNetWorth` */
+  pressNetWorth: number
+  account: CampaignAccount
+}
+
+export interface PresidentialFunding {
+  sources: { label: string; url: string }[]
+  ceiling: { firstRound: number; secondRound: number }
+  refundRate: { low: number; high: number }
+  highRateThreshold: number
+  advance: number
+}
+
+export interface CandidatesDataset {
+  generatedAt: string
+  election: {
+    id: string
+    label: string
+    decisions: { list: ElectionDecision; firstRound: ElectionDecision; secondRound: ElectionDecision }
+    rounds: RoundTurnout[]
+    funding: PresidentialFunding
+    /** data.gouv.fr pages of the open data files the page is built from */
+    datasets: Record<'sponsorships' | 'firstRound' | 'secondRound', { label: string; url: string }>
+    /** Article the net worths come from, and why the declarations themselves are no longer online */
+    pressNetWorth: {
+      source: { title: string; publisher: string; date: string; url: string }
+      /** HATVP page stating the declarations stayed public until the first-round results */
+      removal: string
+      publishedFrom: string
+      publishedUntil: string
+      /** INSEE median and mean net wealth of households, for comparison */
+      households: { median: number; mean: number; date: string; source: { label: string; url: string } }
+    }
+  }
+  /** Most first-round votes first */
+  candidates: Candidate[]
+  /** People who received sponsorships but did not stand: counted, never named */
+  otherSponsored: { people: number; sponsorships: number }
+  sponsorshipsTotal: number
 }
