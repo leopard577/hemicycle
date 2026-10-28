@@ -138,7 +138,8 @@ export interface Interests {
   holdings: DeclarationSection<Holding>
 }
 
-export type DeclarationType = 'dia' | 'diam' | 'dsp' | 'dspm' | 'dspfm'
+/** `dia`/`diam` for parliamentarians, `di`/`dim` for members of the Government */
+export type DeclarationType = 'dia' | 'diam' | 'di' | 'dim' | 'dsp' | 'dspm' | 'dspfm'
 
 export interface HatvpDeclaration {
   type: DeclarationType
@@ -182,4 +183,60 @@ export interface ChamberDataset<T extends Parliamentarian> {
   groups: Group[]
   /** Ordered by group, then seat number: `members[i]` sits on seat `i` */
   members: T[]
+}
+
+export type GovernmentRank = 'president' | 'pm' | 'minister' | 'delegate'
+
+/** Text published in the Journal officiel (or a Conseil constitutionnel decision for the President) */
+export interface Decree {
+  title: string
+  date: string
+  url: string
+}
+
+export interface GovernmentMember extends Official {
+  rank: GovernmentRank
+  /** Title as worded in the decree */
+  role: string
+  /** First appointment in the current Government (`startDate` too) */
+  appointedBy: Decree
+  /** Date of the current title, later than `startDate` when the title changed */
+  roleStart: string
+  /** Decree that gave the current title, when it is not `appointedBy` */
+  roleDecree: Decree | null
+  /** Ids of the Prime Minister or ministers a minister delegate is placed with ("auprès de"); empty otherwise */
+  reportsTo: string[]
+}
+
+export interface GovernmentDeparture {
+  honorific: string
+  firstName: string
+  lastName: string
+  role: string
+  startDate: string
+  endedBy: Decree
+}
+
+export interface GovernmentPay {
+  salary: number
+  residence: number
+  office: number
+  gross: number
+}
+
+export interface GovernmentPayScales {
+  sources: { label: string; url: string }[]
+  updatedAt: string
+  /** Average of the lowest and highest "hors échelle" civil-service salaries */
+  horsEchelleAverage: number
+  ranks: Record<GovernmentRank, GovernmentPay>
+  minimumWage: MinimumWage
+}
+
+export interface GovernmentDataset {
+  generatedAt: string
+  payScales: GovernmentPayScales
+  /** President first, then the Prime Minister, ministers and ministers delegate, in decree order */
+  members: GovernmentMember[]
+  departures: GovernmentDeparture[]
 }

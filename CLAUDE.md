@@ -2,7 +2,7 @@
 
 Cost and transparency of French public officials, from official open data. A static React app with one page
 per institution (deputies, senators, government, candidates), routed by URL hash, each reading its own
-generated JSON file. The deputies and senators pages are built. Read `README.md` for the overview,
+generated JSON file. The deputies, senators and government pages are built. Read `README.md` for the overview,
 `docs/data.md` for the data pipeline, `docs/frontend.md` for the UI and `docs/roadmap.md` for the plan and its status.
 
 ## Commands
@@ -19,9 +19,11 @@ opening a deputy's and a senator's panel.
 
 ## Hard rules
 
-- **Never fetch, store or display the content of parliamentarians' asset declarations** (`dsp`, `dspm`, `dspfm`).
-  Publishing it is a criminal offence (art. LO 135-2 of the electoral code). Only their filing status and
-  dates from `liste.csv` are allowed. The "capital" shown in the app comes from the financial holdings in
+- **Never store or display the content of asset declarations** (`dsp`, `dspm`, `dspfm`), for anyone.
+  For parliamentarians publishing it is a criminal offence (art. LO 135-2 of the electoral code). The HATVP
+  publishes those of ministers and the President, and the XML contains them, but the app applies the same rule
+  by choice of the project owner: `isDeclaration()` in each page module only accepts declarations of
+  interests. Only their filing status and dates from `liste.csv` are allowed. The "capital" shown in the app comes from the financial holdings in
   declarations of *interests* (DIA).
 - **Respect the HATVP's [legal notice](https://www.hatvp.fr/mentions-legales/).** Reproduce declaration
   content without altering it (keep partial `[Données non publiées]` markers, label every derived figure as a
@@ -72,7 +74,11 @@ opening a deputy's and a senator's panel.
   date plus surname, then names alone. Each declaration is assigned at most once. Check the coverage line
   printed by `npm run data` (currently 538 of 574 deputies; 167 of 348 senators, low because of the 1 October 2026
   renewal) after touching `scripts/lib/hatvp.mjs`.
-- **The HATVP CSV joins on `id_origine`**: the AN id without `PA`, or the Sénat matricule. It falls back to surname plus first
+- **The Government list is hand-maintained** from the Journal officiel decrees in `scripts/government.mjs`. Update
+  it at every reshuffle; the build fails when the HATVP lists a current minister missing from it. Ministers
+  declare their ministerial pay as a job or a mandate: `GOVERNMENT_ROLE` in `money.ts` classifies those lines as
+  `government` so they are not counted as side income.
+- **The HATVP CSV joins on `id_origine`**: the AN id without `PA`, or the Sénat matricule; ministers have none. It falls back to surname plus first
   name when that column is empty.
 - **Alerts name real people.** `alerts()` in `src/lib/money.ts` must only state dated, sourced facts, never
   intent ("fraude", "planque"…). Keep the tolerances (30 days for incompatibilities, two months plus a week
@@ -81,7 +87,8 @@ opening a deputy's and a senator's panel.
   title changes the build fails on purpose.
 - **Pay scales are hard-coded** in `scripts/pay-scales.mjs`: `deputyPayScales` and `DEPUTY_SPECIAL_ALLOWANCES` from AN
   fiche n° 7 (January 2026), `senatorPayScales` and `SENATOR_SPECIAL_ALLOWANCES` from the Sénat pages listed in
-  `senatorPayScales.sources`, `minimumWage` from the June 2026 SMIC. Update them by hand when new amounts are published.
+  `senatorPayScales.sources`, `minimumWage` from the June 2026 SMIC. `governmentPayScales` is computed from
+  decree no. 2012-983 and the deputies' base allowance. Update them by hand when new amounts are published.
 - **Filing deadlines.** Right after a renewal many members have no declaration yet. `pendingDeadline()` in
   `src/lib/money.ts` tells the panel to say "Déclaration attendue d'ici le …" instead of flagging it missing.
 - **The member panel is a non-modal Radix `Sheet`.** Outside clicks are ignored on purpose, so seats stay

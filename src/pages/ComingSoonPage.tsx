@@ -5,13 +5,6 @@ import { type Page, pathTo } from '@/lib/pages'
 
 // What each page will show, and where its data will come from
 const CONTENT: Partial<Record<Page, { title: string; eyebrow: string; overview: string; sources: string[] }>> = {
-  government: {
-    title: 'Le Gouvernement',
-    eyebrow: 'Présidence de la République · Gouvernement',
-    overview:
-      'La rémunération du Président de la République, du Premier ministre et des ministres, le coût de leurs cabinets et leurs déclarations auprès de la HATVP.',
-    sources: ['HATVP', 'Journal officiel (décrets de nomination et de rémunération)', 'Lois de finances et leurs annexes'],
-  },
   candidates: {
     title: 'Les candidats',
     eyebrow: 'Élections',

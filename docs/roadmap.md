@@ -11,7 +11,7 @@ HATVP and the RNE are joined to it, and a hand-entered pay scale, with its sourc
 | 1 | Split the data pipeline into shared sources (`scripts/lib/`) and one module per page; one JSON per page; shared `Official` type | Done |
 | 2 | Navbar and routing (react-router, hash router) | Done |
 | 3 | Senators page | Done |
-| 4 | Government page | To do |
+| 4 | Government page | Done (cabinets and the Élysée budget still to add) |
 | 5 | Candidates page, starting with the 2022 presidential election | To do |
 
 Also done along the way: the HATVP legal notice is applied (partial redactions kept verbatim, reproduction
@@ -34,18 +34,16 @@ must stop assuming a deputy.
 
 ## 4. Government
 
-- **Composition**: `liste.csv` rows with `type_mandat=gouvernement` (title in `qualite`) and `president`.
-  Drop the "Ancien …" rows. A newly appointed minister appears only once their declaration is filed (up to
-  two months), so show the filing date.
-- **Pay**: set by decree (President and Prime Minister, ministers, ministers delegate and secretaries of
-  state), hand-entered.
-- **Real cost**: ministerial offices, from the PLF annex "Personnels affectés dans les cabinets ministériels"
-  (CSV on data.gouv.fr up to 2017, PDF since); the Élysée budget (programme 501 of the finance act) and the
-  Cour des comptes' yearly report.
-- **Photos**: not from hatvp.fr (copyright). Use the AN or Sénat photo for former parliamentarians, or a
-  source with a known licence.
-- **Open decision**: the HATVP publishes ministers' asset declarations online. The app keeps the current rule
-  (status and dates only) unless the owner decides otherwise after a legal check.
+Done: composition from the Journal officiel decrees (hand-maintained, checked against the HATVP list), pay
+computed from decree no. 2012-983, HATVP declarations of interests and RNE. The owner decided to keep the asset
+declaration rule (status and dates only) for ministers and the President.
+
+Still to do:
+- **Ministerial offices**: the PLF annex "Personnels affectés dans les cabinets ministériels" gives staff and
+  pay per ministry (CSV on data.gouv.fr up to 2017, PDF since). The annex lags a Government behind.
+- **Élysée budget**: programme 501 of the finance act, and the Cour des comptes' yearly report.
+- **Photos** for the 15 members who never sat in Parliament (or only before 2024): no official source yet.
+  Wikimedia Commons would cover most of them, with a licence and an author to credit on each photo.
 
 ## 5. Candidates
 

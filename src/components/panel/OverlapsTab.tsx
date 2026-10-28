@@ -12,48 +12,68 @@ import {
   sideIncome,
   type YearIncome,
 } from '@/lib/money'
+import { declarationsOf, declarationStatus, INTERESTS } from '@/lib/declarations'
 import { formatDate, formatEuro } from '@/lib/format'
 import type { Office } from '@/lib/offices'
-import type { Income, LocalMandate, Parliamentarian, PayScales } from '@/types'
-import { MissingData, Note, Section } from './parts'
+import type { Income, LocalMandate, MinimumWage, Official } from '@/types'
+import { DeclaredActivities } from './CapitalTab'
+import { ExternalLink, MissingData, Note, Section } from './parts'
 
 interface TabProps {
-  member: Parliamentarian
-  payScales: PayScales
+  member: Official
+  minimumWage: MinimumWage
+  /** Monthly cap on local allowances, for parliamentarians; null when it does not apply */
+  localAllowanceCap: number | null
   office: Office
 }
 
-// Parliamentary mandates whose past terms are listed among "other mandates"
-const PARLIAMENTS = ['deputy', 'european', 'senate'] as const
-
-export function OverlapsTab({ member, payScales, office }: TabProps) {
+export function OverlapsTab({ member, minimumWage, localAllowanceCap, office }: TabProps) {
   const lines = incomeLines(member)
   const years = incomeByYear(lines)
   const side = sideIncome(lines, office)
+  // Other parliamentary mandates, past ones (or, for the Government, all of them: they end on appointment)
   const pastOffices = lines.filter(
-    (l) => PARLIAMENTS.some((c) => c === l.category && c !== office.category) && !l.ongoing,
+    (l) =>
+      office.pastOfficeCategories.includes(l.category) && (!l.ongoing || office.ownCategories.includes(l.category)),
   )
   const { interests, otherMandates } = member.hatvp
   const due = pendingDeadline(member.startDate)
+  // Published on hatvp.fr but absent from its open data files (the President's, for one): say so rather than
+  // suggesting nothing was published
+  const latest = declarationsOf(member.hatvp.declarations, INTERESTS)[0]
+  const publishedElsewhere = !interests && latest && declarationStatus(latest).status === 'published'
 
   return (
     <div className="divide-y">
       <Section title="Revenus déclarés, année par année">
         {!interests ? (
           <MissingData title="Déclaration d'intérêts non disponible">
-            {due
-              ? `Sa première déclaration d'intérêts du mandat est attendue d'ici le ${formatDate(due)}.`
-              : 'Sans contenu publié, impossible de reconstituer ses revenus déclarés.'}
+            {publishedElsewhere ? (
+              <>
+                Elle est publiée sur hatvp.fr, mais son contenu ne figure pas dans les fichiers open data de la HATVP
+                : impossible d'en reconstituer ici les revenus déclarés.
+                {member.hatvp.page && (
+                  <>
+                    {' '}
+                    <ExternalLink href={member.hatvp.page}>La consulter sur hatvp.fr</ExternalLink>
+                  </>
+                )}
+              </>
+            ) : due ? (
+              `Sa première déclaration d'intérêts du mandat est attendue d'ici le ${formatDate(due)}.`
+            ) : (
+              'Sans contenu publié, impossible de reconstituer ses revenus déclarés.'
+            )}
           </MissingData>
         ) : years.length ? (
-          <IncomeChart years={years} yearlyMinimumWage={payScales.minimumWage.gross * 12} />
+          <IncomeChart years={years} yearlyMinimumWage={minimumWage.gross * 12} />
         ) : (
           <Note>Aucun montant déclaré.</Note>
         )}
       </Section>
 
       <Section
-        title="En parallèle du mandat"
+        title={`En parallèle ${office.mandate.of}`}
         aside={
           side.total > 0 && (
             <Badge className="bg-orange-600 text-white tabular-nums">+{formatEuro(side.total, { round: true })} / an</Badge>
@@ -69,7 +89,7 @@ export function OverlapsTab({ member, payScales, office }: TabProps) {
             ))}
           </ul>
         ) : (
-          <Note>Aucune activité ni aucun mandat déclarés en parallèle du mandat de {office.noun}.</Note>
+          <Note>Aucune activité ni aucun mandat déclarés en parallèle {office.mandate.of}.</Note>
         )}
       </Section>
 
@@ -81,7 +101,9 @@ export function OverlapsTab({ member, payScales, office }: TabProps) {
                 <RneMandate key={i} mandate={m} declared={interests?.mandates ?? null} office={office} />
               ))}
             </ul>
-            <LocalAllowanceCap declared={side.local} monthlyCap={payScales.localAllowanceCap} office={office} />
+            {localAllowanceCap !== null && (
+              <LocalAllowanceCap declared={side.local} monthlyCap={localAllowanceCap} office={office} />
+            )}
           </>
         ) : (
           <Note>Aucun mandat local en cours au Répertoire national des élus.</Note>
@@ -124,12 +146,14 @@ export function OverlapsTab({ member, payScales, office }: TabProps) {
           </ul>
         </Section>
       )}
+
+      {interests && <DeclaredActivities interests={interests} />}
     </div>
   )
 }
 
 /** Notes for the tab, shown in "Précisions et sources" at the bottom of the panel */
-export function OverlapsNotes({ member, payScales, office }: TabProps) {
+export function OverlapsNotes({ member, localAllowanceCap, office }: Omit<TabProps, 'minimumWage'>) {
   const rneUpdatedAt = member.localMandates[0]?.updatedAt
   return (
     <>
@@ -146,12 +170,18 @@ export function OverlapsNotes({ member, payScales, office }: TabProps) {
         {rneUpdatedAt && `, mis à jour le ${formatDate(rneUpdatedAt)}`}. Les élus y sont retrouvés grâce à leur date de
         naissance et à leur nom. Un mandat terminé depuis peut encore y figurer.
       </Note>
-      <Note>
-        Les indemnités de mandats locaux s'ajoutent à l'indemnité parlementaire dans la limite de{' '}
-        {formatEuro(payScales.localAllowanceCap)} par mois ; au-delà, elles sont écrêtées. Les fonctions exécutives locales
-        (maire, adjoint, président ou vice-président d'une collectivité ou d'une intercommunalité) sont incompatibles
-        avec le mandat de {office.noun} depuis 2017.
-      </Note>
+      {localAllowanceCap !== null && (
+        <Note>
+          Les indemnités de mandats locaux s'ajoutent à l'indemnité parlementaire dans la limite de{' '}
+          {formatEuro(localAllowanceCap)} par mois ; au-delà, elles sont écrêtées.
+        </Note>
+      )}
+      {office.localExecutiveBanned && (
+        <Note>
+          Les fonctions exécutives locales (maire, adjoint, président ou vice-président d'une collectivité ou d'une
+          intercommunalité) sont incompatibles avec {office.mandate.the} depuis 2017.
+        </Note>
+      )}
     </>
   )
 }
@@ -302,7 +332,7 @@ function RneMandate({ mandate, declared, office }: { mandate: LocalMandate; decl
         </div>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">
-        {executive && <Badge variant="destructive">Interdit avec le mandat de {office.noun}</Badge>}
+        {executive && office.localExecutiveBanned && <Badge variant="destructive">Interdit avec {office.mandate.the}</Badge>}
         {isDeclared === true && <Badge variant="secondary">Déclaré à la HATVP</Badge>}
         {isDeclared === false && (
           <Badge variant="outline" className="border-orange-500/60 text-orange-700 dark:text-orange-400">

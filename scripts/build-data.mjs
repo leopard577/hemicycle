@@ -3,14 +3,21 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { buildDeputies, loadDeputies } from './deputies.mjs'
+import { buildDeputies, loadAssemblyActors, loadDeputies } from './deputies.mjs'
+import { buildGovernment } from './government.mjs'
 import { loadHatvp } from './lib/hatvp.mjs'
 import { loadRne } from './lib/rne.mjs'
 import { buildSenators, loadSenators } from './senators.mjs'
 
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'data')
 
-const [hatvpFor, rneFor, assembly, senate] = await Promise.all([loadHatvp(), loadRne(), loadDeputies(), loadSenators()])
+const [hatvpFor, rneFor, assembly, assemblyActors, senate] = await Promise.all([
+  loadHatvp(),
+  loadRne(),
+  loadDeputies(),
+  loadAssemblyActors(),
+  loadSenators(),
+])
 const shared = { hatvpFor, rneFor }
 const generatedAt = new Date().toISOString()
 
@@ -23,3 +30,4 @@ function write(page, data) {
 
 write('deputies', buildDeputies(assembly, shared))
 write('senators', buildSenators(senate, shared))
+write('government', buildGovernment({ ...shared, hatvpRows: hatvpFor.rows, senate, assemblyActors }))

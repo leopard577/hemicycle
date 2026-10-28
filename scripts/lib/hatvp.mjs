@@ -25,6 +25,8 @@ const MANDATE_TYPES = {
 const DOCUMENT_LABELS = {
   dia: "Déclaration d'intérêts et d'activités",
   diam: "Déclaration d'intérêts et d'activités (modification)",
+  di: "Déclaration d'intérêts",
+  dim: "Déclaration d'intérêts (modification)",
   dsp: 'Déclaration de situation patrimoniale',
   dspm: 'Déclaration de situation patrimoniale (modification)',
   dspfm: 'Déclaration de situation patrimoniale de fin de mandat',
@@ -105,9 +107,14 @@ const RULES = [
  * (officials, mandate) => Map(official id → HATVP data), called once per page.
  *
  * `mandate` describes the office to look for:
- * - `mandateType`: value of `type_mandat` in liste.csv ("depute", "senateur"…);
- * - `xmlMandateLabel`: mandate label in the XML ("Député", "Sénateur"…);
- * - `originId(official)`: the official's id as the HATVP writes it in `id_origine`.
+ * - `mandateType`: value of `type_mandat` in liste.csv ("depute", "senateur", "gouvernement"…);
+ * - `isDeclaration(general)`: whether an XML declaration (its `general` block) is a declaration of interests
+ *   for this office. Only declarations of interests are ever read: asset declarations (DSP), present in the
+ *   XML for members of the Government, are skipped;
+ * - `originId(official)`: the official's id as the HATVP writes it in `id_origine` (null when it has none).
+ *
+ * Each entry also carries `declarantBirthDate`, the birth date given in the matched declaration, for pages
+ * whose source has none (the Government); callers remove it before writing.
  *
  * Statuses come from liste.csv (joined on `id_origine`), the content of declarations of interests from
  * the consolidated XML (joined on name + birth date). Parliamentarians' asset declarations are not
@@ -125,7 +132,7 @@ export async function loadHatvp() {
   })
   const declarations = asArray(parser.parse(xml).declarations?.declaration)
 
-  return (officials, { mandateType, xmlMandateLabel, originId }) => {
+  const hatvpFor = (officials, { mandateType, isDeclaration, originId }) => {
     const nameKey = (lastName, firstName) => `nom:${normalizeName(lastName)}${normalizeName(firstName)}`
 
     // Rows keyed by id_origine, or by surname + first name when id_origine is empty
@@ -144,7 +151,7 @@ export async function loadHatvp() {
     const declarants = new Map()
     for (const d of declarations) {
       const g = d.general ?? {}
-      if (g.typeDeclaration?.id !== 'DIA' || g.qualiteMandat?.labelTypeMandat !== xmlMandateLabel) continue
+      if (!isDeclaration(g)) continue
       const birth = frToIso(g.declarant?.dateNaissance)
       const key = `${normalizeName(g.declarant?.nom)}|${normalizeName(g.declarant?.prenom)}|${birth}`
       const filedAt = frToIso(d.dateDepot) ?? ''
@@ -181,7 +188,7 @@ export async function loadHatvp() {
     return new Map(
       officials.map((official) => {
         const own =
-          rowsByKey.get(originId(official)) ?? rowsByKey.get(nameKey(official.lastName, official.firstName)) ?? []
+          rowsByKey.get(originId(official) ?? '') ?? rowsByKey.get(nameKey(official.lastName, official.firstName)) ?? []
         const interests = interestsById.get(official.id)
         return [
           official.id,
@@ -198,11 +205,15 @@ export async function loadHatvp() {
               .sort((a, b) => (b.filedAt ?? '').localeCompare(a.filedAt ?? '')),
             interests: interests ? extractInterests(interests) : null,
             otherMandates: otherMandates(othersByFile.get(own[0]?.url_dossier)),
+            declarantBirthDate: frToIso(interests?.general?.declarant?.dateNaissance),
           },
         ]
       }),
     )
   }
+  // Raw liste.csv rows, for checks that need the whole list (members of the Government)
+  hatvpFor.rows = rows
+  return hatvpFor
 }
 
 // One entry per office, with the date of the most recent filing

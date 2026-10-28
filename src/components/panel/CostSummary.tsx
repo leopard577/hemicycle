@@ -232,7 +232,7 @@ export function CostNotes({ member, payScales, office }: { member: Parliamentari
 }
 
 /** Live counter: public money committed second by second */
-function LiveCounter({ monthly, startDate }: { monthly: number; startDate: string }) {
+export function LiveCounter({ monthly, startDate }: { monthly: number; startDate: string }) {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches

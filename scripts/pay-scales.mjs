@@ -78,3 +78,37 @@ export const SENATOR_SPECIAL_ALLOWANCES = [
   { source: 'delegation', role: /^Président$/, label: 'Président de délégation', amount: 2016.27 },
   { source: 'opecst', role: /^Président$/, label: "Président de l'OPECST", amount: 931.76 },
 ]
+
+// Pay of the President of the Republic and of members of the Government, decree no. 2012-983 of
+// 23 August 2012: a gross monthly salary of 1.4 times the average of the lowest and highest "hors échelle"
+// civil-service salaries for ministers and ministers delegate (art. 2), and twice that average plus 5% for the
+// President and the Prime Minister (art. 1 and 3); plus a residence allowance of 3% of the salary and a
+// function allowance of 25% of salary + residence allowance (art. 1). The average is the parliamentary base
+// allowance, defined the same way (ordinance 58-1210), so it follows the same updates.
+const HORS_ECHELLE_AVERAGE = deputyPayScales.allowance.base
+const round = (n) => Math.round(n * 100) / 100
+
+function governmentPay(coefficient) {
+  const salary = round(HORS_ECHELLE_AVERAGE * coefficient)
+  const residence = round(salary * 0.03)
+  const office = round((salary + residence) * 0.25)
+  return { salary, residence, office, gross: round(salary + residence + office) }
+}
+
+export const governmentPayScales = {
+  sources: [
+    {
+      label: 'Décret n° 2012-983 du 23 août 2012',
+      url: 'https://www.legifrance.gouv.fr/loda/id/JORFTEXT000026310466',
+    },
+  ],
+  updatedAt: deputyPayScales.updatedAt,
+  horsEchelleAverage: HORS_ECHELLE_AVERAGE,
+  ranks: {
+    president: governmentPay(2 * 1.05),
+    pm: governmentPay(2 * 1.05),
+    minister: governmentPay(1.4),
+    delegate: governmentPay(1.4),
+  },
+  minimumWage,
+}

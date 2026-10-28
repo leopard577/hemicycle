@@ -13,6 +13,32 @@ export async function download(url) {
   return res
 }
 
+/**
+ * Downloads a large file as a Buffer, resuming with a Range request when the server cuts the response
+ * (the AN archives often end early)
+ */
+export async function downloadResumable(url, attempts = 6) {
+  const chunks = []
+  let received = 0
+  let total = null
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    const res = await fetch(url, received ? { headers: { Range: `bytes=${received}-` } } : {})
+    if (!res.ok) throw new Error(`HTTP ${res.status} on ${url}`)
+    if (received && res.status !== 206) throw new Error(`No resume support on ${url}`)
+    total ??= Number(res.headers.get('content-length')) || null
+    try {
+      for await (const chunk of res.body) {
+        chunks.push(chunk)
+        received += chunk.length
+      }
+      if (total === null || received >= total) return Buffer.concat(chunks)
+    } catch (e) {
+      if (attempt === attempts) throw e
+    }
+  }
+  throw new Error(`Incomplete download (${received} of ${total} bytes) on ${url}`)
+}
+
 /** Semicolon-separated CSV, without quotes */
 export function parseCsv(text) {
   const [header, ...lines] = text.split(/\r?\n/).filter(Boolean)
@@ -36,13 +62,20 @@ export const normalizeName = (s) =>
     .toUpperCase()
     .replace(/[^A-Z]/g, '')
 
-// "Lucas-Lundy" → {"LUCAS", "LUNDY", "LUCASLUNDY"}: usual names often differ from one source to another
+// Particles are not distinctive on their own: "Le Hénanff" must not match "Le Saout" born the same day
+const PARTICLES = new Set(['LE', 'LA', 'LES', 'DE', 'DU', 'DES', 'DI', 'DA', 'DEL', 'DOS', 'VAN', 'VON', 'DER', 'DEN'])
+
+// "Lucas-Lundy" → {"LUCAS", "LUNDY", "LUCASLUNDY"}: usual names often differ from one source to another.
+// The full string always counts, so a name made of a particle alone still matches itself.
 export const nameTokens = (...parts) =>
   new Set(
-    parts
-      .flatMap((p) => [p, ...(p ?? '').split(/[^\p{L}]+/u)])
-      .map(normalizeName)
-      .filter((t) => t.length >= 2),
+    parts.flatMap((p) => [
+      normalizeName(p),
+      ...(p ?? '')
+        .split(/[^\p{L}]+/u)
+        .map(normalizeName)
+        .filter((t) => t.length >= 2 && !PARTICLES.has(t)),
+    ]).filter((t) => t.length >= 2),
   )
 
 export const intersects = (a, b) => [...a].some((t) => b.has(t))

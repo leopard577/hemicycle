@@ -34,13 +34,14 @@ export function sinceStart(monthly: number, startDate: string, now = Date.now())
 
 /* ---------- Declared income ---------- */
 
-export type Category = 'deputy' | 'european' | 'senate' | 'local' | 'private' | 'consulting' | 'director'
+export type Category = 'deputy' | 'european' | 'senate' | 'government' | 'local' | 'private' | 'consulting' | 'director'
 
 // Classes written in full so that Tailwind detects them
 export const CATEGORIES: Record<Category, { label: string; fill: string; bg: string }> = {
   deputy: { label: 'Mandat de député', fill: 'fill-slate-400', bg: 'bg-slate-400' },
   european: { label: 'Parlement européen', fill: 'fill-blue-600', bg: 'bg-blue-600' },
   senate: { label: 'Sénat', fill: 'fill-indigo-400', bg: 'bg-indigo-400' },
+  government: { label: 'Fonction gouvernementale', fill: 'fill-sky-700', bg: 'bg-sky-700' },
   local: { label: 'Mandats locaux', fill: 'fill-amber-500', bg: 'bg-amber-500' },
   private: { label: 'Activités professionnelles', fill: 'fill-emerald-600', bg: 'bg-emerald-600' },
   consulting: { label: 'Activités de conseil', fill: 'fill-fuchsia-600', bg: 'bg-fuchsia-600' },
@@ -55,9 +56,13 @@ const normalize = (s: string | null) =>
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
 
-/** Category of an elected mandate, from its free-text title */
+// Ministers often declare their ministerial pay as a job, or even as a mandate
+const GOVERNMENT_ROLE = /^\s*((premier|premiere) ministre|ministre|secretaire d.etat|garde des sceaux|porte-parole du gouvernement)/
+
+/** Category of a declared line, from its free-text title: parliamentary mandates and government roles */
 function mandateCategory(i: Income): Category | null {
   const t = normalize(i.title)
+  if (GOVERNMENT_ROLE.test(t)) return 'government'
   if (/europ/.test(t) && /deput|parlement/.test(t)) return 'european'
   if (/senat/.test(t)) return 'senate'
   if (/^\s*deput/.test(t)) return 'deputy'
@@ -143,7 +148,7 @@ export function incomeByYear(lines: IncomeLine[]): YearIncome[] {
 
 /** What the official declares earning on top of their allowance, for the latest published year */
 export function sideIncome(lines: IncomeLine[], office: Office) {
-  const side = lines.filter((l) => l.ongoing && l.category !== office.category)
+  const side = lines.filter((l) => l.ongoing && !office.ownCategories.includes(l.category))
   const sum = (ls: IncomeLine[]) => ls.reduce((total, l) => total + (l.duplicate ? 0 : (l.latest?.amount ?? 0)), 0)
   return { lines: side, total: sum(side), local: sum(side.filter((l) => l.category === 'local')) }
 }
@@ -233,8 +238,8 @@ export function alerts(official: Official, office: Office, now = Date.now()): Al
   const result: Alert[] = []
   const { interests, declarations } = official.hatvp
 
-  // 1. Local executive roles, incompatible with a parliamentary mandate since 2017
-  for (const m of official.localMandates.filter(isExecutive)) {
+  // 1. Local executive roles, incompatible with a parliamentary mandate since 2017 (no such rule for ministers)
+  for (const m of office.localExecutiveBanned ? official.localMandates.filter(isExecutive) : []) {
     const roleStart = m.roleStart ?? m.start
     const overlapStart = [official.startDate, roleStart ?? ''].sort().at(-1)!
     const observed = m.updatedAt ? days(overlapStart, m.updatedAt) : -1
@@ -243,12 +248,12 @@ export function alerts(official: Official, office: Office, now = Date.now()): Al
         ? {
             severity: 'serious',
             title: `Également ${lowercaseRole(m)}${m.place ? ` (${m.place})` : ''}`,
-            detail: `D'après le Répertoire national des élus, mis à jour le ${frDate(m.updatedAt)}, cette fonction est occupée depuis le ${frDate(roleStart)}, soit depuis ${observed} jours en même temps que le mandat de ${office.noun}. La loi interdit à un ${office.noun} d'être aussi maire, adjoint au maire, ou président ou vice-président d'une collectivité ou d'une intercommunalité. Un élu dans ce cas a 30 jours pour abandonner l'une des deux fonctions.`,
+            detail: `D'après le Répertoire national des élus, mis à jour le ${frDate(m.updatedAt)}, cette fonction est occupée depuis le ${frDate(roleStart)}, soit depuis ${observed} jours en même temps que ${office.mandate.the}. La loi interdit à un ${office.noun} d'être aussi maire, adjoint au maire, ou président ou vice-président d'une collectivité ou d'une intercommunalité. Un élu dans ce cas a 30 jours pour abandonner l'une des deux fonctions.`,
           }
         : {
             severity: 'info',
             title: `Également ${lowercaseRole(m)}${m.place ? ` (${m.place})` : ''}`,
-            detail: `D'après le Répertoire national des élus, cette fonction est occupée depuis le ${frDate(roleStart)}. La loi interdit de la cumuler avec le mandat de ${office.noun}, mais le délai de 30 jours pour choisir n'était pas encore écoulé à la date du fichier (${frDate(m.updatedAt)}).`,
+            detail: `D'après le Répertoire national des élus, cette fonction est occupée depuis le ${frDate(roleStart)}. La loi interdit de la cumuler avec ${office.mandate.the}, mais le délai de 30 jours pour choisir n'était pas encore écoulé à la date du fichier (${frDate(m.updatedAt)}).`,
           },
     )
   }
@@ -298,14 +303,16 @@ export function alerts(official: Official, office: Office, now = Date.now()): Al
       })
   }
 
-  // 4. Entry declarations filed late or missing
+  // 4. Entry declarations filed late or missing. A presidential candidate files before the election: any
+  // declaration counts then, whatever its date
+  const entryFrom = office.declaresBeforeOffice ? '' : official.startDate
   for (const [types, name] of [
     [INTERESTS, "d'intérêts"],
     [ASSETS, 'de patrimoine'],
   ] as const) {
     const sinceStartDates = declarationsOf(declarations, types)
       .map((d) => d.filedAt)
-      .filter((d): d is string => d !== null && d >= official.startDate)
+      .filter((d): d is string => d !== null && d >= entryFrom)
       .sort()
     const limit = deadline(official.startDate)
     if (!sinceStartDates.length) {
@@ -329,7 +336,7 @@ export function alerts(official: Official, office: Office, now = Date.now()): Al
 
   // 5. Unpublished amounts for ongoing activities
   const withoutAmount = incomeLines(official).filter(
-    (l) => l.ongoing && l.category !== office.category && l.income.amounts.some((m) => m.amount === null),
+    (l) => l.ongoing && !office.ownCategories.includes(l.category) && l.income.amounts.some((m) => m.amount === null),
   )
   if (withoutAmount.length)
     result.push({

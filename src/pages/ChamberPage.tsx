@@ -190,7 +190,12 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
             reading={reading}
             members={data.members}
             summaries={summaries}
-            groups={groups}
+            marker={(m) => (
+              <span
+                className="size-2.5 shrink-0 rounded-full"
+                style={{ background: groups.get(m.groupId ?? '')?.color }}
+              />
+            )}
             office={office}
             onSelect={(m) => setSelectedId(m.id)}
           />

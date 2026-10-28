@@ -4,7 +4,8 @@ import { declarationsOf, declarationStatus, INTERESTS } from '@/lib/declarations
 import { formatDate, formatEuro } from '@/lib/format'
 import { pendingDeadline } from '@/lib/money'
 import type { Office } from '@/lib/offices'
-import type { Holding, Income, Interests, Parliamentarian } from '@/types'
+import type { Holding, Income, Interests, Official } from '@/types'
+import { cn } from '@/lib/utils'
 import { ExternalLink, MissingData, Note, Section } from './parts'
 
 const SECTIONS: { key: 'jobs' | 'mandates' | 'consulting' | 'directorships'; title: string }[] = [
@@ -15,11 +16,12 @@ const SECTIONS: { key: 'jobs' | 'mandates' | 'consulting' | 'directorships'; tit
 ]
 
 interface TabProps {
-  member: Parliamentarian
+  member: Official
   office: Office
 }
 
-export function InterestsTab({ member, office }: TabProps) {
+/** "Capital" tab: company holdings listed in the declaration of interests */
+export function CapitalTab({ member, office }: TabProps) {
   const { interests, page } = member.hatvp
 
   if (!interests) return <MissingInterests member={member} office={office} />
@@ -28,8 +30,9 @@ export function InterestsTab({ member, office }: TabProps) {
     <div className="divide-y">
       <div className="py-4">
         <Note>
-          Déclaration d'intérêts et d'activités déposée le {formatDate(interests.filedAt)}
-          {interests.amended && ' (mise à jour)'}. Les montants sont ceux que l'élu a lui-même déclarés.
+          Parts de sociétés listées dans sa déclaration d'intérêts et d'activités du {formatDate(interests.filedAt)}
+          {interests.amended && ' (mise à jour)'}, aux valeurs que l'élu a lui-même déclarées. Les biens immobiliers,
+          l'épargne et les autres biens relèvent de la déclaration de patrimoine, que l'application ne reprend pas.
           {page && (
             <>
               {' '}
@@ -42,13 +45,45 @@ export function InterestsTab({ member, office }: TabProps) {
       <Section title="Parts détenues dans des sociétés">
         <Holdings items={interests.holdings} />
       </Section>
-
-      {SECTIONS.map(({ key, title }) => (
-        <Section key={key} title={title}>
-          <IncomeList items={interests[key]} />
-        </Section>
-      ))}
     </div>
+  )
+}
+
+/** Every activity section of the declaration of interests, in full: shown at the end of the "Cumuls" tab */
+export function DeclaredActivities({ interests }: { interests: Interests }) {
+  return (
+    <Section title="Sa déclaration, rubrique par rubrique">
+      <Note>
+        Déclaration d'intérêts et d'activités du {formatDate(interests.filedAt)}
+        {interests.amended && ' (mise à jour)'}, telle que publiée par la HATVP.
+      </Note>
+      <div className="space-y-3 pt-2">
+        {SECTIONS.map(({ key, title }) => {
+          const items = interests[key]
+          return (
+            <section key={key} className="overflow-hidden rounded-lg border">
+              {/* An empty rubrique is just its header, with "néant" or "not filled" on the right */}
+              <header
+                className={cn(
+                  'flex items-center justify-between gap-x-3 gap-y-1 bg-muted/60 px-3 py-2',
+                  items?.length ? 'border-b' : 'flex-wrap',
+                )}
+              >
+                <h4 className="text-sm font-semibold">{title}</h4>
+                {items?.length ? (
+                  <Badge variant="outline" className="bg-background tabular-nums">
+                    {items.length}
+                  </Badge>
+                ) : (
+                  <Empty items={items} />
+                )}
+              </header>
+              {items?.length ? <IncomeList items={items} /> : null}
+            </section>
+          )
+        })}
+      </div>
+    </Section>
   )
 }
 
@@ -82,9 +117,9 @@ function MissingInterests({ member, office }: TabProps) {
   const { label, status } = declarationStatus(latest)
   return (
     <div className="py-4">
-      <MissingData title={status === 'published' ? 'Détail pas encore disponible' : label}>
+      <MissingData title={status === 'published' ? 'Détail non disponible' : label}>
         {status === 'published'
-          ? "La déclaration est publiée sur hatvp.fr, mais son contenu ne figure pas encore dans les fichiers téléchargeables de la HATVP."
+          ? "La déclaration est publiée sur hatvp.fr, mais son contenu ne figure pas dans les fichiers open data de la HATVP."
           : latest.filedAt
             ? `Déposée le ${formatDate(latest.filedAt)}, elle n'est pas encore publiée.`
             : "Elle n'est pas encore publiée."}
@@ -150,25 +185,35 @@ function HoldingRow({ holding: h }: { holding: Holding }) {
   )
 }
 
-function IncomeList({ items }: { items: Income[] | null }) {
-  if (!items?.length) return <Empty items={items} />
-
+/** Entries of one rubrique: title, organisation and period, then the amount declared for each year */
+function IncomeList({ items }: { items: Income[] }) {
   return (
-    <ul className="space-y-3">
+    <ul className="divide-y">
       {items.map((income, i) => (
-        <li key={i} className="space-y-1">
-          <div className="font-medium">{income.title ?? 'Intitulé non publié'}</div>
-          <div className="text-xs text-muted-foreground">
-            {[income.organization, period(income)].filter(Boolean).join(' · ')}
+        <li key={i} className="space-y-1.5 px-3 py-2.5">
+          <div>
+            <div className="text-sm font-medium">{income.title ?? 'Intitulé non publié'}</div>
+            <div className="text-xs text-muted-foreground">
+              {[income.organization, period(income)].filter(Boolean).join(' · ')}
+            </div>
           </div>
           {income.amounts.length ? (
-            <div className="flex flex-wrap gap-1.5">
-              {income.amounts.map((m) => (
-                <Badge key={m.year} variant="outline" className="tabular-nums">
-                  {m.year} · {m.amount === null ? 'non publié' : formatEuro(m.amount, { round: true })}
-                </Badge>
-              ))}
-              {income.grossNet && <span className="text-xs text-muted-foreground">({income.grossNet.toLowerCase()})</span>}
+            <div className="space-y-0.5">
+              {income.grossNet && (
+                <div className="text-[0.65rem] font-medium tracking-wide text-muted-foreground uppercase">
+                  Montants {income.grossNet.toLowerCase()}s
+                </div>
+              )}
+              <dl className="flex flex-wrap gap-x-4 gap-y-0.5 text-sm tabular-nums">
+                {income.amounts.map((m) => (
+                  <div key={m.year} className={cn('flex gap-1.5', !m.amount && 'text-muted-foreground')}>
+                    <dt className="text-muted-foreground">{m.year}</dt>
+                    <dd className={cn(m.amount && 'font-medium')}>
+                      {m.amount === null ? 'non publié' : formatEuro(m.amount, { round: true })}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
             </div>
           ) : (
             <Note>Aucun montant déclaré.</Note>

@@ -30,6 +30,8 @@ Toutes les données sont publiques et officielles :
 | [Répertoire national des élus](https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/) (ministère de l'Intérieur) | Mandats locaux en cours : maire, adjoint, conseiller municipal, départemental, régional, intercommunal |
 | [Assemblée nationale, fiche n° 7](https://www.assemblee-nationale.fr/dyn/synthese/deputes-groupes-parlementaires/la-situation-materielle-du-depute) (janvier 2026) | Montant de l'indemnité, des indemnités spéciales, des frais de mandat et du crédit collaborateurs |
 | [Sénat, indemnité, frais de mandat et collaborateurs](https://www.senat.fr/connaitre-le-senat/role-et-fonctionnement/lindemnite-parlementaire.html) (mars 2026) | Montant de l'indemnité, des indemnités de fonction, de l'avance de frais de mandat et du crédit collaborateurs |
+| [Journal officiel](https://www.legifrance.gouv.fr) (décrets de nomination) et [Conseil constitutionnel](https://www.conseil-constitutionnel.fr/decision/2022/2022197PDR.htm) | Composition du Gouvernement, dates de nomination, début du mandat présidentiel |
+| [Décret n° 2012-983](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000026310466) | Rémunération du Président de la République et des membres du Gouvernement |
 | [service-public.gouv.fr](https://www.service-public.gouv.fr/particuliers/vosdroits/F2300) | Montant du SMIC (juin 2026), pour les comparaisons |
 
 Les données sont mises à jour automatiquement chaque lundi. La date d'extraction figure en bas de la page.
@@ -80,6 +82,17 @@ droit à l'image, ne sont pas utilisées.
 - Juste après un renouvellement, la fiche donne la **date limite de dépôt** des déclarations au lieu de
   signaler leur absence.
 
+### Le Gouvernement
+
+- Le **Président de la République**, le **Premier ministre**, les **ministres** et les **ministres délégués**,
+  avec leur intitulé exact et le décret qui les a nommés.
+- Pour chacun : la **rémunération** calculée selon le décret n° 2012-983 (traitement, indemnités de résidence
+  et de fonction), un compteur depuis la nomination, ses **revenus et mandats déclarés**, ses mandats locaux
+  et ses **déclarations HATVP**. Les cabinets ministériels ne sont pas encore comptés.
+- Les **départs** du Gouvernement en cours, avec le décret qui y met fin.
+- Comme pour les parlementaires, le contenu des déclarations de patrimoine n'est pas repris, bien que la HATVP
+  publie celui des ministres.
+
 ### La fiche d'un député
 
 - **L'addition** : ce que le siège coûte par mois et par an, l'équivalent en années de SMIC, et un compteur
@@ -93,9 +106,9 @@ droit à l'image, ne sont pas utilisées.
 - **Cinq onglets** :
   - **Cumuls** : revenus déclarés année par année comparés au SMIC, activités exercées en parallèle du
     mandat, mandats locaux en cours, plafond des indemnités locales, anciens mandats (Parlement européen,
-    Sénat…) ;
+    Sénat, Gouvernement…), puis le détail de sa déclaration d'intérêts, rubrique par rubrique ;
   - **Salaire** : indemnité parlementaire, indemnités spéciales, frais de mandat, collaborateurs ;
-  - **Intérêts** : parts détenues dans des sociétés et revenus déclarés, rubrique par rubrique ;
+  - **Capital** : parts détenues dans des sociétés, avec leur valeur déclarée ;
   - **Déclarations** : toutes les déclarations HATVP, avec leurs dates et leur statut ;
   - **Profil** : circonscription, commissions, biographie, contact.
 - **Précisions et sources** en bas de la fiche : le détail de chaque calcul. Les astérisques du coût y

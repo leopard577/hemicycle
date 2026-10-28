@@ -1,12 +1,14 @@
 import type { DeclarationType, HatvpDeclaration } from '@/types'
 
-export const INTERESTS: DeclarationType[] = ['dia', 'diam']
+export const INTERESTS: DeclarationType[] = ['dia', 'diam', 'di', 'dim']
 export const ASSETS: DeclarationType[] = ['dsp', 'dspm', 'dspfm']
 
 /** Kind of filing, without repeating the declaration type already given by the section */
 export const KIND: Record<DeclarationType, string> = {
   dia: 'Déclaration initiale',
   diam: 'Mise à jour',
+  di: 'Déclaration initiale',
+  dim: 'Mise à jour',
   dsp: 'Déclaration initiale',
   dspm: 'Mise à jour',
   dspfm: 'Fin de mandat',

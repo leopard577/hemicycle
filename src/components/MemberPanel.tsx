@@ -11,7 +11,7 @@ import type { Group, Parliamentarian, PayScales } from '@/types'
 import { Alerts } from './panel/Alerts'
 import { CostNotes, CostSummary } from './panel/CostSummary'
 import { DeclarationsTab } from './panel/DeclarationsTab'
-import { InterestsTab } from './panel/InterestsTab'
+import { CapitalTab } from './panel/CapitalTab'
 import { OverlapsNotes, OverlapsTab } from './panel/OverlapsTab'
 import { PayNotes, PayTab } from './panel/PayTab'
 import { NoteGroup, NotesAndSources } from './panel/parts'
@@ -129,7 +129,7 @@ function MemberDetails({ member, group, payScales, office, profile }: DetailsPro
       {/* Only the body scrolls; it is recreated for every member, so it starts from the top */}
       <div
         ref={body}
-        className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth motion-reduce:scroll-auto"
+        className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth [scrollbar-color:var(--color-border)_transparent] [scrollbar-width:thin] hover:[scrollbar-color:var(--color-muted-foreground)_transparent] motion-reduce:scroll-auto"
       >
         <CostSummary member={member} payScales={payScales} office={office} onNoteRef={showNote} />
         <Alerts alerts={alerts(member, office)} />
@@ -143,8 +143,8 @@ function MemberDetails({ member, group, payScales, office, profile }: DetailsPro
               <TabsTrigger value="pay" className={TAB_TRIGGER}>
                 Salaire
               </TabsTrigger>
-              <TabsTrigger value="interests" className={TAB_TRIGGER}>
-                Intérêts
+              <TabsTrigger value="capital" className={TAB_TRIGGER}>
+                Capital
               </TabsTrigger>
               <TabsTrigger value="declarations" className={TAB_TRIGGER}>
                 Déclarations
@@ -155,14 +155,19 @@ function MemberDetails({ member, group, payScales, office, profile }: DetailsPro
             </TabsList>
           </div>
           <TabsContent value="overlaps">
-            <OverlapsTab member={member} payScales={payScales} office={office} />
+            <OverlapsTab
+              member={member}
+              minimumWage={payScales.minimumWage}
+              localAllowanceCap={payScales.localAllowanceCap}
+              office={office}
+            />
           </TabsContent>
           <TabsContent value="profile">{profile}</TabsContent>
           <TabsContent value="pay">
             <PayTab member={member} payScales={payScales} office={office} />
           </TabsContent>
-          <TabsContent value="interests">
-            <InterestsTab member={member} office={office} />
+          <TabsContent value="capital">
+            <CapitalTab member={member} office={office} />
           </TabsContent>
           <TabsContent value="declarations">
             <DeclarationsTab member={member} office={office} />
@@ -175,7 +180,7 @@ function MemberDetails({ member, group, payScales, office, profile }: DetailsPro
               <CostNotes member={member} payScales={payScales} office={office} />
             </NoteGroup>
             <NoteGroup title="Cumuls et revenus déclarés">
-              <OverlapsNotes member={member} payScales={payScales} office={office} />
+              <OverlapsNotes member={member} localAllowanceCap={payScales.localAllowanceCap} office={office} />
             </NoteGroup>
             <NoteGroup title="Salaire et frais de mandat">
               <PayNotes member={member} payScales={payScales} office={office} />

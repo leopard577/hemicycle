@@ -7,7 +7,7 @@ const CONFIG: ChamberConfig<Senator> = {
   file: 'senators.json',
   office: SENATOR,
   eyebrow: 'Sénat · 348 sièges',
-  title: 'Le Sénat',
+  title: "« La Chambre des Sages »",
   place: (s) => s.constituency && `${s.constituency}${s.constituencyCode ? ` (${s.constituencyCode})` : ''}`,
   placeLabel: (s) => s.constituency,
   searchText: (s) => `${s.constituency ?? ''} ${s.constituencyCode ?? ''}`,

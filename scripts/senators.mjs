@@ -32,11 +32,26 @@ const GROUP_COLORS = {
   NI: '#8D949A',
 }
 
+// senat.fr photo of any senator, current or former: "/senimg/lecornu_sebastien19265t_carre.jpg"
+const slug = (s) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z]+/g, '_')
+    .replace(/^_|_$/g, '')
+export const senatorPhoto = (lastName, firstName, matricule) =>
+  `${SENAT}/senimg/${slug(lastName)}_${slug(firstName)}${matricule.toLowerCase()}_carre.jpg`
+
 // Group membership type in senateurs.json
 const AFFILIATION = { A: 'Apparenté', R: 'Rattaché administrativement' }
 
 // Mandate looked up in the HATVP files; id_origine is the Sénat matricule
-const HATVP_MANDATE = { mandateType: 'senateur', xmlMandateLabel: 'Sénateur', originId: (s) => s.id }
+const HATVP_MANDATE = {
+  mandateType: 'senateur',
+  isDeclaration: (g) => g.typeDeclaration?.id === 'DIA' && g.qualiteMandat?.labelTypeMandat === 'Sénateur',
+  originId: (s) => s.id,
+}
 
 // "2026-10-01 00:00:00.0" → "2026-10-01"
 const isoDate = (v) => (v ? v.slice(0, 10) : null)
@@ -140,7 +155,10 @@ export function buildSenators({ senators, general, terms, committees, bodies, gr
   if (missingStart.length) throw new Error(`Sénat: no current term for ${missingStart.map((m) => m.id).join(', ')}`)
 
   const hatvp = hatvpFor(members, HATVP_MANDATE)
-  for (const m of members) m.hatvp = hatvp.get(m.id)
+  for (const m of members) {
+    const { declarantBirthDate: _, ...h } = hatvp.get(m.id)
+    m.hatvp = h
+  }
   const rne = rneFor(members)
   for (const m of members) m.localMandates = rne.get(m.id) ?? []
 

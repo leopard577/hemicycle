@@ -6,12 +6,14 @@ import App from '@/App'
 import { DEFAULT_PAGE, type Page, PAGES } from '@/lib/pages'
 import { ComingSoonPage } from '@/pages/ComingSoonPage'
 import { DeputiesPage } from '@/pages/DeputiesPage'
+import { GovernmentPage } from '@/pages/GovernmentPage'
 import { SenatorsPage } from '@/pages/SenatorsPage'
 
 // Pages that are built; the others show `ComingSoonPage`
 const ELEMENTS: Partial<Record<Page, ReactNode>> = {
   deputies: <DeputiesPage />,
   senators: <SenatorsPage />,
+  government: <GovernmentPage />,
 }
 
 export const router = createHashRouter([

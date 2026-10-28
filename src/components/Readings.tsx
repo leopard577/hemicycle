@@ -1,25 +1,36 @@
+import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { Summary } from '@/lib/money'
 import type { Office } from '@/lib/offices'
 import { type Reading, READINGS, tierOf } from '@/lib/readings'
-import type { Group, Parliamentarian } from '@/types'
+import type { Official } from '@/types'
 
 const RANKING_SIZE = 10
 
-/** Choice of the hemicycle reading */
-export function ReadingPicker({ reading, onChange }: { reading: Reading; onChange: (r: Reading) => void }) {
+/** Choice of the chart reading. `baseLabel` names the default colouring ("Groupes", "Rangs") */
+export function ReadingPicker({
+  reading,
+  onChange,
+  baseLabel = 'Groupes',
+  label = "Colorer l'hémicycle selon",
+}: {
+  reading: Reading
+  onChange: (r: Reading) => void
+  baseLabel?: string
+  label?: string
+}) {
   return (
     <ToggleGroup
       type="single"
       variant="outline"
       value={reading}
       onValueChange={(v) => v && onChange(v as Reading)}
-      aria-label="Colorer l'hémicycle selon"
+      aria-label={label}
       className="mx-auto mb-6 flex-wrap justify-center"
     >
-      <ToggleGroupItem value="group">Groupes</ToggleGroupItem>
+      <ToggleGroupItem value="group">{baseLabel}</ToggleGroupItem>
       {(Object.keys(READINGS) as (keyof typeof READINGS)[]).map((k) => (
         <ToggleGroupItem key={k} value={k}>
           {READINGS[k].label}
@@ -29,21 +40,22 @@ export function ReadingPicker({ reading, onChange }: { reading: Reading; onChang
   )
 }
 
-interface DetailProps<T extends Parliamentarian> {
+interface DetailProps<T extends Official> {
   reading: Exclude<Reading, 'group'>
   members: T[]
   summaries: Map<string, Summary>
-  groups: Map<string, Group>
+  /** Small mark before a name in the ranking: group colour, rank… */
+  marker: (m: T) => ReactNode
   office: Office
   onSelect: (m: T) => void
 }
 
 /** Colour scale, overview figure and ranking for the active reading */
-export function ReadingDetail<T extends Parliamentarian>({
+export function ReadingDetail<T extends Official>({
   reading,
   members,
   summaries,
-  groups,
+  marker,
   office,
   onSelect,
 }: DetailProps<T>) {
@@ -80,10 +92,7 @@ export function ReadingDetail<T extends Parliamentarian>({
               <li key={d.id}>
                 <Button variant="ghost" className="w-full justify-start gap-2 font-normal" onClick={() => onSelect(d)}>
                   <span className="w-5 text-right text-muted-foreground tabular-nums">{i + 1}</span>
-                  <span
-                    className="size-2.5 shrink-0 rounded-full"
-                    style={{ background: groups.get(d.groupId ?? '')?.color }}
-                  />
+                  {marker(d)}
                   <span className="truncate">
                     {d.firstName} {d.lastName}
                   </span>

@@ -1,16 +1,27 @@
 // "Députés" page: Assemblée nationale open data (17th legislature), joined with the HATVP and the RNE
 import AdmZip from 'adm-zip'
 import { DEPUTY_SPECIAL_ALLOWANCES, deputyPayScales } from './pay-scales.mjs'
-import { asArray, download, text } from './lib/util.mjs'
+import { asArray, download, downloadResumable, text } from './lib/util.mjs'
 
 const SOURCE =
   'https://data.assemblee-nationale.fr/static/openData/repository/17/amo/deputes_actifs_mandats_actifs_organes/AMO10_deputes_actifs_mandats_actifs_organes.json.zip'
+
+// Every actor of the 17th legislature, former deputies included (split JSON files)
+const ACTORS_SOURCE =
+  'https://data.assemblee-nationale.fr/static/openData/repository/17/amo/acteurs_mandats_organes_divises/AMO50_acteurs_mandats_organes_divises.json.zip'
+
+export const deputyPhoto = (id) =>
+  `https://www.assemblee-nationale.fr/dyn/static/tribun/17/photos/carre/${id.replace('PA', '')}.jpg`
 
 // Group order from the left to the right of the hemicycle
 const GROUP_ORDER = ['LFI-NFP', 'GDR', 'ECOS', 'SOC', 'LIOT', 'DEM', 'EPR', 'HOR', 'DR', 'UDDPLR', 'RN', 'NI']
 
 // Mandate looked up in the HATVP files; id_origine is the AN id without "PA"
-const HATVP_MANDATE = { mandateType: 'depute', xmlMandateLabel: 'Député', originId: (d) => d.id.replace('PA', '') }
+const HATVP_MANDATE = {
+  mandateType: 'depute',
+  isDeclaration: (g) => g.typeDeclaration?.id === 'DIA' && g.qualiteMandat?.labelTypeMandat === 'Député',
+  originId: (d) => d.id.replace('PA', ''),
+}
 
 const isActive = (m) => !m.dateFin
 
@@ -27,6 +38,24 @@ export async function loadDeputies() {
     else if (json.acteur) actors.push(json.acteur)
   }
   return { organs, actors }
+}
+
+/** Every person who held a seat in the 17th legislature: id, names and birth date (to find former deputies) */
+export async function loadAssemblyActors() {
+  console.log('Downloading Assemblée nationale actors…')
+  const zip = new AdmZip(await downloadResumable(ACTORS_SOURCE))
+  return zip
+    .getEntries()
+    .filter((e) => /(^|\/)acteur\/PA\d+\.json$/.test(e.entryName))
+    .map((e) => {
+      const a = JSON.parse(e.getData().toString('utf8')).acteur
+      return {
+        id: a.uid['#text'],
+        lastName: a.etatCivil.ident.nom,
+        firstName: a.etatCivil.ident.prenom,
+        birthDate: text(a.etatCivil.infoNaissance?.dateNais),
+      }
+    })
 }
 
 /** Special allowances owed for the roles held (President, quaestor, committee chair…) */
@@ -107,7 +136,7 @@ export function buildDeputies({ organs, actors }, { hatvpFor, rneFor }) {
       website: findContact('Site internet'),
       twitter: findContact('Twitter'),
       hatvp: text(a.uri_hatvp),
-      photo: `https://www.assemblee-nationale.fr/dyn/static/tribun/17/photos/carre/${id.replace('PA', '')}.jpg`,
+      photo: deputyPhoto(id),
       specialAllowances: specialAllowances(mandates.filter(isActive), organLabel),
       staffCount: asArray(assembly.collaborateurs?.collaborateur).length,
     })
@@ -115,7 +144,10 @@ export function buildDeputies({ organs, actors }, { hatvpFor, rneFor }) {
 
   const hatvp = hatvpFor(deputies, HATVP_MANDATE)
   // Fall back to the HATVP URL given by the AN when the HATVP list has none
-  for (const d of deputies) d.hatvp = { ...hatvp.get(d.id), page: hatvp.get(d.id).page ?? d.hatvp }
+  for (const d of deputies) {
+    const { declarantBirthDate: _, ...h } = hatvp.get(d.id)
+    d.hatvp = { ...h, page: h.page ?? d.hatvp }
+  }
   const rne = rneFor(deputies)
   for (const d of deputies) d.localMandates = rne.get(d.id) ?? []
 
