@@ -6,8 +6,8 @@ import { type ChamberConfig, ChamberPage } from './ChamberPage'
 const CONFIG: ChamberConfig<Senator> = {
   file: 'senators.json',
   office: SENATOR,
-  eyebrow: 'Sénat · 348 sièges',
-  title: "« La Chambre des Sages »",
+  eyebrow: '348 sièges',
+  title: 'Le Sénat',
   place: (s) => s.constituency && `${s.constituency}${s.constituencyCode ? ` (${s.constituencyCode})` : ''}`,
   placeLabel: (s) => s.constituency,
   searchText: (s) => `${s.constituency ?? ''} ${s.constituencyCode ?? ''}`,

@@ -6,8 +6,8 @@ import { type ChamberConfig, ChamberPage } from './ChamberPage'
 const CONFIG: ChamberConfig<Deputy> = {
   file: 'deputies.json',
   office: DEPUTY,
-  eyebrow: 'Assemblée nationale · 17ᵉ législature · 577 sièges',
-  title: "« La Chambre Basse »",
+  eyebrow: '17ᵉ législature · 577 sièges',
+  title: "L'Assemblée nationale",
   place: (d) =>
     d.department && (
       <>

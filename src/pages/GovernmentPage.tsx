@@ -71,9 +71,9 @@ export function GovernmentPage() {
       <div>
         <div className="mx-auto w-full max-w-5xl px-6 py-3 sm:py-5">
           <p className="text-xs font-medium tracking-widest text-primary uppercase">
-            Présidence de la République · Gouvernement
+            Exécutif
           </p>
-          <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">Le Gouvernement</h1>
+          <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">Le Président et le Gouvernement</h1>
         </div>
       </div>
 
