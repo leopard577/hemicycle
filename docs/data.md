@@ -108,7 +108,10 @@ Interets {
 `null` means the section is missing from the declaration. The UI shows them differently.
 
 Amounts in `Revenu.montants` are yearly amounts as declared. `brutNet` says whether they are gross or net.
-Values the HATVP redacts (`[Données non publiées]`) become `null`.
+A field the HATVP redacts entirely (`[Données non publiées]`) becomes `null`. A partly redacted field
+(`SCI [Données non publiées]`, about 3,500 cases, mostly company names) is kept verbatim, marker included:
+the HATVP's [legal notice](https://www.hatvp.fr/mentions-legales/) requires reproduced information to stay
+intact, and stripping the marker would turn the redacted name into "SCI".
 
 `statut` keeps the raw HATVP value: `Livrée`, `Déclaration déposée - publication à venir`,
 `Déclaration déposée - publication en préfecture à venir` or `En cours`. `src/lib/declarations.ts` turns it

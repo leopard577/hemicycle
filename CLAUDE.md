@@ -22,6 +22,11 @@ opening a deputy's panel.
   Publishing it is a criminal offence (art. LO 135-2 of the electoral code). Only their filing status and
   dates from `liste.csv` are allowed. The "capital" shown in the app comes from the financial holdings in
   declarations of *interests* (DIA).
+- **Respect the HATVP's [legal notice](https://www.hatvp.fr/mentions-legales/).** Reproduce declaration
+  content without altering it (keep partial `[Données non publiées]` markers, label every derived figure as a
+  calculation), cite the HATVP as the source, keep the footer notice that reproduction rights are "réservés
+  et strictement limités", and never use it for commercial or advertising purposes. Never use photos or
+  images from hatvp.fr (`url_photo` in `liste.csv`): they are covered by copyright and image rights.
 - **No hand-written CSS.** Use Tailwind classes and shadcn/ui components (`npx shadcn@latest add <name>`).
   `src/index.css` is the generated shadcn theme. Inline `style` is only for colours that come from the data.
 - **Do not edit `src/components/ui/*`** unless there is no other way. Override with `className`, repeating

@@ -74,12 +74,14 @@ const DOC_LABELS = {
   dspfm: 'Déclaration de situation patrimoniale de fin de mandat',
 }
 
-const NON_PUBLIE = /\[Données non publiées\]/g
+const NON_PUBLIE = '[Données non publiées]'
 
+// Un champ entièrement masqué devient null. Un masquage partiel (« SCI [Données non publiées] ») est
+// conservé tel quel : les mentions légales de la HATVP imposent de respecter l'intégrité de l'information
 const clean = (v) => {
   if (v == null || typeof v === 'object') return null
-  const s = String(v).replace(NON_PUBLIE, '').replace(/\s+/g, ' ').trim()
-  return s || null
+  const s = String(v).replace(/\s+/g, ' ').trim()
+  return s && s !== NON_PUBLIE ? s : null
 }
 
 const parseAmount = (v) => {

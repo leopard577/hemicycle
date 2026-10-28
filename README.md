@@ -49,6 +49,12 @@ Les données sont mises à jour automatiquement chaque lundi. La date d'extracti
 Les données sont réutilisées sous [Licence Ouverte 2.0 (Etalab)](https://www.etalab.gouv.fr/licence-ouverte-open-licence/).
 Les photos des députés ne sont pas copiées : elles sont chargées depuis assemblee-nationale.fr.
 
+Les informations issues de la HATVP respectent en plus ses [mentions légales](https://www.hatvp.fr/mentions-legales/) :
+elles sont reproduites sans modification (un passage masqué par la HATVP reste affiché « [Données non publiées] »),
+leur source est citée, les droits de reproduction sont réservés et strictement limités, et toute utilisation
+commerciale ou publicitaire est interdite. Les photos du site de la HATVP, protégées par le droit d'auteur et le
+droit à l'image, ne sont pas utilisées.
+
 ## Fonctionnalités
 
 ### L'hémicycle

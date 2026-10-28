@@ -177,6 +177,10 @@ export default function App() {
         Données publiques : Assemblée nationale, HATVP et Répertoire national des élus (ministère de l'Intérieur),
         extraites le {new Date(data.generatedAt).toLocaleDateString('fr-FR')}. Revenus et mandats tels que déclarés ;
         les montants de rémunération suivent les barèmes officiels. Les sièges sont regroupés par groupe politique.
+        <br />
+        Informations des déclarations reproduites sans modification depuis l'open data de la HATVP (Licence Ouverte
+        Etalab) : droits de reproduction réservés et strictement limités, toute utilisation commerciale ou publicitaire
+        est interdite.
       </footer>
 
       <DeputyPanel
