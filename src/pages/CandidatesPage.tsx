@@ -56,9 +56,9 @@ export function CandidatesPage() {
   return (
     <>
       <div>
-        <div className="mx-auto w-full max-w-5xl px-6 py-5">
+        <div className="mx-auto w-full max-w-5xl px-6 py-3 sm:py-5">
           <p className="text-xs font-medium tracking-widest text-primary uppercase">{election.label}</p>
-          <h1 className="font-heading text-4xl font-semibold tracking-tight">Les candidats</h1>
+          <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">Les candidats</h1>
         </div>
       </div>
 

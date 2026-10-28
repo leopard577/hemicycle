@@ -28,7 +28,7 @@ opening a deputy's and a senator's panel.
   citing the article, because the declarations were only public until the first-round results. Do not extend it. Only their filing status and dates from `liste.csv` are allowed. The "capital" shown in the app comes from the financial holdings in
   declarations of *interests* (DIA).
 - **Respect the HATVP's [legal notice](https://www.hatvp.fr/mentions-legales/).** Reproduce declaration
-  content without altering it (keep partial `[Données non publiées]` markers, label every derived figure as a
+  content without altering it (keep `[Données non publiées]` markers verbatim, never round declared amounts, label every derived figure as a
   calculation), cite the HATVP as the source, keep the footer notice that reproduction rights are "réservés
   et strictement limités", and never use it for commercial or advertising purposes. Never use photos or
   images from hatvp.fr (`url_photo` in `liste.csv`): they are covered by copyright and image rights.
@@ -90,6 +90,8 @@ opening a deputy's and a senator's panel.
 - **Cabinets and the Élysée budget are hand-copied** from the PLF annexes into `scripts/government-costs.mjs`.
   Update them every October with the new PLF; keep `cabinets.byMinister` keyed by the surnames used in
   `government.mjs`, or the build fails. The cabinet annex is a 1 July snapshot, so it lags any later reshuffle.
+  Ministry budgets are read from the PLF bill itself (`PLF_2027_BILL`, table 6); after a reshuffle or a new PLF,
+  update `MINISTRY_HEADS` and the bill URL.
 - **Campaign accounts are hand-copied** from the CNCCFP decisions in `ACCOUNTS` (`scripts/candidates.mjs`).
   The build checks each refund against the legal cap (`presidentialFunding2022` in `pay-scales.mjs`) and the
   decision's own arithmetic (entitlement − irregular − penalty = refund), and fails on a mismatch. Never name

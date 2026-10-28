@@ -40,7 +40,9 @@ declaration rule (status and dates only) for ministers and the President.
 
 Also done: ministerial cabinets and the Élysée budget, from two annexes to the PLF for 2027
 (`scripts/government-costs.mjs`): headcount of each cabinet on 1 July 2026 and the yearly envelope of the
-special-duty allowance (ISP), then the presidency's allocation and its 2026 spending forecast by item.
+special-duty allowance (ISP), then the presidency's allocation and its 2026 spending forecast by item. Then
+the budget of each ministry, read from table 6 of the PLF for 2027 (credits proposed, grouped by ministry by the
+Government). A comparison with the credits voted for 2026 (table 1, by mission) is still to add.
 
 Still to do:
 - **Cabinet pay**: the 2027 annex no longer publishes the total pay of the cabinets, only the ISP envelope.

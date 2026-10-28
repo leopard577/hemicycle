@@ -78,13 +78,13 @@ export const READINGS: Record<Exclude<Reading, 'group'>, ReadingDefinition> = {
     label: 'Déclarations',
     tiers: [
       {
-        label: 'Fonction incompatible ou déclaration absente',
+        label: 'Fonction incompatible ou déclaration non retrouvée',
         fill: 'fill-red-600',
         bg: 'bg-red-600',
         test: (s) => s.serious > 0,
       },
       {
-        label: 'Déclaration en retard ou incomplète',
+        label: 'Déclaration tardive ou mandat non retrouvé',
         fill: 'fill-orange-500',
         bg: 'bg-orange-500',
         test: (s) => s.warnings > 0,

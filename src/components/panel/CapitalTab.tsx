@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { declarationsOf, declarationStatus, INTERESTS } from '@/lib/declarations'
+import { asPublished, declarationsOf, declarationStatus, INTERESTS, plainGrossNet, REDACTED } from '@/lib/declarations'
 import { formatDate, formatEuro } from '@/lib/format'
 import { pendingDeadline } from '@/lib/money'
 import type { Office } from '@/lib/offices'
@@ -114,7 +114,7 @@ function MissingInterests({ member, office }: TabProps) {
       </div>
     )
 
-  const { label, status } = declarationStatus(latest)
+  const { label, status } = declarationStatus(latest, office)
   return (
     <div className="py-4">
       <MissingData title={status === 'published' ? 'Détail non disponible' : label}>
@@ -163,7 +163,7 @@ function Holdings({ items }: { items: Interests['holdings'] }) {
           ))}
         </TableBody>
       </Table>
-      <p className="text-right font-semibold">Total déclaré : {formatEuro(total, { round: true })}</p>
+      <p className="text-right font-semibold">Total des valeurs déclarées (calcul) : {formatEuro(total)}</p>
     </>
   )
 }
@@ -172,15 +172,17 @@ function HoldingRow({ holding: h }: { holding: Holding }) {
   return (
     <TableRow>
       <TableCell className="whitespace-normal">
-        <div>{h.company}</div>
+        <div>{asPublished(h.company)}</div>
         <div className="text-xs text-muted-foreground">
-          {[h.shareCount && `${h.shareCount} parts`, h.income && `revenus : ${h.income}`].filter(Boolean).join(' · ')}
+          {[h.shareCount && `parts : ${h.shareCount}`, h.income && `revenus : ${h.income}`].filter(Boolean).join(' · ')}
         </div>
       </TableCell>
       <TableCell className="text-right tabular-nums">
-        {h.value === null ? '—' : formatEuro(h.value, { round: true })}
+        {h.value === null ? (h.valueText ?? 'Non renseignée') : formatEuro(h.value)}
       </TableCell>
-      <TableCell className="text-right tabular-nums">{h.capitalShare ? `${h.capitalShare} %` : '—'}</TableCell>
+      <TableCell className="text-right tabular-nums">
+        {h.capitalShare ? (h.capitalShare.includes(REDACTED) ? h.capitalShare : `${h.capitalShare} %`) : '—'}
+      </TableCell>
     </TableRow>
   )
 }
@@ -192,7 +194,7 @@ function IncomeList({ items }: { items: Income[] }) {
       {items.map((income, i) => (
         <li key={i} className="space-y-1.5 px-3 py-2.5">
           <div>
-            <div className="text-sm font-medium">{income.title ?? 'Intitulé non publié'}</div>
+            <div className="text-sm font-medium">{asPublished(income.title)}</div>
             <div className="text-xs text-muted-foreground">
               {[income.organization, period(income)].filter(Boolean).join(' · ')}
             </div>
@@ -201,7 +203,9 @@ function IncomeList({ items }: { items: Income[] }) {
             <div className="space-y-0.5">
               {income.grossNet && (
                 <div className="text-[0.65rem] font-medium tracking-wide text-muted-foreground uppercase">
-                  Montants {income.grossNet.toLowerCase()}s
+                  {plainGrossNet(income.grossNet)
+                    ? `Montants ${plainGrossNet(income.grossNet)}s`
+                    : `Brut ou net : ${income.grossNet}`}
                 </div>
               )}
               <dl className="flex flex-wrap gap-x-4 gap-y-0.5 text-sm tabular-nums">
@@ -209,7 +213,7 @@ function IncomeList({ items }: { items: Income[] }) {
                   <div key={m.year} className={cn('flex gap-1.5', !m.amount && 'text-muted-foreground')}>
                     <dt className="text-muted-foreground">{m.year}</dt>
                     <dd className={cn(m.amount && 'font-medium')}>
-                      {m.amount === null ? 'non publié' : formatEuro(m.amount, { round: true })}
+                      {m.amount === null ? (m.text ?? 'non renseigné') : formatEuro(m.amount)}
                     </dd>
                   </div>
                 ))}

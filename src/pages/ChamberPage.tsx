@@ -109,10 +109,10 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
   return (
     <>
       <div>
-        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-start justify-between gap-4 px-6 py-5">
+        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-start justify-between gap-3 px-6 py-3 sm:gap-4 sm:py-5">
           <div>
             <p className="text-xs font-medium tracking-widest text-primary uppercase">{config.eyebrow}</p>
-            <h1 className="font-heading text-4xl font-semibold tracking-tight">{config.title}</h1>
+            <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">{config.title}</h1>
           </div>
 
           <div className="flex w-full items-center gap-2 sm:w-auto">

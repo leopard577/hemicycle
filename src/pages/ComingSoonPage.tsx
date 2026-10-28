@@ -15,9 +15,9 @@ export function ComingSoonPage({ page }: { page: Page }) {
   return (
     <>
       <div className="border-b">
-        <div className="mx-auto w-full max-w-5xl px-6 py-5">
+        <div className="mx-auto w-full max-w-5xl px-6 py-3 sm:py-5">
           <p className="text-xs font-medium tracking-widest text-primary uppercase">{eyebrow}</p>
-          <h1 className="font-heading text-4xl font-semibold tracking-tight">{title}</h1>
+          <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
         </div>
       </div>
 

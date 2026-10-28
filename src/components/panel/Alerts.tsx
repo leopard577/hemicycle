@@ -22,6 +22,11 @@ export function Alerts({ alerts }: { alerts: Alert[] }) {
       <h3 className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
         Ce que révèlent les registres publics
       </h3>
+      <p className="text-xs text-muted-foreground">
+        Rapprochements automatiques entre registres publics, qui peuvent se tromper (homonymes, intitulés saisis en
+        texte libre, fichiers mis à jour avec retard). Chaque signalement décrit une situation à une date donnée sans
+        préjuger de sa justification : vérifiez-le à la source avant de le citer.
+      </p>
       {alerts.map((a) => {
         const { icon: Icon, variant, className } = STYLE[a.severity]
         return (

@@ -12,9 +12,10 @@ import {
   sideIncome,
   type YearIncome,
 } from '@/lib/money'
-import { declarationsOf, declarationStatus, INTERESTS } from '@/lib/declarations'
+import { asPublished, declarationsOf, declarationStatus, INTERESTS, plainGrossNet } from '@/lib/declarations'
 import { formatDate, formatEuro } from '@/lib/format'
 import type { Office } from '@/lib/offices'
+import { cn } from '@/lib/utils'
 import type { Income, LocalMandate, MinimumWage, Official } from '@/types'
 import { DeclaredActivities } from './CapitalTab'
 import { ExternalLink, MissingData, Note, Section } from './parts'
@@ -41,11 +42,11 @@ export function OverlapsTab({ member, minimumWage, localAllowanceCap, office }: 
   // Published on hatvp.fr but absent from its open data files (the President's, for one): say so rather than
   // suggesting nothing was published
   const latest = declarationsOf(member.hatvp.declarations, INTERESTS)[0]
-  const publishedElsewhere = !interests && latest && declarationStatus(latest).status === 'published'
+  const publishedElsewhere = !interests && latest && declarationStatus(latest, office).status === 'published'
 
   return (
     <div className="divide-y">
-      <Section title="Revenus déclarés, année par année">
+      <Section title="Revenus déclarés sur les cinq ans avant sa déclaration">
         {!interests ? (
           <MissingData title="Déclaration d'intérêts non disponible">
             {publishedElsewhere ? (
@@ -66,7 +67,12 @@ export function OverlapsTab({ member, minimumWage, localAllowanceCap, office }: 
             )}
           </MissingData>
         ) : years.length ? (
-          <IncomeChart years={years} yearlyMinimumWage={minimumWage.gross * 12} />
+          <IncomeChart
+            years={years}
+            yearlyMinimumWage={minimumWage.gross * 12}
+            filedAt={interests.filedAt}
+            startDate={member.startDate}
+          />
         ) : (
           <Note>Aucun montant déclaré.</Note>
         )}
@@ -82,12 +88,30 @@ export function OverlapsTab({ member, minimumWage, localAllowanceCap, office }: 
       >
         {!interests ? (
           <Note>Déclaration d'intérêts non disponible.</Note>
-        ) : side.lines.length ? (
-          <ul className="divide-y rounded-lg border">
-            {side.lines.map((l, i) => (
-              <SideIncomeRow key={i} line={l} />
-            ))}
-          </ul>
+        ) : side.lines.length || side.ended.length ? (
+          <>
+            {side.lines.length > 0 && (
+              <ul className="divide-y rounded-lg border">
+                {side.lines.map((l, i) => (
+                  <SideIncomeRow key={i} line={l} />
+                ))}
+              </ul>
+            )}
+            {side.ended.length > 0 && (
+              <>
+                <h4 className="pt-2 text-sm font-medium">Arrêtés depuis son entrée en fonction</h4>
+                <ul className="divide-y rounded-lg border">
+                  {side.ended.map((l, i) => (
+                    <SideIncomeRow key={i} line={l} />
+                  ))}
+                </ul>
+                <Note>
+                  Exercés en même temps que {office.mandate.the}, puis arrêtés selon sa déclaration : leurs montants ne
+                  sont pas comptés dans le total annuel.
+                </Note>
+              </>
+            )}
+          </>
         ) : (
           <Note>Aucune activité ni aucun mandat déclarés en parallèle {office.mandate.of}.</Note>
         )}
@@ -127,8 +151,8 @@ export function OverlapsTab({ member, minimumWage, localAllowanceCap, office }: 
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
-                    <div className="font-semibold tabular-nums">{formatEuro(total, { round: true })}</div>
-                    <div className="text-xs text-muted-foreground">déclarés au total</div>
+                    <div className="font-semibold tabular-nums">{formatEuro(total)}</div>
+                    <div className="text-xs text-muted-foreground">somme des montants déclarés (calcul)</div>
                   </div>
                 </li>
               )
@@ -162,8 +186,10 @@ export function OverlapsNotes({ member, localAllowanceCap, office }: Omit<TabPro
         cinq années précédant sa déclaration. Ils ne sont pas vérifiés par l'application.
       </Note>
       <Note>
-        « En parallèle du mandat » : activités sans date de fin, ou terminées après son entrée en fonction, avec le
-        dernier montant annuel déclaré. « Déclaré à 0 € » signifie que la fonction est déclarée sans rémunération.
+        « En parallèle du mandat » : activités sans date de fin, ou dont la fin est postérieure à la déclaration, avec
+        le dernier montant annuel déclaré (calcul). Ce montant peut porter sur une année antérieure à l'entrée en
+        fonction, ou sur une année incomplète. Les activités arrêtées depuis l'entrée en fonction sont listées à part
+        et ne sont pas comptées. « Déclaré à 0 € » signifie que la fonction est déclarée sans rémunération.
       </Note>
       <Note>
         Mandats locaux : Répertoire national des élus du ministère de l'Intérieur
@@ -190,8 +216,21 @@ const WIDTH = 320
 const HEIGHT = 170
 const MARGIN = { top: 18, bottom: 22, left: 4, right: 4 }
 
-/** Bars stacked by category, with the yearly SMIC as a reference line */
-function IncomeChart({ years, yearlyMinimumWage }: { years: YearIncome[]; yearlyMinimumWage: number }) {
+/**
+ * Bars stacked by category, with the yearly SMIC as a reference line and a mark before the year of taking office:
+ * the declaration covers the five years before it, which can include the start of the mandate
+ */
+function IncomeChart({
+  years,
+  yearlyMinimumWage,
+  filedAt,
+  startDate,
+}: {
+  years: YearIncome[]
+  yearlyMinimumWage: number
+  filedAt: string | null
+  startDate: string
+}) {
   const max = Math.max(yearlyMinimumWage, ...years.map((y) => y.total)) * 1.08
   const plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom
   const y = (v: number) => MARGIN.top + plotHeight - (v / max) * plotHeight
@@ -199,9 +238,21 @@ function IncomeChart({ years, yearlyMinimumWage }: { years: YearIncome[]; yearly
   const barWidth = Math.min(34, step * 0.68)
   const present = CATEGORY_ORDER.filter((c) => years.some((yr) => yr.parts[c]))
   const peak = years.reduce((a, b) => (b.total > a.total ? b : a))
+  const startYear = Number(startDate.slice(0, 4))
+  // Index of the first bar from the year of taking office; -1 when every year is before it
+  const startIndex = years.findIndex((yr) => yr.year >= startYear)
+  const markX = MARGIN.left + startIndex * step
 
   return (
     <figure className="space-y-2">
+      <p className="text-xs text-muted-foreground">
+        Déclaration d'intérêts{filedAt && ` du ${formatDate(filedAt)}`}, entrée en fonction le {formatDate(startDate)}.{' '}
+        {startIndex === -1
+          ? 'Tous ces revenus sont antérieurs à son entrée en fonction.'
+          : startIndex === 0
+            ? 'Ces années comprennent des revenus perçus après son entrée en fonction.'
+            : `Les barres à gauche du trait sont antérieures à son entrée en fonction ; à partir de ${startYear}, elles comprennent des revenus perçus après.`}
+      </p>
       <p className="text-sm">
         Jusqu'à <strong className="tabular-nums">{formatEuro(peak.total, { round: true })}</strong> déclarés en{' '}
         {peak.year}, soit{' '}
@@ -259,6 +310,17 @@ function IncomeChart({ years, yearlyMinimumWage }: { years: YearIncome[]; yearly
           className="stroke-foreground/60"
           strokeWidth={0.8}
         />
+        {startIndex > 0 && (
+          <line
+            x1={markX}
+            x2={markX}
+            y1={MARGIN.top - 6}
+            y2={HEIGHT - MARGIN.bottom}
+            strokeDasharray="2 2"
+            className="stroke-red-600 dark:stroke-red-400"
+            strokeWidth={1}
+          />
+        )}
       </svg>
       <figcaption>
         <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
@@ -272,6 +334,12 @@ function IncomeChart({ years, yearlyMinimumWage }: { years: YearIncome[]; yearly
             <span className="w-3 border-t border-dashed border-foreground/60" />
             SMIC brut annuel
           </li>
+          {startIndex > 0 && (
+            <li className="flex items-center gap-1.5">
+              <span className="h-3 border-l border-dashed border-red-600 dark:border-red-400" />
+              Entrée en fonction ({startYear})
+            </li>
+          )}
         </ul>
       </figcaption>
     </figure>
@@ -279,17 +347,19 @@ function IncomeChart({ years, yearlyMinimumWage }: { years: YearIncome[]; yearly
 }
 
 function SideIncomeRow({ line }: { line: IncomeLine }) {
-  const { income, category, latest, duplicate } = line
-  const redacted = income.amounts.some((m) => m.amount === null)
+  const { income, category, latest, duplicate, endedInOffice } = line
+  const unpublished = income.amounts.find((m) => m.amount === null)
+  const period =
+    income.start && (endedInOffice && income.end ? `${income.start} – ${income.end}` : `depuis ${income.start}`)
   return (
     <li className="flex items-start justify-between gap-3 px-3 py-2.5">
       <div className="min-w-0 space-y-0.5">
         <div className="flex items-center gap-1.5 text-sm font-medium">
           <span className={`size-2 shrink-0 rounded-full ${CATEGORIES[category].bg}`} />
-          <span className="truncate">{income.title ?? 'Intitulé non publié'}</span>
+          <span className="truncate">{asPublished(income.title)}</span>
         </div>
         <div className="text-xs text-muted-foreground">
-          {[CATEGORIES[category].label, income.organization, income.start && `depuis ${income.start}`]
+          {[CATEGORIES[category].label, income.organization, period]
             .filter(Boolean)
             .join(' · ')}
         </div>
@@ -299,16 +369,24 @@ function SideIncomeRow({ line }: { line: IncomeLine }) {
           <span className="text-xs text-muted-foreground">Même revenu que plus haut, compté une fois</span>
         ) : latest && latest.amount > 0 ? (
           <>
-            <div className="font-semibold text-orange-700 tabular-nums dark:text-orange-400">
-              +{formatEuro(latest.amount, { round: true })}
+            {/* A stopped activity is not counted: no "+", no highlight */}
+            <div
+              className={cn(
+                'font-semibold tabular-nums',
+                endedInOffice ? 'text-muted-foreground' : 'text-orange-700 dark:text-orange-400',
+              )}
+            >
+              {endedInOffice ? '' : '+'}
+              {formatEuro(latest.amount)}
             </div>
             <div className="text-xs text-muted-foreground">
               en {latest.year}
-              {income.grossNet && `, ${income.grossNet.toLowerCase()}`}
+              {plainGrossNet(income.grossNet) && `, ${plainGrossNet(income.grossNet)}`}
             </div>
           </>
-        ) : redacted ? (
-          <Badge variant="destructive">Montant non publié</Badge>
+        ) : unpublished ? (
+          // As published: a redaction is the HATVP's, an empty field says nothing about the official
+          <Badge variant="outline">{unpublished.text ?? 'Montant non renseigné'}</Badge>
         ) : (
           <span className="text-xs text-muted-foreground">Déclaré à 0 €</span>
         )}
