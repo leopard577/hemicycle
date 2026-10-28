@@ -32,6 +32,8 @@ Toutes les données sont publiques et officielles :
 | [Sénat, indemnité, frais de mandat et collaborateurs](https://www.senat.fr/connaitre-le-senat/role-et-fonctionnement/lindemnite-parlementaire.html) (mars 2026) | Montant de l'indemnité, des indemnités de fonction, de l'avance de frais de mandat et du crédit collaborateurs |
 | [Journal officiel](https://www.legifrance.gouv.fr) (décrets de nomination) et [Conseil constitutionnel](https://www.conseil-constitutionnel.fr/decision/2022/2022197PDR.htm) | Composition du Gouvernement, dates de nomination, début du mandat présidentiel |
 | [Décret n° 2012-983](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000026310466) | Rémunération du Président de la République et des membres du Gouvernement |
+| [Conseil constitutionnel](https://www.data.gouv.fr/datasets/parrainages-des-candidats-a-lelection-presidentielle-francaise-de-2022) (parrainages, liste des candidats) et [ministère de l'Intérieur](https://www.data.gouv.fr/datasets/election-presidentielle-des-10-et-24-avril-2022-resultats-definitifs-du-1er-tour) (résultats) | Candidats à l'élection présidentielle de 2022, parrainages, voix aux deux tours |
+| [CNCCFP](https://cnccfp.fr/election-presidentielle-des-10-et-24-avril-2022-publication-au-journal-officiel-des-decisions-de-la-commission/), décisions publiées au Journal officiel | Comptes de campagne de 2022 : dépenses, recettes, remboursement dû par l'État, dépenses irrégulières et réductions |
 | [service-public.gouv.fr](https://www.service-public.gouv.fr/particuliers/vosdroits/F2300) | Montant du SMIC (juin 2026), pour les comparaisons |
 
 Les données sont mises à jour automatiquement chaque lundi. La date d'extraction figure en bas de la page.
@@ -92,6 +94,18 @@ droit à l'image, ne sont pas utilisées.
 - Les **départs** du Gouvernement en cours, avec le décret qui y met fin.
 - Comme pour les parlementaires, le contenu des déclarations de patrimoine n'est pas repris, bien que la HATVP
   publie celui des ministres.
+
+### Les candidats
+
+- Les **12 candidats à l'élection présidentielle de 2022**, par ordre de voix au premier tour, avec leur score
+  aux deux tours.
+- Pour chacun : les **dépenses de campagne** retenues par la CNCCFP et le **remboursement dû par l'État**,
+  avec le plafond légal, les dépenses jugées irrégulières et les réductions décidées, et le lien vers la
+  décision.
+- Ses **parrainages** : leur nombre, la répartition par type d'élu et le nombre de départements. Les
+  parrains ne sont pas nommés, ni les personnes parrainées qui ne figurent pas sur la liste officielle.
+- La campagne officielle (affiches, professions de foi, bulletins), payée directement par l'État, n'est pas
+  comptée : aucune source ne la détaille par candidat.
 
 ### La fiche d'un député
 

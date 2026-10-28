@@ -12,7 +12,7 @@ HATVP and the RNE are joined to it, and a hand-entered pay scale, with its sourc
 | 2 | Navbar and routing (react-router, hash router) | Done |
 | 3 | Senators page | Done |
 | 4 | Government page | Done (cabinets and the Élysée budget still to add) |
-| 5 | Candidates page, starting with the 2022 presidential election | To do |
+| 5 | Candidates page, starting with the 2022 presidential election | Done for 2022 (legislative elections and 2027 still to add) |
 
 Also done along the way: the HATVP legal notice is applied (partial redactions kept verbatim, reproduction
 notice in the footer), and the whole code base is in English (the UI stays in French).
@@ -46,6 +46,23 @@ Still to do:
   Wikimedia Commons would cover most of them, with a licence and an author to credit on each photo.
 
 ## 5. Candidates
+
+Done for the 2022 presidential election: the twelve candidates on the official list (decision 2022-187 PDR),
+their sponsorships (counts by type of elected official and number of departments, sponsors never named),
+their votes in both rounds (ministère de l'Intérieur, final national results) and their campaign accounts as
+settled by the CNCCFP on 14 December 2022 (published in the JO of 27 January 2023, 24 February for Marine Le
+Pen), with the refund owed by the State, irregular spending and reductions. The accounts are copied by hand
+from the decisions; the build checks them against the legal formula.
+
+Still to do:
+- **Official campaign** (posters, election addresses, ballots) paid directly by the State: no per-candidate
+  source found yet.
+- **Links to the other pages** when a candidate holds an office today (deputy, minister…).
+- **Legislative elections** and **2027**, as below. The page already says that 2027 will get its own page once the
+  official data is public (sponsorships and list from the Conseil constitutionnel, then results and campaign
+  accounts); until then it names no 2027 candidate.
+
+Initial plan:
 
 - Presidential election: the Conseil constitutionnel publishes sponsorships (open data for 2017 and 2022)
   and the official list of candidates. Legislative elections: the ministère de l'Intérieur publishes the

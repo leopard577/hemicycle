@@ -5,17 +5,6 @@ import { type Page, pathTo } from '@/lib/pages'
 
 // What each page will show, and where its data will come from
 const CONTENT: Partial<Record<Page, { title: string; eyebrow: string; overview: string; sources: string[] }>> = {
-  candidates: {
-    title: 'Les candidats',
-    eyebrow: 'Élections',
-    overview:
-      "Les candidats officiellement enregistrés aux élections, leurs comptes de campagne et ce que l'État rembourse.",
-    sources: [
-      'Conseil constitutionnel (parrainages et liste officielle)',
-      'CNCCFP (comptes de campagne)',
-      'Ministère de l’Intérieur (candidatures et résultats)',
-    ],
-  },
 }
 
 /** Page whose data is not integrated yet: it announces its content without showing any figure */

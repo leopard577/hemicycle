@@ -1,7 +1,7 @@
 # Data pipeline
 
 `npm run data` runs `scripts/build-data.mjs`. It downloads every source, joins them, and writes one file per
-page in `public/data/`: `deputies.json`, `senators.json` and `government.json`, each fetched by its page when it opens.
+page in `public/data/`: `deputies.json`, `senators.json`, `government.json` and `candidates.json`, each fetched by its page when it opens.
 Nothing is cached between runs: each run downloads everything again (about 170 MB, almost all of it the HATVP
 XML and the RNE).
 
@@ -14,6 +14,7 @@ scripts/
   deputies.mjs     "Députés" page: loadDeputies() downloads the AN archive, buildDeputies() builds the dataset
   senators.mjs     "Sénateurs" page: loadSenators() downloads the Sénat sources, buildSenators() builds the dataset
   government.mjs   "Gouvernement" page: hand-maintained list from the Journal officiel decrees, buildGovernment()
+  candidates.mjs   "Candidats" page: loadCandidates() downloads sponsorships and results, buildCandidates() adds the CNCCFP accounts
   lib/
     util.mjs       asArray, text, download, parseCsv, parseQuotedCsv, frToIso, name normalisation and matching
     hatvp.mjs      loadHatvp(): downloads liste.csv and the XML once, returns (officials, mandate) => Map
@@ -132,6 +133,39 @@ Conseil constitutionnel decision for the President's term.
   21 of 36 have a photo; the others show their initials. `liste.csv` cannot help: it only keeps current
   mandates.
 
+## Candidates (`candidates.mjs`)
+
+The 2022 presidential election. Candidates are not `Official`s: standing for office is not holding one, and the
+page uses neither the HATVP nor the RNE.
+
+| Source | URL | Used for |
+| --- | --- | --- |
+| Conseil constitutionnel, sponsorships (CSV, UTF-8, `;`, quoted) | `static.data.gouv.fr/…/20220307-183308/parrainagestotal.csv` | Count per candidate, by sponsor office (`SPONSOR_OFFICES`) and department |
+| Ministère de l'Intérieur, final national results of each round (cp1252, `;`) | `static.data.gouv.fr/…/resultats-par-niveau-fe-t1-france-entiere.txt`, `…-t2-…` | Candidates, ballot board number, sex, votes and share of votes cast; turnout |
+| CNCCFP decisions of 14 December 2022 (JO of 27 January and 24 February 2023) | `www.cnccfp.fr/wp-content/uploads/2023/02/cnccfp-decisions-presidentielle-2022.pdf` | `ACCOUNTS`, hand-copied |
+| Conseil constitutionnel and CNCCFP pages on the refund rules | see `presidentialFunding2022.sources` | Ceilings, refund rates, advance (`pay-scales.mjs`) |
+
+- **Join**: the results file gives surname and first name, the sponsorship file "SURNAME First name"; both are
+  normalised with `normalizeName`. The build fails if a candidate has no sponsorship or no account.
+- **Results file layout**: one data row; after the turnout columns, a block of 7 columns per candidate
+  (`N°Panneau;Sexe;Nom;Prénom;Voix;% Voix/Ins;% Voix/Exp`), while the header names only the first block.
+- **Accounts**: `retained` is the CNCCFP's "montants retenus", `entitlement` the lowest of the refund cap, the
+  refundable spending and the personal contribution net of surplus, `irregular` the spending found irregular
+  (not refundable), `penalty` the reduction under art. L. 52-11-1, `refund` the amount owed by the State
+  (article 2, the 200,000 euro advance included). The build checks `entitlement ≤ cap` and
+  `entitlement − irregular − penalty = refund`. Jean Lassalle's article 1 contradicts its own table; the table is
+  kept.
+- **Press net worth** (`PRESS_NET_WORTH`): each candidate's net worth as reported by franceinfo/AFP on 8 March
+  2022, rounded, copied from the article and cited on the page. The asset declarations were public from 8 March
+  to 13 April 2022 only, then removed by the HATVP; this is the one exception to the asset declaration rule,
+  decided by the project owner. Nothing else from those declarations is stored. The page compares them with
+  `householdWealth` (`pay-scales.mjs`): the median and mean net wealth of households early 2024, INSEE enquête
+  Histoire de vie et Patrimoine 2023-2024 (148,100 and 325,000 euros, per household, not per person). Update it
+  with each new survey.
+- **`election.datasets`** holds the data.gouv.fr page of each downloaded file; the page links to them.
+- **Sponsors are never named**, and neither are the 52 people who received sponsorships without being on the
+  official list: only counts are stored.
+
 ## Matching HATVP records to deputies
 
 The two HATVP files are matched differently.
@@ -245,7 +279,8 @@ LO 135-2 of the electoral code. The HATVP does publish the asset declarations of
 and of the President, and the XML contains those of ministers (type `DSP`), but the app keeps the same rule
 for them: `isDeclaration()` only accepts declarations of interests, so the asset content is parsed with the
 rest of the file and dropped. Only the rows of `liste.csv` (type, dates, status) are kept. **Do not add the
-content of these declarations, even if a source for it turns up**, unless the project owner decides
+content of these declarations, even if a source for it turns up** (the only exception is the press-reported net
+worth of the 2022 presidential candidates, see Candidates), unless the project owner decides
 otherwise after a legal check.
 
 ## Updating pay scales

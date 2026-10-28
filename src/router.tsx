@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { createHashRouter, Navigate } from 'react-router'
 import App from '@/App'
 import { DEFAULT_PAGE, type Page, PAGES } from '@/lib/pages'
+import { CandidatesPage } from '@/pages/CandidatesPage'
 import { ComingSoonPage } from '@/pages/ComingSoonPage'
 import { DeputiesPage } from '@/pages/DeputiesPage'
 import { GovernmentPage } from '@/pages/GovernmentPage'
@@ -14,6 +15,7 @@ const ELEMENTS: Partial<Record<Page, ReactNode>> = {
   deputies: <DeputiesPage />,
   senators: <SenatorsPage />,
   government: <GovernmentPage />,
+  candidates: <CandidatesPage />,
 }
 
 export const router = createHashRouter([

@@ -2,7 +2,7 @@
 
 Cost and transparency of French public officials, from official open data. A static React app with one page
 per institution (deputies, senators, government, candidates), routed by URL hash, each reading its own
-generated JSON file. The deputies, senators and government pages are built. Read `README.md` for the overview,
+generated JSON file. All four pages are built; the candidates page covers the 2022 presidential election. Read `README.md` for the overview,
 `docs/data.md` for the data pipeline, `docs/frontend.md` for the UI and `docs/roadmap.md` for the plan and its status.
 
 ## Commands
@@ -23,7 +23,9 @@ opening a deputy's and a senator's panel.
   For parliamentarians publishing it is a criminal offence (art. LO 135-2 of the electoral code). The HATVP
   publishes those of ministers and the President, and the XML contains them, but the app applies the same rule
   by choice of the project owner: `isDeclaration()` in each page module only accepts declarations of
-  interests. Only their filing status and dates from `liste.csv` are allowed. The "capital" shown in the app comes from the financial holdings in
+  interests. One exception, decided by the project owner on 28 October 2026: the candidates page shows each 2022
+  presidential candidate's net worth as reported by franceinfo/AFP (`PRESS_NET_WORTH` in `scripts/candidates.mjs`),
+  citing the article, because the declarations were only public until the first-round results. Do not extend it. Only their filing status and dates from `liste.csv` are allowed. The "capital" shown in the app comes from the financial holdings in
   declarations of *interests* (DIA).
 - **Respect the HATVP's [legal notice](https://www.hatvp.fr/mentions-legales/).** Reproduce declaration
   content without altering it (keep partial `[Données non publiées]` markers, label every derived figure as a
@@ -85,6 +87,10 @@ opening a deputy's and a senator's panel.
   for filings) unless the law says otherwise.
 - **The RNE has no stable URL.** `scripts/lib/rne.mjs` finds each file by title through the data.gouv API; if a
   title changes the build fails on purpose.
+- **Campaign accounts are hand-copied** from the CNCCFP decisions in `ACCOUNTS` (`scripts/candidates.mjs`).
+  The build checks each refund against the legal cap (`presidentialFunding2022` in `pay-scales.mjs`) and the
+  decision's own arithmetic (entitlement − irregular − penalty = refund), and fails on a mismatch. Never name
+  sponsors, nor people who received sponsorships without being on the official list.
 - **Pay scales are hard-coded** in `scripts/pay-scales.mjs`: `deputyPayScales` and `DEPUTY_SPECIAL_ALLOWANCES` from AN
   fiche n° 7 (January 2026), `senatorPayScales` and `SENATOR_SPECIAL_ALLOWANCES` from the Sénat pages listed in
   `senatorPayScales.sources`, `minimumWage` from the June 2026 SMIC. `governmentPayScales` is computed from

@@ -80,8 +80,11 @@ export const nameTokens = (...parts) =>
 
 export const intersects = (a, b) => [...a].some((t) => b.has(t))
 
-/** Comma-separated CSV with quoted fields (Sénat open data); lines starting with `%` are comments */
-export function parseQuotedCsv(text) {
+/**
+ * CSV with quoted fields, comma-separated by default (Sénat open data; the Conseil constitutionnel uses `;`).
+ * Lines starting with `%` are comments.
+ */
+export function parseQuotedCsv(text, separator = ',') {
   const body = text
     .split(/\r?\n/)
     .filter((l) => l && !l.startsWith('%'))
@@ -108,7 +111,7 @@ export function parseQuotedCsv(text) {
         i++
       } else quoted = false
     } else if (c === '"') quoted = true
-    else if (c === ',') endField()
+    else if (c === separator) endField()
     else if (c === '\n') endRow()
     else field += c
   }

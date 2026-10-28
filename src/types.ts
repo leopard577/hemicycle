@@ -240,3 +240,109 @@ export interface GovernmentDataset {
   members: GovernmentMember[]
   departures: GovernmentDeparture[]
 }
+
+/** Text published by the Conseil constitutionnel */
+export interface ElectionDecision {
+  title: string
+  date: string
+  url: string
+}
+
+export interface RoundTurnout {
+  date: string
+  registered: number
+  voters: number
+  blank: number
+  invalid: number
+  /** Votes cast ("suffrages exprimés") */
+  cast: number
+}
+
+export interface RoundResult {
+  votes: number
+  /** Share of the votes cast, 0 to 1 */
+  share: number
+}
+
+/** Office of a sponsor, grouped from the Conseil constitutionnel's "Mandat" column */
+export type SponsorOffice = 'mayor' | 'parliament' | 'departmental' | 'regional' | 'other'
+
+/** Campaign account as settled by the CNCCFP, in euros */
+export interface CampaignAccount {
+  /** Total revenue and spending subject to the ceiling, as filed by the candidate */
+  declared: { revenue: number; spending: number }
+  /** The same, as settled by the CNCCFP */
+  retained: { revenue: number; spending: number }
+  /** Personal contribution retained, the State's 200,000 euro advance included */
+  personal: number
+  partyPayments: number
+  donations: number
+  /** Spending paid directly or in kind by parties */
+  partyContributions: number
+  /** Other in-kind help */
+  inKind: number
+  ceiling: number
+  /** 4.75% or 47.5% of the ceiling */
+  refundCap: number
+  /** Refund before deductions: the lowest of the cap, the refundable spending and the personal contribution */
+  entitlement: number
+  /** Spending found irregular, not refunded */
+  irregular: number
+  /** Reduction for irregularities (art. L. 52-11-1 of the electoral code) */
+  penalty: number
+  /** Amount owed by the State, advance included */
+  refund: number
+  decision: { title: string; date: string; url: string; nor: string; publishedAt: string }
+}
+
+/** Candidate on the official list. Not an `Official`: standing for office is not holding one */
+export interface Candidate {
+  id: string
+  honorific: string
+  firstName: string
+  lastName: string
+  /** Ballot board number, drawn by lot */
+  panel: number
+  sponsorships: { total: number; byOffice: Record<SponsorOffice, number>; departments: number }
+  firstRound: RoundResult
+  secondRound: RoundResult | null
+  /** Net worth (assets minus debts) as reported by the press in March 2022, rounded; see `election.pressNetWorth` */
+  pressNetWorth: number
+  account: CampaignAccount
+}
+
+export interface PresidentialFunding {
+  sources: { label: string; url: string }[]
+  ceiling: { firstRound: number; secondRound: number }
+  refundRate: { low: number; high: number }
+  highRateThreshold: number
+  advance: number
+}
+
+export interface CandidatesDataset {
+  generatedAt: string
+  election: {
+    id: string
+    label: string
+    decisions: { list: ElectionDecision; firstRound: ElectionDecision; secondRound: ElectionDecision }
+    rounds: RoundTurnout[]
+    funding: PresidentialFunding
+    /** data.gouv.fr pages of the open data files the page is built from */
+    datasets: Record<'sponsorships' | 'firstRound' | 'secondRound', { label: string; url: string }>
+    /** Article the net worths come from, and why the declarations themselves are no longer online */
+    pressNetWorth: {
+      source: { title: string; publisher: string; date: string; url: string }
+      /** HATVP page stating the declarations stayed public until the first-round results */
+      removal: string
+      publishedFrom: string
+      publishedUntil: string
+      /** INSEE median and mean net wealth of households, for comparison */
+      households: { median: number; mean: number; date: string; source: { label: string; url: string } }
+    }
+  }
+  /** Most first-round votes first */
+  candidates: Candidate[]
+  /** People who received sponsorships but did not stand: counted, never named */
+  otherSponsored: { people: number; sponsorships: number }
+  sponsorshipsTotal: number
+}

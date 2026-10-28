@@ -112,3 +112,43 @@ export const governmentPayScales = {
   },
   minimumWage,
 }
+
+// Net wealth of households in France (excluding Mayotte), early 2024, INSEE Enquête Histoire de vie et
+// Patrimoine 2023-2024, table "Montants moyen et médian de patrimoine brut et net" ("Ensemble" row of the net
+// wealth block). Per household, not per person. Update it with each new survey (every three years).
+export const householdWealth = {
+  median: 148_100,
+  mean: 325_000,
+  date: '2024',
+  source: {
+    label: 'Insee, « Patrimoine et endettement des ménages en 2024 », enquête Histoire de vie et Patrimoine 2023-2024',
+    url: 'https://www.insee.fr/fr/statistiques/8736846',
+  },
+}
+
+// Public funding of the 2022 presidential campaign, art. 3 of law no. 62-1292 of 6 November 1962: spending
+// ceilings (raised by the coefficient of decree no. 2009-1730), then a flat refund of 4.75% of the ceiling, or
+// 47.5% for a candidate above 5% of the votes cast in the first round, never more than the spending in the
+// account. The State advances 200,000 euros to every candidate once the list is published; the advance is part
+// of the refund. Amounts as restated in each CNCCFP decision of 14 December 2022.
+export const presidentialFunding2022 = {
+  sources: [
+    {
+      label: 'Conseil constitutionnel, « Quels sont les seuils de remboursement des frais de campagne ? »',
+      url: 'https://presidentielle2022.conseil-constitutionnel.fr/l-election/le-financement-de-la-campagne/seuils-de-remboursement-frais-de-campagne.html',
+    },
+    {
+      label: 'CNCCFP, mémento du candidat à l’élection présidentielle 2022',
+      url: 'https://www.cnccfp.fr/wp-content/uploads/2022/03/cnccfp_memento_election_presidentielle_2022.pdf',
+    },
+    {
+      label: 'CNCCFP, décisions sur les comptes de campagne (JO des 27 janvier et 24 février 2023)',
+      url: 'https://www.cnccfp.fr/wp-content/uploads/2023/02/cnccfp-decisions-presidentielle-2022.pdf',
+    },
+  ],
+  ceiling: { firstRound: 16_851_000, secondRound: 22_509_000 },
+  refundRate: { low: 0.0475, high: 0.475 },
+  /** Share of the votes cast in the first round above which the high rate applies */
+  highRateThreshold: 0.05,
+  advance: 200_000,
+}
