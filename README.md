@@ -102,17 +102,17 @@ droit à l'image, ne sont pas utilisées.
 
 ```bash
 npm install
-npm run data   # télécharge les données publiques et génère public/data/deputes.json
+npm run data   # télécharge les données publiques et génère public/data/deputies.json
 npm run dev    # http://localhost:5173
 ```
 
-`public/data/deputes.json` est généré et n'est pas versionné : lancez `npm run data` après un clone, puis à
+`public/data/deputies.json` est généré et n'est pas versionné : lancez `npm run data` après un clone, puis à
 nouveau pour obtenir des données plus récentes. Le script télécharge environ 170 Mo (HATVP et Répertoire
 national des élus).
 
 | Commande          | Rôle                                                                        |
 | ----------------- | --------------------------------------------------------------------------- |
-| `npm run data`    | Télécharge les données de l'AN, de la HATVP et du RNE, et régénère `public/data/deputes.json` |
+| `npm run data`    | Télécharge les données de l'AN, de la HATVP et du RNE, et régénère `public/data/deputies.json` |
 | `npm run dev`     | Lance le serveur de développement Vite                                      |
 | `npm run build`   | Vérifie les types (`tsc -b`) et construit dans `dist/`                      |
 | `npm run preview` | Sert la version de production                                               |
@@ -129,8 +129,8 @@ L'application est un front statique : son seul « backend » est le fichier JSON
 
 ### Mettre à jour les barèmes
 
-Les montants de rémunération (`baremes`, `INDEMNITES_SPECIALES`) et le SMIC (`baremes.smic`) sont saisis à la
-main dans `scripts/hatvp.mjs`. Mettez-les à jour quand l'Assemblée publie une nouvelle fiche n° 7 ou quand
+Les montants de rémunération (`deputyPayScales`, `DEPUTY_SPECIAL_ALLOWANCES`) et le SMIC (`minimumWage`) sont
+saisis à la main dans `scripts/pay-scales.mjs`. Mettez-les à jour quand l'Assemblée publie une nouvelle fiche n° 7 ou quand
 le SMIC est revalorisé, puis relancez `npm run data`.
 
 ### Déploiement

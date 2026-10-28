@@ -11,9 +11,9 @@ export interface Layout {
 }
 
 /**
- * Calcule `count` sièges répartis en arcs concentriques sur un demi-cercle.
- * Les sièges sont renvoyés triés de la gauche vers la droite (par angle),
- * pour que des députés triés par groupe forment des secteurs contigus.
+ * Computes `count` seats spread over concentric arcs on a half circle.
+ * Seats are returned sorted from left to right (by angle), so that deputies
+ * sorted by group form contiguous wedges.
  */
 export function hemicycleLayout(count: number, rows = 12, outerRadius = 100, innerRatio = 0.38): Layout {
   const innerRadius = outerRadius * innerRatio
@@ -21,7 +21,7 @@ export function hemicycleLayout(count: number, rows = 12, outerRadius = 100, inn
   const radii = Array.from({ length: rows }, (_, i) => innerRadius + i * rowGap)
   const totalRadius = radii.reduce((a, b) => a + b, 0)
 
-  // Nombre de sièges par rang proportionnel à la longueur de l'arc
+  // Seats per row, proportional to the arc length
   const perRow = radii.map((r) => Math.floor((count * r) / totalRadius))
   let missing = count - perRow.reduce((a, b) => a + b, 0)
   for (let i = rows - 1; missing > 0; i = (i - 1 + rows) % rows, missing--) perRow[i]++

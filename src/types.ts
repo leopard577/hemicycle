@@ -1,147 +1,167 @@
-export interface Groupe {
+export interface Group {
   id: string
-  abrev: string
-  libelle: string
-  couleur: string
+  abbrev: string
+  label: string
+  color: string
 }
 
-export interface Commission {
-  libelle: string
-  qualite: string
+export interface Committee {
+  label: string
+  role: string
 }
 
-export interface Depute {
+/**
+ * Fields shared by every public official, whatever the page (deputies, senators, government…):
+ * identity, HATVP declarations and RNE local mandates.
+ */
+export interface Official {
   id: string
-  civ: string
-  prenom: string
-  nom: string
-  alpha: string
-  dateNais: string | null
-  villeNais: string | null
-  profession: string | null
-  groupeId: string | null
-  qualiteGroupe: string | null
-  parti: string | null
-  departement: string | null
-  numDepartement: string | null
-  numCirco: string | null
-  region: string | null
-  dateDebut: string
-  premiereElection: boolean
-  placeHemicycle: number | null
-  commissions: Commission[]
-  email: string | null
-  site: string | null
-  twitter: string | null
-  hatvp: Hatvp
+  /** "M." or "Mme" */
+  honorific: string
+  firstName: string
+  lastName: string
+  birthDate: string | null
   photo: string
-  indemnitesSpeciales: IndemniteSpeciale[]
-  nbCollaborateurs: number
-  /** Mandats locaux en cours selon le Répertoire national des élus */
-  mandatsLocaux: MandatLocal[]
+  /** Start date of the office the page is about */
+  startDate: string
+  hatvp: Hatvp
+  /** Local mandates currently held, according to the Répertoire national des élus */
+  localMandates: LocalMandate[]
 }
 
-export type TypeMandatLocal =
+export interface Deputy extends Official {
+  sortName: string
+  birthPlace: string | null
+  profession: string | null
+  groupId: string | null
+  groupRole: string | null
+  party: string | null
+  department: string | null
+  departmentCode: string | null
+  constituency: string | null
+  region: string | null
+  firstTerm: boolean
+  /** Real seat number in the hemicycle */
+  seat: number | null
+  committees: Committee[]
+  email: string | null
+  website: string | null
+  twitter: string | null
+  specialAllowances: SpecialAllowance[]
+  staffCount: number
+}
+
+export type LocalMandateType =
   | 'municipal'
-  | 'arrondissement'
-  | 'communautaire'
-  | 'departemental'
+  | 'district'
+  | 'intercommunal'
+  | 'departmental'
   | 'regional'
-  | 'collectivite'
-  | 'europeen'
+  | 'territorial'
+  | 'european'
 
-export interface MandatLocal {
-  type: TypeMandatLocal
-  libelle: string
-  lieu: string | null
-  /** Maire, adjoint, vice-président… ; null pour un simple conseiller */
-  fonction: string | null
-  debut: string | null
-  debutFonction: string | null
-  /** Date de mise à jour du fichier RNE */
-  miseAJour: string | null
+export interface LocalMandate {
+  type: LocalMandateType
+  label: string
+  place: string | null
+  /** Mayor, deputy mayor, vice-president…; null for a plain councillor */
+  role: string | null
+  start: string | null
+  roleStart: string | null
+  /** Update date of the RNE file */
+  updatedAt: string | null
 }
 
-/** Fonction pour laquelle la même personne a déposé une déclaration auprès de la HATVP */
-export interface AutreMandatHatvp {
+/** Office for which the same person filed a declaration with the HATVP */
+export interface OtherHatvpMandate {
   type: string
   institution: string
-  qualite: string | null
-  dernierDepot: string | null
+  role: string | null
+  lastFiledAt: string | null
 }
 
-export interface IndemniteSpeciale {
-  libelle: string
-  organe: string
-  montant: number
+export interface SpecialAllowance {
+  label: string
+  /** Organ whose role grants the allowance */
+  body: string
+  amount: number
 }
 
-export interface MontantAnnuel {
-  annee: number
-  montant: number | null
+export interface YearlyAmount {
+  year: number
+  amount: number | null
 }
 
-export interface Revenu {
-  intitule: string | null
-  organisme: string | null
-  debut: string | null
-  fin: string | null
-  brutNet: string | null
-  montants: MontantAnnuel[]
+export interface Income {
+  title: string | null
+  organization: string | null
+  start: string | null
+  end: string | null
+  grossNet: string | null
+  amounts: YearlyAmount[]
 }
 
-export interface Participation {
-  societe: string
-  evaluation: number | null
-  capitalDetenu: string | null
-  nombreParts: string | null
-  remuneration: string | null
+export interface Holding {
+  company: string
+  value: number | null
+  capitalShare: string | null
+  shareCount: string | null
+  income: string | null
 }
 
-/** null = rubrique absente de la déclaration, [] = « néant » déclaré */
-type Rubrique<T> = T[] | null
+/** null = section missing from the declaration, [] = "néant" (none) declared */
+type DeclarationSection<T> = T[] | null
 
-export interface Interets {
-  dateDepot: string | null
-  modificative: boolean
-  activites: Rubrique<Revenu>
-  mandats: Rubrique<Revenu>
-  consultant: Rubrique<Revenu>
-  dirigeant: Rubrique<Revenu>
-  participations: Rubrique<Participation>
+export interface Interests {
+  filedAt: string | null
+  amended: boolean
+  jobs: DeclarationSection<Income>
+  mandates: DeclarationSection<Income>
+  consulting: DeclarationSection<Income>
+  directorships: DeclarationSection<Income>
+  holdings: DeclarationSection<Holding>
 }
 
-export type TypeDeclaration = 'dia' | 'diam' | 'dsp' | 'dspm' | 'dspfm'
+export type DeclarationType = 'dia' | 'diam' | 'dsp' | 'dspm' | 'dspfm'
 
-export interface DeclarationHatvp {
-  type: TypeDeclaration
-  libelle: string
-  dateDepot: string | null
-  datePublication: string | null
-  statut: string | null
+export interface HatvpDeclaration {
+  type: DeclarationType
+  label: string
+  filedAt: string | null
+  publishedAt: string | null
+  /** Raw HATVP status ("Livrée", "En cours"…) */
+  status: string | null
 }
 
 export interface Hatvp {
   page: string | null
-  declarations: DeclarationHatvp[]
-  interets: Interets | null
-  autresMandats: AutreMandatHatvp[]
+  declarations: HatvpDeclaration[]
+  interests: Interests | null
+  otherMandates: OtherHatvpMandate[]
 }
 
-export interface Baremes {
+export interface MinimumWage {
+  gross: number
+  net: number
+  updatedAt: string
   source: string
-  miseAJour: string
-  indemnite: { base: number; residence: number; fonction: number; brut: number; net: number }
-  dotationFonctionnement: number
-  creditCollaborateurs: number
-  maxCollaborateurs: number
-  plafondCumul: number
-  smic: { brut: number; net: number; miseAJour: string; source: string }
 }
 
-export interface Dataset {
+export interface PayScales {
+  source: string
+  updatedAt: string
+  allowance: { base: number; residence: number; office: number; gross: number; net: number }
+  expenseAllowance: number
+  staffBudget: number
+  maxStaff: number
+  /** Monthly cap on local allowances on top of the parliamentary allowance */
+  localAllowanceCap: number
+  minimumWage: MinimumWage
+}
+
+export interface DeputiesDataset {
   generatedAt: string
-  baremes: Baremes
-  groupes: Groupe[]
-  deputes: Depute[]
+  payScales: PayScales
+  groups: Group[]
+  deputies: Deputy[]
 }

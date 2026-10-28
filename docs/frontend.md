@@ -1,29 +1,45 @@
 # Front end
 
-A single-page React app with no router and no global state library. `App.tsx` fetches
-`public/data/deputes.json` once and holds the UI state: the selected deputy, the group filter and the
-search query.
+A single-page React app with no global state library. `App.tsx` is a shell: the navbar, then the page named
+by the URL hash. Each page fetches its own `public/data/<page>.json` when it mounts, so a visitor only
+downloads the data of the pages they open.
+
+## Routing
+
+`src/lib/router.ts` is a minimal hash router: `#/deputes`, `#/senateurs`, `#/gouvernement`, `#/candidats`.
+GitHub Pages cannot rewrite URLs to `index.html`, and a hash keeps every path relative (`base: './'`). An
+empty or unknown hash shows the default page (deputies). `usePage()` subscribes to `hashchange`, so links,
+the back button and a pasted URL all work. Links are plain `<a href={linkTo(page)}>`. Page ids are English (`senators`), URL paths French (`#/senateurs`). `App` sets
+`document.title` and scrolls to the top on every page change.
+
+To add a page: add its id and label to `PAGES`, then render it in `App.tsx`. Pages not built yet render
+`ComingSoonPage`, which describes what the page will show and its planned sources, without any figure.
 
 ## Components
 
 | File | Role |
 | --- | --- |
-| `src/App.tsx` | Data loading, search box and results, layout, and the padding reserved for the panel when it is open |
+| `src/App.tsx` | Shell: navbar, current page, and the padding reserved for the deputy panel when it is open |
+| `src/lib/router.ts` | `PAGES`, `linkTo()`, `usePage()` |
+| `src/components/Navbar.tsx` | Site name, page links (shadcn `NavigationMenu`), theme toggle. On a phone the links take their own row and scroll horizontally; the active link is scrolled into view |
+| `src/components/SiteFooter.tsx` | Footer: the page's own sources (children), then the HATVP reproduction notice, on every page |
+| `src/pages/DeputiesPage.tsx` | Deputies page: data loading, search box and results, hemicycle, readings, legend, panel |
+| `src/pages/ComingSoonPage.tsx` | Placeholder for the senators, government and candidates pages |
 | `src/components/Hemicycle.tsx` | SVG chart. `deputes[i]` sits on `layout.seats[i]`, so the order of the dataset decides who sits where. The centre label shows the hovered deputy. |
 | `src/lib/hemicycle.ts` | `hemicycleLayout(count)`: seats spread over 12 arcs, proportionally to arc length, then sorted by angle (left to right) |
 | `src/components/Legend.tsx` | Group filter, a single-select `ToggleGroup`; clicking the active group clears the filter |
 | `src/components/DeputyPanel.tsx` | Right-hand `Sheet`: header tinted with the group colour, key-figure tiles, then `Tabs` |
-| `src/components/Lectures.tsx` | Hemicycle reading selector (groups, cumul, extra income, declarations), colour scale, top-10 list; definitions in `src/lib/lectures.ts` |
-| `src/components/deputy/Addition.tsx` | Top of the panel: monthly seat cost, breakdown bar, SMIC comparison, live counter since taking office, three key figures |
-| `src/components/deputy/Alertes.tsx` | Facts from crossing AN × HATVP × RNE, by severity |
-| `src/components/deputy/CumulsTab.tsx` | Default tab: income by year (stacked SVG bars, SMIC line), activities in parallel, RNE local mandates vs declaration, local allowance cap, other mandates |
-| `src/lib/argent.ts` | Cost, income classification, alerts, per-deputy summary used by the readings |
-| `src/components/deputy/ProfilTab.tsx` | Constituency, mandate, committees, biography, contact |
-| `src/components/deputy/RemunerationTab.tsx` | Allowance, special allowances, expense envelopes, staff |
-| `src/components/deputy/InteretsTab.tsx` | Holdings table and declared income; explains why content is missing |
+| `src/components/Readings.tsx` | Hemicycle reading picker (groups, overlaps, side income, capital, declarations), colour scale, top-10 list; definitions in `src/lib/readings.ts` |
+| `src/components/deputy/CostSummary.tsx` | Top of the panel: monthly seat cost, breakdown bar, SMIC comparison, live counter since taking office, three key figures |
+| `src/components/deputy/Alerts.tsx` | Facts from crossing AN × HATVP × RNE, by severity |
+| `src/components/deputy/OverlapsTab.tsx` | Default ("Cumuls") tab: income by year (stacked SVG bars, SMIC line), activities in parallel, RNE local mandates vs declaration, local allowance cap, other mandates |
+| `src/lib/money.ts` | Cost, income classification, alerts, per-deputy summary used by the readings |
+| `src/components/deputy/ProfileTab.tsx` | Constituency, mandate, committees, biography, contact |
+| `src/components/deputy/PayTab.tsx` | Allowance, special allowances, expense envelopes, staff |
+| `src/components/deputy/InterestsTab.tsx` | Holdings table and declared income; explains why content is missing |
 | `src/components/deputy/DeclarationsTab.tsx` | HATVP declarations grouped into assets and interests |
-| `src/components/deputy/parts.tsx` | Shared blocks: `Section` (optional `aside`), `Fields`/`Field`, `ExternalLink`, `MissingData`, `Note`, `KeyFigure` (tiles under the panel header), `Precisions` (collapsed notes and sources) |
-| `src/lib/declarations.ts` | Maps raw HATVP statuses to labels and states (`publiee`, `attente`, `manquante`) |
+| `src/components/deputy/parts.tsx` | Shared blocks: `Section` (optional `aside`), `Fields`/`Field`, `ExternalLink`, `MissingData`, `Note`, `KeyFigure` (tiles under the panel header), `NotesAndSources` (the collapsed "Précisions et sources"), `NoteGroup` |
+| `src/lib/declarations.ts` | Maps raw HATVP statuses to labels and states (`published`, `pending`, `missing`) |
 | `src/lib/format.ts` | `formatDate`, `formatEuro`, `age` (fr-FR) |
 
 ## Styling rules
@@ -39,7 +55,7 @@ search query.
   against the component's own `data-[side=right]:sm:max-w-sm`.
 - **`cn`** comes from the `cn` npm package (published by shadcn) and is re-exported by `src/lib/utils.ts`.
 - **Dark mode**: shadcn relies on a `.dark` class. `src/lib/theme.ts` sets it from the choice saved in
-  `localStorage` (`theme`: `clair` or `sombre`), or from `prefers-color-scheme` when nothing is saved.
+  `localStorage` (`theme`: `light` or `dark`; the former `clair`/`sombre` values are still read), or from `prefers-color-scheme` when nothing is saved.
   `ThemeToggle` in the header saves the choice.
 
 ## Behaviour worth knowing
@@ -52,7 +68,8 @@ search query.
   body. Changing tab while scrolled past the tab bar jumps back to the start of the new tab's content.
 - **`DeputyDetails` is keyed by deputy id**, and it owns the scroll container, so switching deputies
   resets both the tab (to "Cumuls") and the scroll position.
-- **Wide screens**: from `lg` up, the root wrapper gets `lg:pr-[30rem]` while the panel is open, so `<main>` (`mx-auto`) stays centred in the free space instead of hiding behind the panel. The page is also centred vertically.
+- **Wide screens**: from `lg` up, the root wrapper in `App` gets `lg:pr-[30rem]` while the panel is open
+  (the page reports it through `onPanelChange`, and resets it when it unmounts), so `<main>` (`mx-auto`) stays centred in the free space instead of hiding behind the panel. The page is also centred vertically.
 - **Seat picking uses the nearest seat**, not the circle under the pointer. On a phone the dots are 6 to 8 px wide,
   so `Hemicycle` maps the pointer to the closest seat (within 2.5 seat radii) and selects on `pointerup`. On touch,
   sliding a finger previews names in the centre label and releasing opens that deputy; the SVG is `touch-pan-y`, so
@@ -62,5 +79,6 @@ search query.
 
 ## Language
 
-All UI text is in French. Code identifiers mirror the French field names of the dataset (`depute`,
-`groupe`, `interets`…), and source comments are in French as well.
+All UI text is in French. Everything else is in English: identifiers, types, file names, the generated
+JSON schema and code comments. Raw values copied from the sources keep their original form (`type_mandat`
+values such as `depute`, HATVP statuses such as `Livrée`), and so do the URL paths visitors see (`#/senateurs`).

@@ -37,7 +37,7 @@ export function ExternalLink({ href, children }: { href: string; children: React
   )
 }
 
-/** Encadré signalant une donnée absente : `missing` pour une déclaration non déposée */
+/** Box flagging missing data: `missing` for a declaration that was not filed */
 export function MissingData({
   title,
   children,
@@ -60,26 +60,26 @@ export function Note({ children }: { children: ReactNode }) {
   return <p className="text-xs text-muted-foreground">{children}</p>
 }
 
-/** Chiffre clé affiché en tuile sous l'en-tête du panneau */
+/** Key figure shown as a tile under the panel header */
 export function KeyFigure({
   label,
   value,
   hint,
-  alerte = false,
+  highlight = false,
 }: {
   label: string
   value: ReactNode
   hint?: ReactNode
-  /** Met le chiffre en évidence quand il révèle un cumul */
-  alerte?: boolean
+  /** Emphasises the figure when it reveals an overlap */
+  highlight?: boolean
 }) {
   return (
-    <div className={cn('min-w-0 rounded-lg px-3 py-2', alerte ? 'bg-orange-500/10' : 'bg-muted/60')}>
+    <div className={cn('min-w-0 rounded-lg px-3 py-2', highlight ? 'bg-orange-500/10' : 'bg-muted/60')}>
       <dt className="truncate text-xs text-muted-foreground">{label}</dt>
       <dd
         className={cn(
           'font-heading text-lg leading-tight font-semibold tabular-nums',
-          alerte && 'text-orange-700 dark:text-orange-400',
+          highlight && 'text-orange-700 dark:text-orange-400',
         )}
       >
         {value}
@@ -89,8 +89,8 @@ export function KeyFigure({
   )
 }
 
-/** Précisions et sources, repliées en bas de la fiche pour ne pas noyer les données */
-export function Precisions({
+/** "Précisions et sources", collapsed at the bottom of the panel so they do not drown the data */
+export function NotesAndSources({
   children,
   open,
   onOpenChange,
@@ -111,11 +111,11 @@ export function Precisions({
   )
 }
 
-/** Groupe de notes dans « Précisions et sources » */
-export function GroupeNotes({ titre, children }: { titre: string; children: ReactNode }) {
+/** Group of notes in "Précisions et sources" */
+export function NoteGroup({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-2">
-      <h4 className="text-xs font-semibold text-foreground">{titre}</h4>
+      <h4 className="text-xs font-semibold text-foreground">{title}</h4>
       {children}
     </section>
   )
