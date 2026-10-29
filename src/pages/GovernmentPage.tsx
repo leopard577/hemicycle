@@ -194,7 +194,7 @@ export function GovernmentPage() {
               les annexes au projet de loi de finances.
             </p>
           </div>
-          <div className="grid items-start gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
             <CabinetsCard cabinets={data.cabinets} members={members} selectedId={selectedId} onSelect={select} />
             <div className="space-y-4">
               <ElyseeCard elysee={data.elysee} />

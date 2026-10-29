@@ -80,10 +80,10 @@ export function CabinetsCard({
         </Tile>
       </dl>
 
-      <ul className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
         {cabinets.byFunction.map((f) => (
           <li key={f.label} className="flex items-baseline gap-2">
-            <span className={cn('truncate', f.group === 'support' && 'text-muted-foreground')}>{f.label}</span>
+            <span className={cn('min-w-0 truncate', f.group === 'support' && 'text-muted-foreground')}>{f.label}</span>
             <span className="ml-auto tabular-nums">{count(f.count)}</span>
           </li>
         ))}
