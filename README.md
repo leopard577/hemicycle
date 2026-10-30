@@ -68,6 +68,28 @@ lundi. Certaines données (barèmes, composition du Gouvernement, budgets, compt
 main dans `scripts/` : voir [docs/data.md](docs/data.md). L'interface est décrite dans
 [docs/frontend.md](docs/frontend.md), la suite dans [docs/roadmap.md](docs/roadmap.md).
 
+## À venir : condamnations des candidats 2027
+
+Piste étudiée le 30 octobre 2026, mise en attente. Aucune source officielle ouverte n'existe : le casier
+judiciaire n'est pas public et [Judilibre](https://www.courdecassation.fr/acces-rapide-judilibre) retire le nom
+des personnes. Deux sources partielles :
+
+- **Wikidata**, propriété [P1399](https://www.wikidata.org/wiki/Property:P1399) (« condamné pour ») : 2 candidats
+  sur 36 renseignés, avec doublons, sans l'état du recours ni l'arrêt d'appel de Marine Le Pen du 7 juillet 2026.
+- **[Casier Politique](https://codeberg.org/raphael-jolivet/crapulopedia)** (Raphaël Jolivet), sous
+  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) : extraction par un LLM des pages
+  Wikipédia, avec l'état du recours.
+
+Approche envisagée : se servir de ces sources comme pistes, vérifier chaque affaire et la saisir à la main dans
+`scripts/candidates-2027.mjs`, avec la juridiction, la date, l'infraction, l'état du recours (définitive, appel,
+cassation) et un article daté ; seulement les condamnations, jamais les mises en examen ; aucune condamnation
+amnistiée ou effacée par une réhabilitation. Reprendre telles quelles les données de Casier Politique imposerait
+de les créditer et de publier la partie dérivée sous la même licence.
+
+À trancher avant de commencer : valider le principe (protection des données pénales, article 10 du RGPD et
+article 46 de la loi Informatique et libertés ; risque de diffamation en cas d'erreur, l'éditeur du site en
+répondant) et le périmètre, condamnations définitives seules ou aussi celles frappées d'appel avec leur état.
+
 ## Contribuer
 
 Une erreur, une donnée qui ne correspond pas à sa source ? [Ouvrez un ticket](https://github.com/leopard577/hemicycle/issues).
