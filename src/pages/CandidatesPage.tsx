@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ChevronDownIcon } from 'lucide-react'
+import { PageError, PageLoading } from '@/components/PageStatus'
 import { ExternalLink, Field, Fields, MissingData, Note } from '@/components/panel/parts'
 import { SiteFooter } from '@/components/SiteFooter'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
@@ -38,13 +39,8 @@ export function CandidatesPage() {
       .catch((e: Error) => setError(e.message))
   }, [])
 
-  if (error)
-    return (
-      <p className="flex-1 p-12 text-center text-muted-foreground">
-        Impossible de charger les données ({error}). Lancez <code>npm run data</code>.
-      </p>
-    )
-  if (!data) return <p className="flex-1 p-12 text-center text-muted-foreground">Chargement…</p>
+  if (error) return <PageError error={error} />
+  if (!data) return <PageLoading />
 
   const { election, candidates } = data
   const { funding, datasets } = election

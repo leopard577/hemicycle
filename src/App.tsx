@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet, ScrollRestoration } from 'react-router'
 import { Navbar } from '@/components/Navbar'
 import { type LayoutContext, useCurrentPage } from '@/lib/layout'
+import { SITE_NAME } from '@/lib/site'
 import { cn } from '@/lib/utils'
 
 /** Shared layout: the navbar, then the page of the current route */
@@ -10,7 +11,7 @@ export default function App() {
   const [panelOpen, setPanelOpen] = useState(false)
 
   useEffect(() => {
-    document.title = page ? `${page.label} · Hémicycle` : 'Hémicycle'
+    document.title = page ? `${page.label} · ${SITE_NAME}` : SITE_NAME
   }, [page])
 
   return (

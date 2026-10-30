@@ -1,10 +1,10 @@
-# Hémicycle
+# Nos élus coûtent
 
 **Ce que coûtent vos élus et votre Gouvernement, ce qu'ils cumulent, et ce que leurs déclarations ne disent pas.**
 
-👉 **[Site web](https://leopard577.github.io/hemicycle/)**
+👉 **[Site web](https://noseluscoutent.fr)**
 
-Hémicycle rassemble des données publiques dispersées sur une dizaine de sites officiels et les rend lisibles
+Nos élus coûtent rassemble des données publiques dispersées sur une dizaine de sites officiels et les rend lisibles
 par tous. Quatre pages :
 
 - **Députés** et **Sénateurs** : chaque élu sur son siège ; un clic ouvre sa fiche avec le coût de son siège,

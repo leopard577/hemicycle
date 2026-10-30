@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react'
 import { ExternalLink } from '@/components/panel/parts'
 import { SiteFooter } from '@/components/SiteFooter'
+import { REPOSITORY, SITE_NAME, X_ACCOUNT } from '@/lib/site'
 
-const REPOSITORY = 'https://github.com/leopard577/hemicycle'
-
-// Where to reach the project. Add an account here (e.g. X / Twitter) and it shows in the contact section.
+// Where to reach the project. Add an account here and it shows in the contact section.
 const CONTACTS: { label: string; href: string; text: string }[] = [
   { label: 'Signaler une erreur ou un bug', href: `${REPOSITORY}/issues`, text: 'ouvrir un ticket sur GitHub' },
+  { label: 'Sur X', href: `https://x.com/${X_ACCOUNT}`, text: `@${X_ACCOUNT}` },
   { label: 'Code source', href: REPOSITORY, text: 'github.com/leopard577/hemicycle' },
 ]
 
@@ -29,7 +29,7 @@ export function AboutPage() {
     <>
       <div>
         <div className="mx-auto w-full max-w-5xl px-6 py-3 sm:py-5">
-          <p className="text-xs font-medium tracking-widest text-primary uppercase">Hémicycle</p>
+          <p className="text-xs font-medium tracking-widest text-primary uppercase">{SITE_NAME}</p>
           <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">À propos</h1>
         </div>
       </div>
@@ -38,7 +38,7 @@ export function AboutPage() {
         <p className="text-lg text-balance">
           Ce que coûtent les élus et les membres du Gouvernement, ce qu'ils cumulent et ce qu'ils déclarent : ces
           informations sont publiques, mais dispersées sur une dizaine de sites, dans des fichiers que peu de gens
-          savent lire. Hémicycle les rassemble et les rend lisibles par tous.
+          savent lire. Ce site les rassemble et les rend lisibles par tous.
         </p>
 
         <Section title="Pourquoi ce site">

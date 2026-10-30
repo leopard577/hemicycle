@@ -3,6 +3,7 @@ import { SearchIcon } from 'lucide-react'
 import { Hemicycle } from '@/components/Hemicycle'
 import { Legend } from '@/components/Legend'
 import { MemberPanel } from '@/components/MemberPanel'
+import { PageError, PageLoading } from '@/components/PageStatus'
 import { ReadingDetail, ReadingPicker } from '@/components/Readings'
 import { SiteFooter } from '@/components/SiteFooter'
 import { Button } from '@/components/ui/button'
@@ -98,13 +99,8 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
     return () => onPanelChange(false)
   }, [selected, onPanelChange])
 
-  if (error)
-    return (
-      <p className="flex-1 p-12 text-center text-muted-foreground">
-        Impossible de charger les données ({error}). Lancez <code>npm run data</code>.
-      </p>
-    )
-  if (!data) return <p className="flex-1 p-12 text-center text-muted-foreground">Chargement…</p>
+  if (error) return <PageError error={error} />
+  if (!data) return <PageLoading />
 
   return (
     <>

@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { pathTo } from '@/lib/pages'
+import { X_ACCOUNT } from '@/lib/site'
 
 /**
  * Footer: the page's own sources, then the notice required by the HATVP legal notice (integrity, reserved
- * reproduction rights, no commercial use) and the link to the legal notice, present on every page.
+ * reproduction rights, no commercial use), the link to the legal notice and the project's X account, present on
+ * every page.
  */
 export function SiteFooter({ children }: { children?: ReactNode }) {
   return (
@@ -18,6 +20,15 @@ export function SiteFooter({ children }: { children?: ReactNode }) {
       <Link to={pathTo('about')} className="underline underline-offset-4 hover:text-foreground">
         À propos, mentions légales et contact
       </Link>
+      {' · '}
+      <a
+        href={`https://x.com/${X_ACCOUNT}`}
+        target="_blank"
+        rel="noreferrer"
+        className="underline underline-offset-4 hover:text-foreground"
+      >
+        Suivre sur X : @{X_ACCOUNT}
+      </a>
     </footer>
   )
 }

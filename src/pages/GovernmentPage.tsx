@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { CouncilTable } from '@/components/CouncilTable'
 import { CabinetsCard, ElyseeCard, MinistriesCard } from '@/components/GovernmentCosts'
 import { GovernmentPanel } from '@/components/GovernmentPanel'
+import { PageError, PageLoading } from '@/components/PageStatus'
 import { ExternalLink } from '@/components/panel/parts'
 import { ReadingDetail, ReadingPicker } from '@/components/Readings'
 import { SiteFooter } from '@/components/SiteFooter'
@@ -53,13 +54,8 @@ export function GovernmentPage() {
     [data],
   )
 
-  if (error)
-    return (
-      <p className="flex-1 p-12 text-center text-muted-foreground">
-        Impossible de charger les données ({error}). Lancez <code>npm run data</code>.
-      </p>
-    )
-  if (!data) return <p className="flex-1 p-12 text-center text-muted-foreground">Chargement…</p>
+  if (error) return <PageError error={error} />
+  if (!data) return <PageLoading />
 
   const { members } = data
   const ministers = members.filter((m) => m.rank !== 'president').length
