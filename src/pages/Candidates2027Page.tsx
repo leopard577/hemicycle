@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { HATVP_TIERS, type HatvpTier, tierOf } from '@/lib/candidates'
-import { formatDate } from '@/lib/format'
+import { CAPITAL_TIERS, capitalOf, capitalTierOf, HATVP_TIERS, tierOf } from '@/lib/candidates'
+import { formatDate, formatEuro } from '@/lib/format'
 import { useLayout } from '@/lib/layout'
 import { useSelectedId } from '@/lib/selection'
 import { cn } from '@/lib/utils'
@@ -20,7 +20,19 @@ import type { AnnouncedCandidate, Candidates2027Dataset } from '@/types'
 const MAX_SUGGESTIONS = 8
 const UNPLACED_COLOR = '#8D949A'
 
-type Reading = 'family' | 'hatvp'
+type Reading = 'family' | 'hatvp' | 'capital'
+
+interface TieredReading {
+  tiers: Record<string, { label: string; fill: string; dot: string }>
+  of: (c: AnnouncedCandidate) => string
+  ariaLabel: string
+}
+
+// Readings that colour each seat by tier rather than by political family
+const TIERED: Record<Exclude<Reading, 'family'>, TieredReading> = {
+  hatvp: { tiers: HATVP_TIERS, of: tierOf, ariaLabel: 'Filtrer selon les données HATVP' },
+  capital: { tiers: CAPITAL_TIERS, of: capitalTierOf, ariaLabel: 'Filtrer selon le capital déclaré' },
+}
 
 const normalize = (s: string) =>
   s
@@ -52,7 +64,7 @@ export function Candidates2027Page() {
   const [selectedId, setSelectedId] = useSelectedId()
   const [query, setQuery] = useState('')
   const [reading, setReading] = useState<Reading>('family')
-  // Family id or HATVP tier, depending on the reading
+  // Family id or tier, depending on the reading
   const [filter, setFilter] = useState<string | null>(null)
 
   useEffect(() => {
@@ -76,19 +88,20 @@ export function Candidates2027Page() {
     seated.forEach((c) => m.set(c.familyId!, (m.get(c.familyId!) ?? 0) + 1))
     return m
   }, [seated])
+  const tiered = reading === 'family' ? null : TIERED[reading]
   const tierCounts = useMemo(() => {
-    const m = new Map<HatvpTier, number>()
-    data?.candidates.forEach((c) => m.set(tierOf(c), (m.get(tierOf(c)) ?? 0) + 1))
+    const m = new Map<string, number>()
+    if (tiered) data?.candidates.forEach((c) => m.set(tiered.of(c), (m.get(tiered.of(c)) ?? 0) + 1))
     return m
-  }, [data])
+  }, [data, tiered])
 
   const q = normalize(query.trim())
   const isHighlighted = useCallback(
     (c: AnnouncedCandidate) => {
-      if (filter && (reading === 'family' ? c.familyId : tierOf(c)) !== filter) return false
+      if (filter && (tiered ? tiered.of(c) : c.familyId) !== filter) return false
       return !q || normalize(`${c.firstName} ${c.lastName} ${c.party}`).includes(q)
     },
-    [filter, reading, q],
+    [filter, tiered, q],
   )
   const matches = useMemo(
     () => (data && (q || filter) ? data.candidates.filter(isHighlighted).sort(byLastName) : []),
@@ -108,11 +121,11 @@ export function Candidates2027Page() {
 
   const { election } = data
   const total = data.candidates.length
-  const withFile = total - (tierCounts.get('none') ?? 0)
+  const withFile = data.candidates.filter((c) => c.hatvp).length
   const select = (c: AnnouncedCandidate) => setSelectedId(c.id)
   const marker = (c: AnnouncedCandidate) =>
-    reading === 'hatvp' ? (
-      <span className={cn('size-2.5 shrink-0 rounded-full', HATVP_TIERS[tierOf(c)].dot)} />
+    tiered ? (
+      <span className={cn('size-2.5 shrink-0 rounded-full', tiered.tiers[tiered.of(c)].dot)} />
     ) : (
       <span
         className="size-2.5 shrink-0 rounded-full"
@@ -188,6 +201,7 @@ export function Candidates2027Page() {
         >
           <ToggleGroupItem value="family">Familles politiques</ToggleGroupItem>
           <ToggleGroupItem value="hatvp">Données HATVP</ToggleGroupItem>
+          <ToggleGroupItem value="capital">Capital déclaré</ToggleGroupItem>
         </ToggleGroup>
 
         <div className="mx-auto w-full max-w-3xl">
@@ -197,8 +211,17 @@ export function Candidates2027Page() {
             selectedId={selectedId}
             isHighlighted={isHighlighted}
             onSelect={select}
-            tint={reading === 'hatvp' ? (c) => HATVP_TIERS[tierOf(c)].fill : null}
-            detail={reading === 'hatvp' ? (c) => HATVP_TIERS[tierOf(c)].label : null}
+            tint={tiered ? (c) => tiered.tiers[tiered.of(c)].fill : null}
+            detail={
+              reading === 'capital'
+                ? (c) => {
+                    const v = capitalOf(c)
+                    return v ? formatEuro(v, { compact: true }) : CAPITAL_TIERS[capitalTierOf(c)].label
+                  }
+                : tiered
+                  ? (c) => tiered.tiers[tiered.of(c)].label
+                  : null
+            }
             place={(c) => c.party}
             label="Candidatures annoncées, de la gauche à la droite"
             countLabel="placées de la gauche à la droite"
@@ -211,7 +234,7 @@ export function Candidates2027Page() {
           </div>
         </div>
 
-        {reading === 'family' ? (
+        {!tiered ? (
           <Legend groups={data.families} counts={familyCounts} activeId={filter} onChange={setFilter} />
         ) : (
           <ToggleGroup
@@ -220,17 +243,24 @@ export function Candidates2027Page() {
             spacing={2}
             value={filter ?? ''}
             onValueChange={(v) => setFilter(v || null)}
-            aria-label="Filtrer selon les données HATVP"
+            aria-label={tiered.ariaLabel}
             className="mx-auto mt-8 mb-4 w-full flex-wrap justify-center"
           >
-            {(Object.keys(HATVP_TIERS) as HatvpTier[]).map((t) => (
+            {Object.entries(tiered.tiers).map(([t, tier]) => (
               <ToggleGroupItem key={t} value={t} className="rounded-full data-[state=on]:border-foreground">
-                <span className={cn('size-2.5 shrink-0 rounded-full', HATVP_TIERS[t].dot)} />
-                <span className="font-semibold">{HATVP_TIERS[t].label}</span>
+                <span className={cn('size-2.5 shrink-0 rounded-full', tier.dot)} />
+                <span className="font-semibold">{tier.label}</span>
                 <span className="text-muted-foreground tabular-nums">{tierCounts.get(t) ?? 0}</span>
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
+        )}
+        {reading === 'capital' && (
+          <p className="mx-auto mb-2 max-w-xl text-center text-xs text-balance text-muted-foreground">
+            Somme calculée par le site des valeurs déclarées pour les parts de sociétés, dans la déclaration d'intérêts
+            la plus récente publiée par la HATVP. Les montants non publiés n'y sont pas comptés ; l'immobilier et
+            l'épargne relèvent de la déclaration de patrimoine, que le site ne reprend pas.
+          </p>
         )}
         <p className="mx-auto max-w-xl text-center text-xs text-balance text-muted-foreground">
           Placement indicatif, établi par le site d'après le parti ou le mouvement de chaque candidature, sur le modèle
