@@ -65,9 +65,11 @@ Still to do:
 - **Official campaign** (posters, election addresses, ballots) paid directly by the State: no per-candidate
   source found yet.
 - **Links to the other pages** when a candidate holds an office today (deputy, minister…).
-- **Legislative elections** and **2027**, as below. The page already says that 2027 will get its own page once the
-  official data is public (sponsorships and list from the Conseil constitutionnel, then results and campaign
-  accounts); until then it names no 2027 candidate.
+- **Legislative elections**, as below.
+- **2027**: started on 30 October 2026 with the announced candidacies (`#/candidats-2027`, hand-maintained, each
+  sourced) and their HATVP data. The owner decided to name announced candidates before the official list, labelled
+  as announcements. To do: switch to the official list, sponsorships, results and campaign accounts once
+  published.
 
 Initial plan:
 
@@ -76,8 +78,8 @@ Initial plan:
   candidate lists on data.gouv.fr.
 - **Cost to the State**: flat-rate refund of campaign expenses (CNCCFP campaign accounts on data.gouv.fr,
   published months after the vote), official campaign material, public funding of parties (yearly decree).
-- Only official, dated statuses are shown: before the official list, calling someone a "candidate" is a
-  claim, not a fact.
+- Only dated, sourced statuses are shown: before the official list, a candidacy is shown as announced, with its
+  source, never as official.
 - Start with 2022, for which every source exists, then move to 2027 once sponsorships are published.
 
 ## Shared key between pages

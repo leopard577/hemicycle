@@ -143,7 +143,8 @@ function Empty({ items }: { items: unknown[] | null }) {
   )
 }
 
-function Holdings({ items }: { items: Interests['holdings'] }) {
+/** Company holdings table, with the total of the declared values */
+export function Holdings({ items }: { items: Interests['holdings'] }) {
   if (!items?.length) return <Empty items={items} />
 
   const total = items.reduce((sum, h) => sum + (h.value ?? 0), 0)

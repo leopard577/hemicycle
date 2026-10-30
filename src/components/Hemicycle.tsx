@@ -1,9 +1,17 @@
 import { type PointerEvent, type ReactNode, useMemo, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { hemicycleLayout } from '@/lib/hemicycle'
-import type { Group, Parliamentarian } from '@/types'
+import type { Group } from '@/types'
 
-interface Props<T extends Parliamentarian> {
+/** What a seat needs: parliamentarians, or announced candidates with their political family as group */
+export interface HemicycleMember {
+  id: string
+  firstName: string
+  lastName: string
+  groupId: string | null
+}
+
+interface Props<T extends HemicycleMember> {
   /** Seat order: `members[i]` sits on seat `i` */
   members: T[]
   groups: Map<string, Group>
@@ -20,11 +28,18 @@ interface Props<T extends Parliamentarian> {
   label: string
   /** Word under the seat count in the centre ("députés") */
   countLabel: string
+  /** Rows of seats: 12 suit a chamber, fewer a small field */
+  rows?: number
+  /**
+   * Name written along each seat's radius, towards the centre: for a small field on a single row. `compact` is shown
+   * on a phone, `full` from md up
+   */
+  seatLabel?: { compact: (m: T) => string; full: (m: T) => string }
 }
 
 const FALLBACK_COLOR = '#8D949A'
 
-export function Hemicycle<T extends Parliamentarian>({
+export function Hemicycle<T extends HemicycleMember>({
   members,
   groups,
   selectedId,
@@ -35,8 +50,10 @@ export function Hemicycle<T extends Parliamentarian>({
   place,
   label,
   countLabel,
+  rows,
+  seatLabel,
 }: Props<T>) {
-  const layout = useMemo(() => hemicycleLayout(members.length), [members.length])
+  const layout = useMemo(() => hemicycleLayout(members.length, rows), [members.length, rows])
   const [hovered, setHovered] = useState<T | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
 
@@ -112,6 +129,43 @@ export function Hemicycle<T extends Parliamentarian>({
               />
             )
           })}
+          {seatLabel && (
+            <g aria-hidden className="pointer-events-none">
+              {members.map((d, i) => {
+                const seat = layout.seats[i]
+                // The arc's centre is at (width / 2, width / 2): see hemicycleLayout
+                const c = layout.width / 2
+                const [dx, dy] = [c - seat.x, c - seat.y]
+                const length = Math.hypot(dx, dy) || 1
+                const gap = seat.r * 1.6
+                // Text starts next to the seat and runs inwards; on the right half it is turned around to stay
+                // readable, so it ends next to the seat instead
+                const left = seat.x < c
+                const angle = (Math.atan2(left ? dy : -dy, left ? dx : -dx) * 180) / Math.PI
+                const x = seat.x + (dx / length) * gap
+                const y = seat.y + (dy / length) * gap
+                const emphasis = d.id === selectedId || d.id === hovered?.id
+                return (
+                  <text
+                    key={d.id}
+                    x={x}
+                    y={y}
+                    transform={`rotate(${angle} ${x} ${y})`}
+                    textAnchor={left ? 'start' : 'end'}
+                    dominantBaseline="central"
+                    className={cn(
+                      'fill-muted-foreground text-[6.4px] transition-opacity duration-200 md:text-[3.6px]',
+                      emphasis && 'fill-foreground font-semibold',
+                      !isHighlighted(d) && 'opacity-25',
+                    )}
+                  >
+                    <tspan className="md:hidden">{seatLabel.compact(d)}</tspan>
+                    <tspan className="max-md:hidden">{seatLabel.full(d)}</tspan>
+                  </text>
+                )
+              })}
+            </g>
+          )}
         </svg>
 
         <div

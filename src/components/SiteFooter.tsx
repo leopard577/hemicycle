@@ -10,7 +10,7 @@ import { X_ACCOUNT } from '@/lib/site'
  */
 export function SiteFooter({ children }: { children?: ReactNode }) {
   return (
-    <footer className="border-t px-6 py-4 text-center text-xs text-muted-foreground">
+    <footer className="border-t px-6 py-4 text-center text-xs text-muted-foreground mt-8">
       {children}
       {children && <br />}
       Informations des déclarations reproduites sans modification depuis l'open data de la HATVP (Licence Ouverte

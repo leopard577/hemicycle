@@ -4,6 +4,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildCandidates, loadCandidates } from './candidates.mjs'
+import { buildCandidates2027 } from './candidates-2027.mjs'
 import { buildDeputies, loadAssemblyActors, loadDeputies } from './deputies.mjs'
 import { buildGovernment } from './government.mjs'
 import { loadMinistryBudgets } from './government-costs.mjs'
@@ -36,3 +37,4 @@ write('deputies', buildDeputies(assembly, shared))
 write('senators', buildSenators(senate, shared))
 write('government', buildGovernment({ ...shared, hatvpRows: hatvpFor.rows, senate, assemblyActors, ministries }))
 write('candidates', buildCandidates(elections))
+write('candidates-2027', buildCandidates2027(shared))

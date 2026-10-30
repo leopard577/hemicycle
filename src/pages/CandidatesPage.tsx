@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { ChevronDownIcon } from 'lucide-react'
+import { Link } from 'react-router'
 import { PageError, PageLoading } from '@/components/PageStatus'
 import { ExternalLink, Field, Fields, MissingData, Note } from '@/components/panel/parts'
 import { SiteFooter } from '@/components/SiteFooter'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { formatDate, formatEuro } from '@/lib/format'
+import { pathTo } from '@/lib/pages'
 import { cn } from '@/lib/utils'
 import type { Candidate, CandidatesDataset, SponsorOffice } from '@/types'
 
@@ -53,18 +55,18 @@ export function CandidatesPage() {
     <>
       <div>
         <div className="mx-auto w-full max-w-5xl px-6 py-3 sm:py-5">
-          <p className="text-xs font-medium tracking-widest text-primary uppercase">Candidats</p>
+          <p className="text-xs font-medium tracking-widest text-primary uppercase">Candidats (2022)</p>
           <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">{election.label}</h1>
         </div>
       </div>
 
       <main className="mx-auto w-full max-w-5xl flex-1 space-y-12 px-6 py-4">
-        {/* Before the official list, calling someone a candidate is a claim, not a fact: no 2027 name here */}
         <MissingData title="Et l'élection présidentielle de 2027 ?">
-          Une page lui sera consacrée dès que les données officielles seront publiques : les parrainages et la liste
-          des candidats par le Conseil constitutionnel, les résultats par le ministère de l'Intérieur, puis les comptes
-          de campagne par la CNCCFP, plusieurs mois après le scrutin. D'ici là, personne n'est présenté ici comme
-          candidat : seule la liste officielle en fait foi.
+          Les candidatures annoncées, et ce que la HATVP publie déjà sur chacune, sont sur la page{' '}
+          <Link to={pathTo('candidates2027')} className="text-primary underline underline-offset-4">
+            Candidats (2027)
+          </Link>
+          .
         </MissingData>
 
         <section className="space-y-6">

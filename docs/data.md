@@ -14,7 +14,8 @@ scripts/
   deputies.mjs     "Députés" page: loadDeputies() downloads the AN archive, buildDeputies() builds the dataset
   senators.mjs     "Sénateurs" page: loadSenators() downloads the Sénat sources, buildSenators() builds the dataset
   government.mjs   "Gouvernement" page: hand-maintained list from the Journal officiel decrees, buildGovernment()
-  candidates.mjs   "Candidats" page: loadCandidates() downloads sponsorships and results, buildCandidates() adds the CNCCFP accounts
+  candidates.mjs   "Candidats (2022)" page: loadCandidates() downloads sponsorships and results, buildCandidates() adds the CNCCFP accounts
+  candidates-2027.mjs  "Candidats (2027)" page: hand-maintained announced candidacies, joined to their HATVP file
   lib/
     util.mjs       asArray, text, download, parseCsv, parseQuotedCsv, frToIso, name normalisation and matching
     hatvp.mjs      loadHatvp(): downloads liste.csv and the XML once, returns (officials, mandate) => Map
@@ -183,6 +184,23 @@ page uses neither the HATVP nor the RNE.
 - **`election.datasets`** holds the data.gouv.fr page of each downloaded file; the page links to them.
 - **Sponsors are never named**, and neither are the 52 people who received sponsorships without being on the
   official list: only counts are stored.
+
+## Candidates 2027 (`candidates-2027.mjs`)
+
+Candidacies announced before the official list, which the Conseil constitutionnel publishes only after the
+sponsorship deadline. No official source exists until then, so `DECLARED` is hand-maintained: it was compiled from
+the data.gouv.fr dataset "Candidatures à l'élection présidentielle 2027 — statuts sourcés" (2027etmoi, status
+`declare` only) and keeps each entry's own dated source. The dataset is not downloaded, so that no name reaches the
+page without review; `CHECKED_AT` is the date of the last check.
+
+- **HATVP**: `hatvpFor.byFile(people)` in `lib/hatvp.mjs`. Each candidate's file (`url_dossier`) is set by hand;
+  the build fails if it disappears from `liste.csv`, and warns when a candidate without one now has a namesake file.
+  It returns every office of the file, the filings of declarations of interests (never those of asset
+  declarations) and the content of the most recent declaration of interests in the XML (`DIA` or `DI`, whatever
+  the office), matched on names. Several birth dates among the matches fail the build: set `birthDate`.
+- In October 2026, 13 of 36 have a file and 9 a published declaration of interests.
+- Replace this page's source with the official list once it is published (sponsorships, then results and CNCCFP
+  accounts, as for 2022).
 
 ## Matching HATVP records to deputies
 

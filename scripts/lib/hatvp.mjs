@@ -31,6 +31,7 @@ const DOCUMENT_LABELS = {
   dspm: 'Déclaration de situation patrimoniale (modification)',
   dspfm: 'Déclaration de situation patrimoniale de fin de mandat',
 }
+const INTEREST_DOCUMENTS = ['dia', 'diam', 'di', 'dim']
 
 // Redactions, full ("[Données non publiées]") or partial ("SCI [Données non publiées]"), are kept as is: the
 // HATVP legal notice requires reproduced information to stay intact. null = field left empty
@@ -212,6 +213,68 @@ export async function loadHatvp() {
         ]
       }),
     )
+  }
+  /**
+   * People who hold no office the page is about (announced candidates), each with the HATVP file checked by hand
+   * (`hatvp`: `url_dossier` without "/pages_nominatives/"). Returns Map(id → data) for those who have one: every
+   * office and filing of the file, and the content of their most recent declaration of interests, whatever the
+   * office. Declarations are matched on names; an optional `birthDate` settles homonyms.
+   */
+  hatvpFor.byFile = (people) => {
+    const byFile = new Map()
+    for (const r of rows) if (r.url_dossier) byFile.set(r.url_dossier, [...(byFile.get(r.url_dossier) ?? []), r])
+    const filedNames = new Set(rows.map((r) => `${normalizeName(r.nom)}|${normalizeName(r.prenom)}`))
+
+    const result = new Map()
+    for (const person of people) {
+      if (!person.hatvp) {
+        // A new file may have appeared since the list was checked: flag it rather than guess it is the same person
+        if (filedNames.has(`${normalizeName(person.lastName)}|${normalizeName(person.firstName)}`))
+          console.warn(`  HATVP: a file named ${person.firstName} ${person.lastName} exists, check it and set \`hatvp\``)
+        continue
+      }
+      const own = byFile.get(`/pages_nominatives/${person.hatvp}`)
+      if (!own) throw new Error(`HATVP: no file ${person.hatvp} for ${person.firstName} ${person.lastName}`)
+
+      // Declarations of interests only (DIA for parliamentarians, DI for local and European offices): asset
+      // declarations are never read
+      const lastNameTokens = nameTokens(person.lastName)
+      const firstNameTokens = nameTokens(person.firstName)
+      const matches = declarations.filter((d) => {
+        const g = d.general ?? {}
+        if (!['DIA', 'DI'].includes(g.typeDeclaration?.id)) return false
+        const tokens = nameTokens(g.declarant?.nom, g.declarant?.prenom)
+        if (!intersects(lastNameTokens, tokens) || !intersects(firstNameTokens, tokens)) return false
+        return !person.birthDate || frToIso(g.declarant?.dateNaissance) === person.birthDate
+      })
+      const births = new Set(matches.map((d) => frToIso(d.general.declarant?.dateNaissance)))
+      if (births.size > 1)
+        throw new Error(`HATVP: homonyms for ${person.firstName} ${person.lastName} (${[...births]}), set \`birthDate\``)
+      const latest = matches.sort((a, b) => (frToIso(b.dateDepot) ?? '').localeCompare(frToIso(a.dateDepot) ?? ''))[0]
+      const office = latest?.general.qualiteMandat
+
+      result.set(person.id, {
+        page: HATVP_BASE + own[0].url_dossier,
+        offices: otherMandates(own),
+        // Filings of declarations of interests: those of asset declarations say nothing about a candidate
+        declarations: own
+          .filter((r) => INTEREST_DOCUMENTS.includes(r.type_document))
+          .map((r) => ({
+            type: r.type_document,
+            label: DOCUMENT_LABELS[r.type_document] ?? r.type_document,
+            institution: MANDATE_TYPES[r.type_mandat] ?? r.type_mandat,
+            filedAt: r.date_depot || null,
+            publishedAt: r.date_publication || null,
+            status: r.statut_publication || null,
+          }))
+          .sort((a, b) => (b.filedAt ?? '').localeCompare(a.filedAt ?? '')),
+        interests: latest ? extractInterests(latest) : null,
+        interestsFor: latest
+          ? (clean(office?.labelTypeMandat) ?? MANDATE_TYPES[office?.codTypeMandatFichier] ?? clean(office?.codTypeMandatFichier))
+          : null,
+      })
+    }
+    return result
   }
   // Raw liste.csv rows, for checks that need the whole list (members of the Government)
   hatvpFor.rows = rows

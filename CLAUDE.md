@@ -2,7 +2,7 @@
 
 Cost and transparency of French public officials, from official open data. A static React app with one page
 per institution (deputies, senators, government, candidates), routed by URL hash, each reading its own
-generated JSON file. All four pages are built; the candidates page covers the 2022 presidential election. Read `README.md` for the overview,
+generated JSON file. All pages are built; there are two candidates pages, the 2022 presidential election (`#/candidats`) and the candidacies announced for 2027 (`#/candidats-2027`). Read `README.md` for the overview,
 `docs/data.md` for the data pipeline, `docs/frontend.md` for the UI and `docs/roadmap.md` for the plan and its status.
 
 ## Commands
@@ -92,6 +92,16 @@ opening a deputy's and a senator's panel.
   `government.mjs`, or the build fails. The cabinet annex is a 1 July snapshot, so it lags any later reshuffle.
   Ministry budgets are read from the PLF bill itself (`PLF_2027_BILL`, table 6); after a reshuffle or a new PLF,
   update `MINISTRY_HEADS` and the bill URL.
+- **The 2027 candidacies are hand-maintained** in `DECLARED` (`scripts/candidates-2027.mjs`) until the Conseil
+  constitutionnel publishes the official list. Decided by the project owner on 30 October 2026: the page names
+  announced candidates, each with the dated article or statement reporting it, and calls them "candidatures
+  annoncées", never official candidates. Add someone only with such a source. The HATVP file (`hatvp`) is set by
+  hand after checking it is the same person; the build warns when an unmapped name gets a file, and fails on
+  homonyms in the XML (set `birthDate`). Without a file the page says there is no data.
+  Each candidate also has a `family` from `FAMILIES` (left to right, the seat order of the page's hemicycle),
+  placed by hand from their party, decided by the project owner on 30 October 2026. The page labels it a placement by
+  the site. A candidate without a party, or whose movement no family covers, gets `null` and is listed apart: never
+  guess a position.
 - **Campaign accounts are hand-copied** from the CNCCFP decisions in `ACCOUNTS` (`scripts/candidates.mjs`).
   The build checks each refund against the legal cap (`presidentialFunding2022` in `pay-scales.mjs`) and the
   decision's own arithmetic (entitlement − irregular − penalty = refund), and fails on a mismatch. Never name

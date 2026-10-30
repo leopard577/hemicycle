@@ -415,3 +415,53 @@ export interface CandidatesDataset {
   otherSponsored: { people: number; sponsorships: number }
   sponsorshipsTotal: number
 }
+
+/** Filing of a declaration of interests, with the office it was filed for */
+export interface CandidateFiling extends HatvpDeclaration {
+  /** "Assemblée nationale", "Commune"… */
+  institution: string
+}
+
+/** What the HATVP publishes about an announced candidate, from the file of an office they hold or held */
+export interface CandidateHatvp {
+  page: string
+  /** Every office of the HATVP file, with the date of its most recent filing */
+  offices: OtherHatvpMandate[]
+  /** Declarations of interests only, most recent first */
+  declarations: CandidateFiling[]
+  /** Most recent published declaration of interests, whatever the office; null when none is in the open data */
+  interests: Interests | null
+  /** Office that declaration was filed for, as the HATVP labels it ("Député", "Elu régional"…) */
+  interestsFor: string | null
+}
+
+/** Publicly announced candidacy for 2027: a claim reported by its source, not an official status */
+export interface AnnouncedCandidate {
+  id: string
+  firstName: string
+  lastName: string
+  /** Party or movement, as reported */
+  party: string
+  /** Political family in `Candidates2027Dataset.families`, placed by the site from the party; null = not placed */
+  familyId: string | null
+  /** Article or statement reporting the candidacy; the announcement may be earlier than its date */
+  source: { publisher: string; date: string; url: string }
+  /** null: no HATVP file, so no data */
+  hatvp: CandidateHatvp | null
+}
+
+export interface Candidates2027Dataset {
+  generatedAt: string
+  election: {
+    id: string
+    label: string
+    /** Date the list of announced candidacies was last checked by hand */
+    checkedAt: string
+    /** Dataset the list was compiled from */
+    compiledFrom: { label: string; url: string }
+  }
+  /** From left to right */
+  families: Group[]
+  /** Seat order: by family from left to right, unplaced candidates last */
+  candidates: AnnouncedCandidate[]
+}

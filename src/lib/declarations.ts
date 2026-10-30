@@ -29,9 +29,12 @@ export const KIND: Record<DeclarationType, string> = {
 
 export type Status = 'published' | 'pending' | 'missing'
 
-/** Turns the raw HATVP status into a readable label; where a delivered asset declaration can be read depends on the office */
-export function declarationStatus(d: HatvpDeclaration, office: Office): { label: string; status: Status } {
-  const inPrefecture = office.assetsInPrefecture && ASSETS.includes(d.type)
+/**
+ * Turns the raw HATVP status into a readable label; where a delivered asset declaration can be read depends on the
+ * office, not needed for declarations of interests
+ */
+export function declarationStatus(d: HatvpDeclaration, office?: Office): { label: string; status: Status } {
+  const inPrefecture = !!office?.assetsInPrefecture && ASSETS.includes(d.type)
   switch (d.status) {
     case 'Livrée':
       return { label: inPrefecture ? 'Consultable en préfecture' : 'Publiée', status: 'published' }

@@ -13,12 +13,12 @@ export interface Layout {
 /**
  * Computes `count` seats spread over concentric arcs on a half circle.
  * Seats are returned sorted from left to right (by angle), so that deputies
- * sorted by group form contiguous wedges.
+ * sorted by group form contiguous wedges. With `rows = 1`, a single arc: for a small field, such as candidates.
  */
 export function hemicycleLayout(count: number, rows = 12, outerRadius = 100, innerRatio = 0.38): Layout {
   const innerRadius = outerRadius * innerRatio
-  const rowGap = (outerRadius - innerRadius) / (rows - 1)
-  const radii = Array.from({ length: rows }, (_, i) => innerRadius + i * rowGap)
+  const rowGap = rows > 1 ? (outerRadius - innerRadius) / (rows - 1) : 0
+  const radii = rows > 1 ? Array.from({ length: rows }, (_, i) => innerRadius + i * rowGap) : [outerRadius]
   const totalRadius = radii.reduce((a, b) => a + b, 0)
 
   // Seats per row, proportional to the arc length
@@ -26,7 +26,8 @@ export function hemicycleLayout(count: number, rows = 12, outerRadius = 100, inn
   let missing = count - perRow.reduce((a, b) => a + b, 0)
   for (let i = rows - 1; missing > 0; i = (i - 1 + rows) % rows, missing--) perRow[i]++
 
-  const seatRadius = rowGap * 0.4
+  // One row: as wide as the gap between neighbours allows, capped so that a handful of seats stay seats
+  const seatRadius = rows > 1 ? rowGap * 0.4 : Math.min((Math.PI * outerRadius * 0.42) / Math.max(count - 1, 1), 8)
   const raw: { angle: number; row: number; seat: Seat }[] = []
   radii.forEach((radius, row) => {
     const n = perRow[row]

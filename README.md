@@ -5,12 +5,14 @@
 👉 **[Site web](https://noseluscoutent.fr)**
 
 Nos élus coûtent rassemble des données publiques dispersées sur une dizaine de sites officiels et les rend lisibles
-par tous. Quatre pages :
+par tous. Cinq pages :
 
 - **Députés** et **Sénateurs** : chaque élu sur son siège ; un clic ouvre sa fiche avec le coût de son siège,
   ses autres revenus, ses mandats cumulés et ses déclarations à la HATVP ;
 - **Gouvernement** : rémunération du Président et des ministres, cabinets, budget de l'Élysée et des ministères ;
-- **Candidats** : présidentielle 2022, parrainages, comptes de campagne et remboursements de l'État.
+- **Candidats (2027)** : candidatures annoncées à la présidentielle, chacune sourcée, avec ce que la HATVP publie
+  déjà sur la personne (mandats, déclaration d'intérêts) ;
+- **Candidats (2022)** : présidentielle 2022, parrainages, comptes de campagne et remboursements de l'État.
 
 La page **À propos** donne les mentions légales, la politique de confidentialité et le contact.
 
