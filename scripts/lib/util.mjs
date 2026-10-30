@@ -6,9 +6,21 @@ export const asArray = (v) => (v == null || v === '' ? [] : Array.isArray(v) ? v
 /** Text value, or null for the AN's empty objects (`{ "@xsi:nil": "true" }`) */
 export const text = (v) => (v == null || typeof v === 'object' ? null : String(v))
 
-/** Downloads a URL and fails on any error status: an unavailable source must break the build */
-export async function download(url) {
-  const res = await fetch(url)
+/**
+ * A source that cannot be reached right now (network error, HTTP 5xx or 429): `build-data.mjs` then keeps the
+ * pages that need it as last published. Any other failure (404, unexpected content) still breaks the build.
+ */
+export class SourceUnavailable extends Error {}
+
+/** Downloads a URL and fails on any error status */
+export async function download(url, init) {
+  let res
+  try {
+    res = await fetch(url, init)
+  } catch (e) {
+    throw new SourceUnavailable(`${e.cause?.code ?? e.message} on ${url}`, { cause: e })
+  }
+  if (res.status >= 500 || res.status === 429) throw new SourceUnavailable(`HTTP ${res.status} on ${url}`)
   if (!res.ok) throw new Error(`HTTP ${res.status} on ${url}`)
   return res
 }
@@ -22,8 +34,7 @@ export async function downloadResumable(url, attempts = 6) {
   let received = 0
   let total = null
   for (let attempt = 1; attempt <= attempts; attempt++) {
-    const res = await fetch(url, received ? { headers: { Range: `bytes=${received}-` } } : {})
-    if (!res.ok) throw new Error(`HTTP ${res.status} on ${url}`)
+    const res = await download(url, received ? { headers: { Range: `bytes=${received}-` } } : {})
     if (received && res.status !== 206) throw new Error(`No resume support on ${url}`)
     total ??= Number(res.headers.get('content-length')) || null
     try {
@@ -33,10 +44,10 @@ export async function downloadResumable(url, attempts = 6) {
       }
       if (total === null || received >= total) return Buffer.concat(chunks)
     } catch (e) {
-      if (attempt === attempts) throw e
+      if (attempt === attempts) throw new SourceUnavailable(`${e.message} on ${url}`, { cause: e })
     }
   }
-  throw new Error(`Incomplete download (${received} of ${total} bytes) on ${url}`)
+  throw new SourceUnavailable(`Incomplete download (${received} of ${total} bytes) on ${url}`)
 }
 
 /** Semicolon-separated CSV, without quotes */

@@ -38,7 +38,8 @@ opening a deputy's and a senator's panel.
   the component's variant selector when needed (e.g. `data-[side=right]:sm:max-w-[30rem]`).
 - **`public/data/*.json` is generated and git-ignored.** Never commit it: change `scripts/`, then
   rerun `npm run data`. The GitHub Pages workflow (`.github/workflows/deploy.yml`) regenerates it on every
-  deploy, plus a weekly scheduled run.
+  deploy, plus a weekly scheduled run. When a source is unreachable, a page keeps its last published file
+  (`PAGES` in `build-data.mjs` lists each page's sources: update it when a page uses a new one).
 - **Keep paths relative.** `vite.config.ts` sets `base: './'` so the site works under
   `/<repo>/` on GitHub Pages. Load static files through `import.meta.env.BASE_URL`, never with a leading `/`.
 - **Route with react-router's hash router** (`createHashRouter` in `src/router.tsx`, `#/senateurs`). GitHub
