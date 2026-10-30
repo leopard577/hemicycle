@@ -92,6 +92,11 @@ export function AboutPage() {
               GitHub, Inc. (GitHub Pages), 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis ·{' '}
               <ExternalLink href="https://github.com">github.com</ExternalLink>
             </Term>
+            <Term label="Nom de domaine">
+              noseluscoutent.fr, enregistré auprès de Hostinger International Ltd., 61 Lordou Vironos Street, 6023
+              Larnaca, Chypre, qui en gère aussi les serveurs DNS ·{' '}
+              <ExternalLink href="https://www.hostinger.fr">hostinger.fr</ExternalLink>
+            </Term>
             <Term label="Données">
               Réutilisées sous{' '}
               <ExternalLink href="https://www.etalab.gouv.fr/licence-ouverte-open-licence/">
