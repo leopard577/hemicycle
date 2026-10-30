@@ -14,6 +14,7 @@ import { useLayout } from '@/lib/layout'
 import { monthlyCost, summary } from '@/lib/money'
 import type { Office } from '@/lib/offices'
 import { type Reading, READINGS, tierOf } from '@/lib/readings'
+import { useSelectedId } from '@/lib/selection'
 import type { ChamberDataset, Parliamentarian } from '@/types'
 
 const MAX_SUGGESTIONS = 8
@@ -47,7 +48,7 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
   const { onPanelChange } = useLayout()
   const [data, setData] = useState<ChamberDataset<T> | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useSelectedId()
   const [groupFilter, setGroupFilter] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [reading, setReading] = useState<Reading>('group')

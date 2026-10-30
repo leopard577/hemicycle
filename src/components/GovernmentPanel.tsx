@@ -1,9 +1,7 @@
 import { useState } from 'react'
-import { XIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { age, formatDate, formatEuro } from '@/lib/format'
 import { presidentialTerm, rankLabel } from '@/lib/government'
@@ -16,7 +14,7 @@ import { LiveCounter } from './panel/CostSummary'
 import { DeclarationsTab } from './panel/DeclarationsTab'
 import { CapitalTab } from './panel/CapitalTab'
 import { OverlapsNotes, OverlapsTab } from './panel/OverlapsTab'
-import { ExternalLink, Field, Fields, Note, NoteGroup, NotesAndSources, Section } from './panel/parts'
+import { ExternalLink, Field, Fields, Note, NoteGroup, NotesAndSources, PanelActions, Section } from './panel/parts'
 
 const TAB_TRIGGER = 'max-sm:px-1 max-sm:text-[0.8125rem]'
 
@@ -62,7 +60,7 @@ function Details({
 
   return (
     <>
-      <SheetHeader className="relative shrink-0 flex-row items-center gap-3 border-b py-4 pr-14 pl-6 sm:gap-4">
+      <SheetHeader className="relative shrink-0 flex-row items-center gap-3 border-b py-4 pr-24 pl-6 sm:gap-4">
         <Avatar className="size-14 sm:size-16">
           <AvatarImage src={member.photo} alt="" className="object-cover" />
           <AvatarFallback className="font-heading text-xl font-bold">
@@ -80,11 +78,7 @@ function Details({
             {member.role}
           </SheetDescription>
         </div>
-        <SheetClose asChild>
-          <Button variant="ghost" size="icon" className="absolute top-2 right-2" aria-label="Fermer la fiche">
-            <XIcon />
-          </Button>
-        </SheetClose>
+        <PanelActions name={`${member.firstName} ${member.lastName}`} />
       </SheetHeader>
 
       <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth [scrollbar-color:var(--color-border)_transparent] [scrollbar-width:thin] hover:[scrollbar-color:var(--color-muted-foreground)_transparent] motion-reduce:scroll-auto">

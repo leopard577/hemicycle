@@ -14,6 +14,7 @@ import { useLayout } from '@/lib/layout'
 import { summary } from '@/lib/money'
 import { GOVERNMENT_MEMBER, PRESIDENT } from '@/lib/offices'
 import { type Reading, READINGS, tierOf } from '@/lib/readings'
+import { useSelectedId } from '@/lib/selection'
 import { cn } from '@/lib/utils'
 import type { GovernmentDataset, GovernmentMember } from '@/types'
 
@@ -22,7 +23,7 @@ export function GovernmentPage() {
   const { onPanelChange } = useLayout()
   const [data, setData] = useState<GovernmentDataset | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useSelectedId()
   const [reading, setReading] = useState<Reading>('group')
 
   useEffect(() => {

@@ -1,14 +1,12 @@
-import { XIcon } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { declarationStatus } from '@/lib/declarations'
 import { formatDate, formatEuro } from '@/lib/format'
 import type { AnnouncedCandidate, CandidateHatvp } from '@/types'
 import { DeclaredActivities, Holdings } from './panel/CapitalTab'
-import { ExternalLink, KeyFigure, MissingData, Note, NoteGroup, NotesAndSources, Section } from './panel/parts'
+import { ExternalLink, KeyFigure, MissingData, Note, NoteGroup, NotesAndSources, PanelActions, Section } from './panel/parts'
 
 const TAB_TRIGGER = 'max-sm:px-1 max-sm:text-[0.8125rem]'
 
@@ -45,7 +43,7 @@ export function CandidateAvatar({ candidate, className }: { candidate: Announced
 function Details({ candidate: c }: { candidate: AnnouncedCandidate }) {
   return (
     <>
-      <SheetHeader className="relative shrink-0 flex-row items-center gap-3 border-b py-4 pr-14 pl-6 sm:gap-4">
+      <SheetHeader className="relative shrink-0 flex-row items-center gap-3 border-b py-4 pr-24 pl-6 sm:gap-4">
         <CandidateAvatar candidate={c} className="size-14 text-xl sm:size-16" />
         <div className="min-w-0 space-y-1">
           <p className="text-xs tracking-wider text-muted-foreground uppercase">Candidature annoncée · 2027</p>
@@ -54,11 +52,7 @@ function Details({ candidate: c }: { candidate: AnnouncedCandidate }) {
           </SheetTitle>
           <SheetDescription className="text-sm">{c.party}</SheetDescription>
         </div>
-        <SheetClose asChild>
-          <Button variant="ghost" size="icon" className="absolute top-2 right-2" aria-label="Fermer la fiche">
-            <XIcon />
-          </Button>
-        </SheetClose>
+        <PanelActions name={`${c.firstName} ${c.lastName}`} />
       </SheetHeader>
 
       <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth [scrollbar-color:var(--color-border)_transparent] [scrollbar-width:thin] hover:[scrollbar-color:var(--color-muted-foreground)_transparent] motion-reduce:scroll-auto">

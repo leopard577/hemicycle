@@ -1,8 +1,47 @@
-import type { ReactNode } from 'react'
-import { ChevronDownIcon, CircleAlertIcon, InfoIcon } from 'lucide-react'
+import { type ReactNode, useEffect, useState } from 'react'
+import { CheckIcon, ChevronDownIcon, CircleAlertIcon, InfoIcon, Share2Icon, XIcon } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { SheetClose } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+
+/** Top-right buttons of a panel header: share a link to this panel, then close it */
+export function PanelActions({ name }: { name: string }) {
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    if (!copied) return
+    const t = window.setTimeout(() => setCopied(false), 2000)
+    return () => window.clearTimeout(t)
+  }, [copied])
+
+  // The URL already names the open panel (?fiche=…). Phones get the system share sheet, other screens a copy
+  const share = async () => {
+    const url = window.location.href
+    if (navigator.share && window.matchMedia('(pointer: coarse)').matches) {
+      await navigator.share({ title: `${name} · ${document.title}`, url }).catch(() => {})
+      return
+    }
+    await navigator.clipboard.writeText(url).then(() => setCopied(true), () => {})
+  }
+
+  return (
+    <div className="absolute top-2 right-2 flex">
+      <Button variant="ghost" size="icon" onClick={share} aria-label="Partager le lien de la fiche" title="Partager">
+        {copied ? <CheckIcon /> : <Share2Icon />}
+      </Button>
+      <span role="status" className="sr-only">
+        {copied && 'Lien copié'}
+      </span>
+      <SheetClose asChild>
+        <Button variant="ghost" size="icon" aria-label="Fermer la fiche">
+          <XIcon />
+        </Button>
+      </SheetClose>
+    </div>
+  )
+}
 
 export function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
   return (

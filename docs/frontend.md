@@ -85,6 +85,10 @@ To add a page: add it to `PAGES`, then give it its element in `router.tsx`. Page
 - **The panel is a non-modal `Sheet`.** `modal={false}`, with `onInteractOutside` prevented, so clicking
   another seat swaps the deputy instead of closing the panel. Escape and the × button close it.
   `onOpenAutoFocus` is prevented so the search input keeps focus.
+- **The open panel is in the URL.** `useSelectedId()` (`src/lib/selection.ts`) keeps the member's id in the
+  hash query (`#/deputes?fiche=PA841657`), replacing the history entry and keeping the scroll position, so a
+  link reopens the panel. `PanelActions` (`panel/parts.tsx`) puts a share button beside the close button:
+  the system share sheet on touch screens, otherwise it copies the URL.
 - **Only the panel body scrolls.** The header (photo, name, group, the French "Fermer la fiche" button
   that replaces shadcn's English close button) stays fixed, and the tab bar is `sticky` at the top of the
   body. Changing tab while scrolled past the tab bar jumps back to the start of the new tab's content.

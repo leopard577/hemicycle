@@ -13,6 +13,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { HATVP_TIERS, type HatvpTier, tierOf } from '@/lib/candidates'
 import { formatDate } from '@/lib/format'
 import { useLayout } from '@/lib/layout'
+import { useSelectedId } from '@/lib/selection'
 import { cn } from '@/lib/utils'
 import type { AnnouncedCandidate, Candidates2027Dataset } from '@/types'
 
@@ -48,7 +49,7 @@ export function Candidates2027Page() {
   const { onPanelChange } = useLayout()
   const [data, setData] = useState<Candidates2027Dataset | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useSelectedId()
   const [query, setQuery] = useState('')
   const [reading, setReading] = useState<Reading>('family')
   // Family id or HATVP tier, depending on the reading

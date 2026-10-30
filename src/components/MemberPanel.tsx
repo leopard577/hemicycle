@@ -1,9 +1,7 @@
 import { type ReactNode, useRef, useState } from 'react'
-import { XIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { alerts } from '@/lib/money'
 import type { Office } from '@/lib/offices'
@@ -14,7 +12,7 @@ import { DeclarationsTab } from './panel/DeclarationsTab'
 import { CapitalTab } from './panel/CapitalTab'
 import { OverlapsNotes, OverlapsTab } from './panel/OverlapsTab'
 import { PayNotes, PayTab } from './panel/PayTab'
-import { NoteGroup, NotesAndSources } from './panel/parts'
+import { NoteGroup, NotesAndSources, PanelActions } from './panel/parts'
 
 interface Props<T extends Parliamentarian> {
   member: T | null
@@ -86,7 +84,7 @@ function MemberDetails({ member, group, payScales, office, profile }: DetailsPro
     <>
       {/* Fixed header: identity and close button stay visible while scrolling */}
       <SheetHeader
-        className="relative shrink-0 flex-row items-center gap-3 border-t-4 border-b py-4 pr-14 pl-6 sm:gap-4"
+        className="relative shrink-0 flex-row items-center gap-3 border-t-4 border-b py-4 pr-24 pl-6 sm:gap-4"
         style={{
           borderTopColor: group?.color,
           background: group && `color-mix(in oklch, ${group.color} 9%, transparent)`,
@@ -119,11 +117,7 @@ function MemberDetails({ member, group, payScales, office, profile }: DetailsPro
             </div>
           </SheetDescription>
         </div>
-        <SheetClose asChild>
-          <Button variant="ghost" size="icon" className="absolute top-2 right-2" aria-label="Fermer la fiche">
-            <XIcon />
-          </Button>
-        </SheetClose>
+        <PanelActions name={`${member.firstName} ${member.lastName}`} />
       </SheetHeader>
 
       {/* Only the body scrolls; it is recreated for every member, so it starts from the top */}

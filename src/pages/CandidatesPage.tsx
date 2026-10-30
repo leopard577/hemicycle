@@ -112,7 +112,9 @@ export function CandidatesPage() {
           </ul>
         </section>
 
-        {/* After the chart: the page opens on what the campaigns cost, the dates come next */}
+        <NetWorthChart data={data} />
+
+        {/* After the charts: the page opens on the figures, the dates and rules come next */}
         <section className="space-y-4">
           <h2 className="font-heading text-xl font-semibold">Les étapes de l'élection</h2>
           <Timeline data={data} />
@@ -173,8 +175,6 @@ export function CandidatesPage() {
             </Note>
           </div>
         </section>
-
-        <NetWorthChart data={data} />
 
         <section className="space-y-2 text-sm text-muted-foreground">
           <h2 className="font-heading text-xl font-semibold text-foreground">Participation</h2>
