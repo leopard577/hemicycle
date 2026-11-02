@@ -108,8 +108,9 @@ export function AboutPage() {
               utilisation commerciale ou publicitaire interdite.
             </Term>
             <Term label="Photos">
-              Les portraits officiels sont chargés directement depuis assemblee-nationale.fr et senat.fr ; ils ne sont
-              pas copiés. Aucune photo du site de la HATVP n'est utilisée.
+              Les portraits officiels sont chargés directement depuis assemblee-nationale.fr et senat.fr. Ils ne sont
+              recopiés que dans l'image d'aperçu de chaque fiche, celle qu'affichent WhatsApp ou X quand on partage son
+              lien. Aucune photo du site de la HATVP n'est utilisée.
             </Term>
             <Term label="Code">
               Publié sous licence <ExternalLink href={`${REPOSITORY}/blob/main/LICENSE`}>MIT</ExternalLink>.

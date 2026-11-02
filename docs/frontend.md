@@ -88,7 +88,13 @@ To add a page: add it to `PAGES`, then give it its element in `router.tsx`. Page
 - **The open panel is in the URL.** `useSelectedId()` (`src/lib/selection.ts`) keeps the member's id in the
   hash query (`#/deputes?fiche=PA841657`), replacing the history entry and keeping the scroll position, so a
   link reopens the panel. `PanelActions` (`panel/parts.tsx`) puts a share button beside the close button:
-  the system share sheet on touch screens, otherwise it copies the URL.
+  the system share sheet on touch screens, otherwise it copies the URL. Link previewers (WhatsApp, X…) ignore
+  the hash, so on pages flagged `shareCards` in `src/lib/pages.ts` (deputies, senators, government) the button
+  shares `partage/<page>/<id>` instead: a static page written by `npm run share` (`scripts/share-cards.ts`, run
+  after `vite build` by the deploy workflow) with that person's own `og:image`, a 1200 × 630 JPEG with portrait,
+  name, gross monthly pay, declared side income and seat cost, computed with `src/lib/money.ts`. The page sends
+  visitors on to `#/<page>?fiche=<id>` with a script, which previewers do not run. In development the button keeps
+  the hash URL, since those pages are not built. The candidates pages still share the hash URL and the site image.
 - **Only the panel body scrolls.** The header (photo, name, group, the French "Fermer la fiche" button
   that replaces shadcn's English close button) stays fixed, and the tab bar is `sticky` at the top of the
   body. Changing tab while scrolled past the tab bar jumps back to the start of the new tab's content.

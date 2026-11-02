@@ -1,9 +1,13 @@
 import { type ReactNode, useEffect, useState } from 'react'
 import { CheckIcon, ChevronDownIcon, CircleAlertIcon, InfoIcon, Share2Icon, XIcon } from 'lucide-react'
+import { useLocation } from 'react-router'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { SheetClose } from '@/components/ui/sheet'
+import { PAGES } from '@/lib/pages'
+import { useSelectedId } from '@/lib/selection'
+import { SHARE_DIR } from '@/lib/site'
 import { cn } from '@/lib/utils'
 
 /** Top-right buttons of a panel header: share a link to this panel, then close it */
@@ -16,9 +20,10 @@ export function PanelActions({ name }: { name: string }) {
     return () => window.clearTimeout(t)
   }, [copied])
 
-  // The URL already names the open panel (?fiche=…). Phones get the system share sheet, other screens a copy
+  const url = useShareUrl()
+
+  // Phones get the system share sheet, other screens a copy
   const share = async () => {
-    const url = window.location.href
     if (navigator.share && window.matchMedia('(pointer: coarse)').matches) {
       await navigator.share({ title: `${name} · ${document.title}`, url }).catch(() => {})
       return
@@ -41,6 +46,20 @@ export function PanelActions({ name }: { name: string }) {
       </SheetClose>
     </div>
   )
+}
+
+/**
+ * Link to the open panel. Pages with share cards link to the panel's static share page (`npm run share`), which gives
+ * WhatsApp, X… a preview image of that person: they never see the hash. Elsewhere, and in development where those
+ * pages are not built, the current URL, which already names the panel (?fiche=…).
+ */
+function useShareUrl() {
+  const { pathname } = useLocation()
+  const [id] = useSelectedId()
+  const page = PAGES.find((p) => `/${p.path}` === pathname)
+  if (!id || !page?.shareCards || import.meta.env.DEV) return window.location.href
+  // Relative to the app's own address, so that it also works under /<repo>/ on GitHub Pages
+  return new URL(`${SHARE_DIR}/${page.path}/${encodeURIComponent(id)}`, window.location.href.split('#')[0]).href
 }
 
 export function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {

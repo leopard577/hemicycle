@@ -7,12 +7,14 @@ export interface PageInfo {
   label: string
   /** Shown beside the theme button instead of in the list of pages */
   aside?: boolean
+  /** Each panel has a share page with its own preview image (`npm run share`) */
+  shareCards?: boolean
 }
 
 export const PAGES: PageInfo[] = [
-  { id: 'deputies', path: 'deputes', label: 'Députés' },
-  { id: 'senators', path: 'senateurs', label: 'Sénateurs' },
-  { id: 'government', path: 'gouvernement', label: 'Gouvernement' },
+  { id: 'deputies', path: 'deputes', label: 'Députés', shareCards: true },
+  { id: 'senators', path: 'senateurs', label: 'Sénateurs', shareCards: true },
+  { id: 'government', path: 'gouvernement', label: 'Gouvernement', shareCards: true },
   { id: 'candidates2027', path: 'candidats-2027', label: 'Candidats (2027)' },
   // Path kept from when it was the only candidates page, so existing links still work
   { id: 'candidates', path: 'candidats', label: 'Candidats (2022)' },

@@ -11,6 +11,7 @@ generated JSON file. All pages are built; there are two candidates pages, the 20
 npm run data    # regenerate public/data/*.json (one file per page) from AN, Sénat, HATVP and RNE (~170 MB download)
 npm run dev     # Vite dev server
 npm run build   # tsc -b + vite build: run it to verify any change
+npm run share   # after build: dist/partage/<page>/<id>.html + .jpg, one preview card per person (fetches portraits)
 npm run lint    # oxlint
 ```
 
@@ -113,6 +114,10 @@ opening a deputy's and a senator's panel.
   decree no. 2012-983 and the deputies' base allowance. Update them by hand when new amounts are published.
 - **Filing deadlines.** Right after a renewal many members have no declaration yet. `pendingDeadline()` in
   `src/lib/money.ts` tells the panel to say "Déclaration attendue d'ici le …" instead of flagging it missing.
+- **Link previews need real pages.** WhatsApp and X never see the hash, so the share button of a page with
+  `shareCards` (`src/lib/pages.ts`) links to `partage/<page>/<id>`, a static page written by `scripts/share-cards.ts`
+  with that person's Open Graph image, which redirects to the panel. The card reuses `src/lib/money.ts`; keep its
+  wording within the HATVP rules (declared amounts unrounded, sums labelled as calculations).
 - **The member panel is a non-modal Radix `Sheet`.** Outside clicks are ignored on purpose, so seats stay
   clickable while it is open.
 - **AN JSON quirks.** Single values may or may not be arrays (use `asArray` from `scripts/lib/util.mjs`). Empty values can be
