@@ -52,6 +52,8 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
   const [groupFilter, setGroupFilter] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [reading, setReading] = useState<Reading>('group')
+  // Label of the tier filtering the seats, within the active reading
+  const [tierFilter, setTierFilter] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/${config.file}`)
@@ -81,15 +83,16 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
   const isHighlighted = useCallback(
     (m: T) => {
       if (groupFilter && m.groupId !== groupFilter) return false
+      if (tierFilter && reading !== 'group' && tierOf(reading, summaries.get(m.id)!).label !== tierFilter) return false
       if (!q) return true
       return normalize(`${m.firstName} ${m.lastName} ${searchText(m)}`).includes(q)
     },
-    [groupFilter, q, searchText],
+    [groupFilter, tierFilter, reading, summaries, q, searchText],
   )
 
   const matches = useMemo(
-    () => (data && (q || groupFilter) ? data.members.filter(isHighlighted) : []),
-    [data, q, groupFilter, isHighlighted],
+    () => (data && (q || groupFilter || tierFilter) ? data.members.filter(isHighlighted) : []),
+    [data, q, groupFilter, tierFilter, isHighlighted],
   )
 
   const selected = data?.members.find((m) => m.id === selectedId) ?? null
@@ -167,7 +170,13 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
           ce que chacun touche et cumule.
         </p>
 
-        <ReadingPicker reading={reading} onChange={setReading} />
+        <ReadingPicker
+          reading={reading}
+          onChange={(r) => {
+            setReading(r)
+            setTierFilter(null)
+          }}
+        />
 
         <Hemicycle
           members={data.members}
@@ -195,6 +204,8 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
             )}
             office={office}
             onSelect={(m) => setSelectedId(m.id)}
+            activeTier={tierFilter}
+            onTierChange={setTierFilter}
           />
         )}
 
@@ -205,7 +216,7 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
         </p>
 
         <p aria-live="polite" className="min-h-5 text-center text-sm text-muted-foreground">
-          {(q || groupFilter) &&
+          {(q || groupFilter || tierFilter) &&
             `${matches.length} ${matches.length > 1 ? office.plural : office.noun} sur ${data.members.length}`}
         </p>
       </main>
@@ -213,7 +224,7 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
       <SiteFooter>
         {config.sources}, extraites le {new Date(data.generatedAt).toLocaleDateString('fr-FR')}. Revenus et mandats tels
         que déclarés ; les montants de rémunération suivent les barèmes officiels. Les sièges sont regroupés par groupe
-        politique.
+        politique. Décisions de justice : Casier Politique, CC BY-NC-SA 4.0.
       </SiteFooter>
 
       <MemberPanel

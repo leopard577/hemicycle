@@ -10,9 +10,10 @@ import { Alerts } from './panel/Alerts'
 import { CostNotes, CostSummary } from './panel/CostSummary'
 import { DeclarationsTab } from './panel/DeclarationsTab'
 import { CapitalTab } from './panel/CapitalTab'
+import { Convictions } from './panel/Convictions'
 import { OverlapsNotes, OverlapsTab } from './panel/OverlapsTab'
 import { PayNotes, PayTab } from './panel/PayTab'
-import { NoteGroup, NotesAndSources, PanelActions } from './panel/parts'
+import { NoteGroup, NotesAndSources, PanelActions, TabLabel } from './panel/parts'
 
 interface Props<T extends Parliamentarian> {
   member: T | null
@@ -32,7 +33,7 @@ interface DetailsProps {
   profile: ReactNode
 }
 
-const TAB_TRIGGER = 'max-sm:px-1 max-sm:text-[0.8125rem] max-[22.5rem]:px-0.5 max-[22.5rem]:text-xs'
+const TAB_TRIGGER = 'text-[0.8125rem] max-sm:px-1 max-[22.5rem]:px-0.5 max-[22.5rem]:text-xs'
 
 /** Side panel of a member of Parliament: cost, alerts, then tabs */
 export function MemberPanel<T extends Parliamentarian>({ member, group, payScales, office, profile, onClose }: Props<T>) {
@@ -141,7 +142,10 @@ function MemberDetails({ member, group, payScales, office, profile }: DetailsPro
                 Capital
               </TabsTrigger>
               <TabsTrigger value="declarations" className={TAB_TRIGGER}>
-                Déclarations
+                <TabLabel full="Déclarations" short="Décl." />
+              </TabsTrigger>
+              <TabsTrigger value="convictions" className={TAB_TRIGGER}>
+                <TabLabel full="Condamnations" short="Condam." />
               </TabsTrigger>
               <TabsTrigger value="profile" className={TAB_TRIGGER}>
                 Profil
@@ -155,6 +159,9 @@ function MemberDetails({ member, group, payScales, office, profile }: DetailsPro
               localAllowanceCap={payScales.localAllowanceCap}
               office={office}
             />
+          </TabsContent>
+          <TabsContent value="convictions">
+            <Convictions convictions={member.convictions} />
           </TabsContent>
           <TabsContent value="profile">{profile}</TabsContent>
           <TabsContent value="pay">

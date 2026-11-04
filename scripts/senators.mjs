@@ -1,5 +1,6 @@
 // "Sénateurs" page: Sénat open data, joined with the HATVP and the RNE
 import { SENATOR_SPECIAL_ALLOWANCES, senatorPayScales } from './pay-scales.mjs'
+import { attachConvictions } from './lib/convictions.mjs'
 import { download, parseQuotedCsv } from './lib/util.mjs'
 
 const SENAT = 'https://www.senat.fr'
@@ -161,6 +162,7 @@ export function buildSenators({ senators, general, terms, committees, bodies, gr
   }
   const rne = rneFor(members)
   for (const m of members) m.localMandates = rne.get(m.id) ?? []
+  attachConvictions(members, 'Senators')
 
   const rank = (code) => {
     const i = GROUP_ORDER.indexOf(code)

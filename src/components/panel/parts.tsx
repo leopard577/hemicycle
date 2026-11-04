@@ -62,6 +62,18 @@ function useShareUrl() {
   return new URL(`${SHARE_DIR}/${page.path}/${encodeURIComponent(id)}`, window.location.href.split('#')[0]).href
 }
 
+/** Tab label too long for a phone: the short form is shown there, screen readers keep the full one */
+export function TabLabel({ full, short }: { full: string; short: string }) {
+  return (
+    <>
+      <span aria-hidden className="sm:hidden">
+        {short}
+      </span>
+      <span className="max-sm:sr-only">{full}</span>
+    </>
+  )
+}
+
 export function Section({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
   return (
     <section className="space-y-2 py-4">

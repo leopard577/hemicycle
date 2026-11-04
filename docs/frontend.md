@@ -64,6 +64,15 @@ To add a page: add it to `PAGES`, then give it its element in `router.tsx`. Page
 | `src/lib/declarations.ts` | Maps raw HATVP statuses to labels and states (`published`, `pending`, `missing`) |
 | `src/lib/format.ts` | `formatDate`, `formatEuro`, `age` (fr-FR) |
 
+### Convictions
+
+`src/lib/convictions.ts` holds the tiers (final criminal, criminal with an appeal pending, civil or electoral, none
+listed) and the wording of penalties. `panel/Convictions.tsx` is the content of the "Condamnations" tab of every panel (and of
+the expanded rows of the 2022 page), present even without a decision, with `ConvictionsCaveat`, the warning and the CC BY-NC-SA credit, which must follow the data everywhere. The
+filter is the "Condamnations" reading on the chamber pages (`READINGS`; tiers become clickable through `onTierChange`,
+and it lists everyone concerned instead of a top 10), a reading on the 2027 page and a toggle above the campaign list on
+the 2022 page. The Government page omits the reading while no member has a decision.
+
 ## Styling rules
 
 - **No hand-written CSS.** Use Tailwind utility classes and shadcn/ui components. `src/index.css` holds

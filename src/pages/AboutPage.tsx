@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { ConvictionsCaveat } from '@/components/panel/Convictions'
 import { ExternalLink } from '@/components/panel/parts'
 import { SiteFooter } from '@/components/SiteFooter'
 import { REPOSITORY, SITE_NAME, X_ACCOUNT } from '@/lib/site'
@@ -63,7 +64,7 @@ export function AboutPage() {
 
         <Section title="D'où viennent les données">
           <p>
-            Uniquement de sources publiques et officielles, mises à jour automatiquement chaque lundi :
+            De sources publiques et officielles, mises à jour automatiquement chaque lundi :
           </p>
           <ul className="list-disc space-y-1 pl-5">
             {SOURCES.map((s) => (
@@ -78,6 +79,10 @@ export function AboutPage() {
             leur dépôt et leurs dates sont indiqués. Le détail des sources et des calculs figure en bas de chaque
             fiche.
           </p>
+          <p>
+            Seule exception, les décisions de justice : il n'existe pas de source officielle ouverte.
+          </p>
+          <ConvictionsCaveat />
         </Section>
 
         <Section title="Mentions légales">
@@ -106,6 +111,10 @@ export function AboutPage() {
               ses <ExternalLink href="https://www.hatvp.fr/mentions-legales/">mentions légales</ExternalLink> :
               reproduites sans modification, droits de reproduction réservés et strictement limités, toute
               utilisation commerciale ou publicitaire interdite.
+            </Term>
+            <Term label="Décisions de justice">
+              Reprises de Casier Politique sous licence CC BY-NC-SA 4.0, avec l'accord de son auteur, et partagées dans
+              les mêmes conditions.
             </Term>
             <Term label="Photos">
               Les portraits officiels sont chargés directement depuis assemblee-nationale.fr et senat.fr. Ils ne sont

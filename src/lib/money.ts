@@ -1,6 +1,7 @@
 // What a parliamentarian costs and what they hold on top of their mandate, from public data only.
 // Everything is computed client side from the page dataset: nothing is invented or estimated beyond the
 // official pay scales.
+import { type ConvictionTier, convictionTierOf } from '@/lib/convictions'
 import { ASSETS, declarationsOf, INITIAL_ASSETS, INITIAL_INTERESTS, INTERESTS, REDACTED } from '@/lib/declarations'
 import { formatDate } from '@/lib/format'
 import type { Office } from '@/lib/offices'
@@ -396,6 +397,8 @@ export interface Summary {
   warnings: number
   /** Total value of the company holdings listed in the declaration of interests */
   capital: number
+  convictionTier: ConvictionTier
+  convictions: number
 }
 
 export function summary(official: Official, office: Office, now = Date.now()): Summary {
@@ -408,5 +411,7 @@ export function summary(official: Official, office: Office, now = Date.now()): S
     serious: all.filter((a) => a.severity === 'serious').length,
     warnings: all.filter((a) => a.severity === 'warning').length,
     capital: (official.hatvp.interests?.holdings ?? []).reduce((sum, h) => sum + (h.value ?? 0), 0),
+    convictionTier: convictionTierOf(official.convictions),
+    convictions: official.convictions?.length ?? 0,
   }
 }

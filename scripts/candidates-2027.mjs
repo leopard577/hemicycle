@@ -8,6 +8,8 @@
 // only the "declare" status and each entry's own source; it is not downloaded, so that no name reaches the page
 // without review. Update it by hand when a candidacy is announced or withdrawn.
 
+import { attachConvictions } from './lib/convictions.mjs'
+
 const CHECKED_AT = '2026-10-28'
 
 const COMPILED_FROM = {
@@ -103,6 +105,8 @@ export function buildCandidates2027({ hatvpFor }) {
       (familyRank.get(a.familyId) ?? FAMILIES.length) - (familyRank.get(b.familyId) ?? FAMILIES.length) ||
       a.lastName.localeCompare(b.lastName, 'fr'),
   )
+
+  attachConvictions(candidates, 'Candidates 2027')
 
   const withFile = candidates.filter((c) => c.hatvp)
   const withInterests = withFile.filter((c) => c.hatvp.interests)

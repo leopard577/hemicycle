@@ -4,6 +4,7 @@ import { CandidatePanel } from '@/components/CandidatePanel'
 import { Hemicycle } from '@/components/Hemicycle'
 import { Legend } from '@/components/Legend'
 import { PageError, PageLoading } from '@/components/PageStatus'
+import { ConvictionsCaveat } from '@/components/panel/Convictions'
 import { ExternalLink } from '@/components/panel/parts'
 import { SiteFooter } from '@/components/SiteFooter'
 import { Button } from '@/components/ui/button'
@@ -11,6 +12,7 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CAPITAL_TIERS, capitalOf, capitalTierOf, HATVP_TIERS, tierOf } from '@/lib/candidates'
+import { CONVICTION_TIERS, convictionTierOf } from '@/lib/convictions'
 import { formatDate, formatEuro } from '@/lib/format'
 import { useLayout } from '@/lib/layout'
 import { useSelectedId } from '@/lib/selection'
@@ -20,7 +22,7 @@ import type { AnnouncedCandidate, Candidates2027Dataset } from '@/types'
 const MAX_SUGGESTIONS = 8
 const UNPLACED_COLOR = '#8D949A'
 
-type Reading = 'family' | 'hatvp' | 'capital'
+type Reading = 'family' | 'hatvp' | 'capital' | 'convictions'
 
 interface TieredReading {
   tiers: Record<string, { label: string; fill: string; dot: string }>
@@ -32,6 +34,11 @@ interface TieredReading {
 const TIERED: Record<Exclude<Reading, 'family'>, TieredReading> = {
   hatvp: { tiers: HATVP_TIERS, of: tierOf, ariaLabel: 'Filtrer selon les données HATVP' },
   capital: { tiers: CAPITAL_TIERS, of: capitalTierOf, ariaLabel: 'Filtrer selon le capital déclaré' },
+  convictions: {
+    tiers: CONVICTION_TIERS,
+    of: (c) => convictionTierOf(c.convictions),
+    ariaLabel: 'Filtrer selon les condamnations',
+  },
 }
 
 const normalize = (s: string) =>
@@ -202,6 +209,7 @@ export function Candidates2027Page() {
           <ToggleGroupItem value="family">Familles politiques</ToggleGroupItem>
           <ToggleGroupItem value="hatvp">Données HATVP</ToggleGroupItem>
           <ToggleGroupItem value="capital">Capital déclaré</ToggleGroupItem>
+          <ToggleGroupItem value="convictions">Condamnations</ToggleGroupItem>
         </ToggleGroup>
 
         <div className="mx-auto w-full max-w-3xl">
@@ -262,6 +270,7 @@ export function Candidates2027Page() {
             l'épargne relèvent de la déclaration de patrimoine, que le site ne reprend pas.
           </p>
         )}
+        {reading === 'convictions' && <ConvictionsCaveat className="mx-auto mb-2 max-w-2xl text-center text-balance" />}
         <p className="mx-auto max-w-xl text-center text-xs text-balance text-muted-foreground">
           Placement indicatif, établi par le site d'après le parti ou le mouvement de chaque candidature, sur le modèle
           des nuances politiques du ministère de l'Intérieur.
@@ -317,7 +326,7 @@ export function Candidates2027Page() {
       <SiteFooter>
         Candidatures : articles et déclarations cités pour chacune. Familles politiques : placement par le site.
         Dossiers et déclarations d'intérêts : open data de la HATVP, extraite le{' '}
-        {new Date(data.generatedAt).toLocaleDateString('fr-FR')}.
+        {new Date(data.generatedAt).toLocaleDateString('fr-FR')}. Décisions de justice : Casier Politique, CC BY-NC-SA 4.0.
       </SiteFooter>
 
       <CandidatePanel candidate={selected} onClose={() => setSelectedId(null)} />

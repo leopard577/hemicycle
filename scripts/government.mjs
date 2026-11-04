@@ -8,6 +8,7 @@ import { deputyPhoto } from './deputies.mjs'
 import { cabinets, elyseeBudget, ministryBudgets } from './government-costs.mjs'
 import { governmentPayScales } from './pay-scales.mjs'
 import { senatorPhoto } from './senators.mjs'
+import { attachConvictions } from './lib/convictions.mjs'
 import { normalizeName } from './lib/util.mjs'
 
 const DECREES = {
@@ -202,6 +203,7 @@ export function buildGovernment({ hatvpFor, rneFor, hatvpRows, senate, assemblyA
   }
   const rne = rneFor(members)
   for (const m of members) m.localMandates = rne.get(m.id) ?? []
+  attachConvictions(members, 'Government')
   const photoOf = photoFinder(assemblyActors, senate)
   for (const m of members) m.photo = m.birthDate ? photoOf(m) : ''
 

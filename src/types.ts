@@ -27,6 +27,38 @@ export interface Official {
   hatvp: Hatvp
   /** Local mandates currently held, according to the Répertoire national des élus */
   localMandates: LocalMandate[]
+  convictions: Conviction[]
+}
+
+/** State of the case: `final`, or an appeal still pending at the date of the source */
+export type ConvictionStatus = 'final' | 'appeal' | 'cassation'
+
+/** The source does not tell them apart: set by hand in `scripts/lib/convictions.mjs` */
+export type ConvictionNature = 'criminal' | 'civil' | 'electoral'
+
+/** Months, or an amount, with the part that is suspended */
+export interface Penalty {
+  total: number
+  suspended: number
+}
+
+/** Court decision from Casier Politique, unverified except where `source` is not Wikipedia */
+export interface Conviction {
+  /** A date on the first of a month or of January may stand for the month or the year alone */
+  date: string
+  title: string
+  offence: string
+  description: string
+  status: ConvictionStatus
+  nature: ConvictionNature
+  prisonMonths: Penalty
+  /** A fine for a criminal conviction, what the person must pay otherwise */
+  amount: Penalty & { currency: 'EUR' | 'FRF' }
+  ineligibilityMonths: Penalty
+  otherPenalty: string | null
+  /** Law that amnestied the conviction, when known */
+  amnesty: string | null
+  source: { label: string; url: string }
 }
 
 /** Member of either chamber of Parliament: what the hemicycle, the panel and the readings need */
@@ -378,6 +410,7 @@ export interface Candidate {
   /** Net worth (assets minus debts) as reported by the press in March 2022, rounded; see `election.pressNetWorth` */
   pressNetWorth: number
   account: CampaignAccount
+  convictions: Conviction[]
 }
 
 export interface PresidentialFunding {
@@ -448,6 +481,7 @@ export interface AnnouncedCandidate {
   source: { publisher: string; date: string; url: string }
   /** null: no HATVP file, so no data */
   hatvp: CandidateHatvp | null
+  convictions: Conviction[]
 }
 
 export interface Candidates2027Dataset {

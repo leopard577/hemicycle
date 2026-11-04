@@ -1,9 +1,10 @@
 // Hemicycle readings: every seat is coloured according to an indicator taken from `summary`
+import { CONVICTION_TIERS, type ConvictionTier } from '@/lib/convictions'
 import type { Summary } from '@/lib/money'
 import type { Office } from '@/lib/offices'
 import { formatEuro } from '@/lib/format'
 
-export type Reading = 'group' | 'overlaps' | 'sideIncome' | 'capital' | 'alerts'
+export type Reading = 'group' | 'overlaps' | 'sideIncome' | 'capital' | 'alerts' | 'convictions'
 
 interface Tier {
   label: string
@@ -17,6 +18,8 @@ interface ReadingDefinition {
   tiers: Tier[]
   /** Ranking value; 0 = left out of the ranking */
   value: (s: Summary) => number
+  /** Lists everyone concerned instead of a top 10 */
+  listAll?: boolean
   detail: (s: Summary) => string | null
   overview: (count: number, summaries: Summary[], office: Office) => string
 }
@@ -98,6 +101,16 @@ export const READINGS: Record<Exclude<Reading, 'group'>, ReadingDefinition> = {
     },
     overview: (n, _, o) =>
       `${n} ${o.plural} ont au moins un point signalé dans leurs déclarations, en comparant les registres ${o.ofInstitution}, de la HATVP et du Répertoire national des élus.`,
+  },
+  convictions: {
+    label: 'Condamnations',
+    listAll: true,
+    tiers: (Object.entries(CONVICTION_TIERS) as [ConvictionTier, (typeof CONVICTION_TIERS)[ConvictionTier]][]).map(
+      ([tier, { label, fill, dot }]) => ({ label, fill, bg: dot, test: (s: Summary) => s.convictionTier === tier }),
+    ),
+    value: (s) => ({ final: 3, pending: 2, other: 1, none: 0 })[s.convictionTier],
+    detail: (s) => (s.convictions ? `${s.convictions} décision${s.convictions > 1 ? 's' : ''}` : null),
+    overview: (n, _, o) => `Casier Politique recense au moins une décision de justice pour ${n} ${o.plural}.`,
   },
 }
 

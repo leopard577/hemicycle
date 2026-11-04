@@ -4,9 +4,10 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { declarationStatus } from '@/lib/declarations'
 import { formatDate, formatEuro } from '@/lib/format'
-import type { AnnouncedCandidate, CandidateHatvp } from '@/types'
+import type { AnnouncedCandidate, CandidateHatvp, Conviction } from '@/types'
 import { DeclaredActivities, Holdings } from './panel/CapitalTab'
-import { ExternalLink, KeyFigure, MissingData, Note, NoteGroup, NotesAndSources, PanelActions, Section } from './panel/parts'
+import { Convictions } from './panel/Convictions'
+import { ExternalLink, KeyFigure, MissingData, Note, NoteGroup, NotesAndSources, PanelActions, Section, TabLabel } from './panel/parts'
 
 const TAB_TRIGGER = 'max-sm:px-1 max-sm:text-[0.8125rem]'
 
@@ -75,17 +76,7 @@ function Details({ candidate: c }: { candidate: AnnouncedCandidate }) {
           </div>
         </div>
 
-        {c.hatvp ? (
-          <HatvpTabs hatvp={c.hatvp} />
-        ) : (
-          <div className="px-6 py-3">
-            <MissingData title="Nous n'avons pas de données">
-              La HATVP ne publie aucun dossier à ce nom : elle ne suit que les titulaires de certains mandats et
-              fonctions (parlementaires, membres du Gouvernement, élus locaux des plus grandes collectivités…). Ses
-              déclarations de candidat ne seront publiées qu'avec la liste officielle.
-            </MissingData>
-          </div>
-        )}
+        <CandidateTabs candidate={c} />
 
         <div className="border-t px-6 pb-6">
           <NotesAndSources>
@@ -111,7 +102,37 @@ function Details({ candidate: c }: { candidate: AnnouncedCandidate }) {
   )
 }
 
-function HatvpTabs({ hatvp }: { hatvp: CandidateHatvp }) {
+function CandidateTabs({ candidate: c }: { candidate: AnnouncedCandidate }) {
+  if (c.hatvp) return <HatvpTabs hatvp={c.hatvp} convictions={c.convictions} />
+  return (
+    <Tabs defaultValue="hatvp" className="gap-0 px-6 pb-4">
+      <div className="sticky top-0 z-10 -mx-6 bg-popover px-6 py-2">
+        <TabsList className="w-full group-data-horizontal/tabs:h-9">
+          <TabsTrigger value="hatvp" className={TAB_TRIGGER}>
+            HATVP
+          </TabsTrigger>
+          <TabsTrigger value="convictions" className={TAB_TRIGGER}>
+            Condamnations
+          </TabsTrigger>
+        </TabsList>
+      </div>
+      <TabsContent value="hatvp">
+        <div className="py-4">
+          <MissingData title="Nous n'avons pas de données">
+            La HATVP ne publie aucun dossier à ce nom : elle ne suit que les titulaires de certains mandats et fonctions
+            (parlementaires, membres du Gouvernement, élus locaux des plus grandes collectivités…). Ses déclarations de
+            candidat ne seront publiées qu'avec la liste officielle.
+          </MissingData>
+        </div>
+      </TabsContent>
+      <TabsContent value="convictions">
+        <Convictions convictions={c.convictions} />
+      </TabsContent>
+    </Tabs>
+  )
+}
+
+function HatvpTabs({ hatvp, convictions }: { hatvp: CandidateHatvp; convictions: Conviction[] }) {
   const { interests } = hatvp
   const holdings = interests?.holdings?.length ? interests.holdings : null
   return (
@@ -141,6 +162,9 @@ function HatvpTabs({ hatvp }: { hatvp: CandidateHatvp }) {
             </TabsTrigger>
             <TabsTrigger value="capital" className={TAB_TRIGGER}>
               Capital
+            </TabsTrigger>
+            <TabsTrigger value="convictions" className={TAB_TRIGGER}>
+              <TabLabel full="Condamnations" short="Condam." />
             </TabsTrigger>
           </TabsList>
         </div>
@@ -176,6 +200,9 @@ function HatvpTabs({ hatvp }: { hatvp: CandidateHatvp }) {
           ) : (
             <PendingInterests hatvp={hatvp} />
           )}
+        </TabsContent>
+        <TabsContent value="convictions">
+          <Convictions convictions={convictions} />
         </TabsContent>
       </Tabs>
     </>

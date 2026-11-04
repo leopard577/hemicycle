@@ -18,7 +18,8 @@ La page **À propos** donne les mentions légales, la politique de confidentiali
 
 ## Les données
 
-Toutes viennent de sources publiques et officielles, mises à jour chaque lundi. Chaque chiffre renvoie à sa
+Elles viennent de sources publiques et officielles, mises à jour chaque lundi, sauf les décisions de justice
+(voir plus bas). Chaque chiffre renvoie à sa
 source et chaque calcul est expliqué dans la fiche ; le détail technique est dans [docs/data.md](docs/data.md).
 
 | Source | Ce qu'on y prend |
@@ -35,12 +36,18 @@ source et chaque calcul est expliqué dans la fiche ; le détail technique est d
 | [Conseil constitutionnel](https://www.data.gouv.fr/datasets/parrainages-des-candidats-a-lelection-presidentielle-francaise-de-2022) (parrainages, liste des candidats) et [ministère de l'Intérieur](https://www.data.gouv.fr/datasets/election-presidentielle-des-10-et-24-avril-2022-resultats-definitifs-du-1er-tour) (résultats) | Candidats à l'élection présidentielle de 2022, parrainages, voix aux deux tours |
 | [CNCCFP](https://cnccfp.fr/election-presidentielle-des-10-et-24-avril-2022-publication-au-journal-officiel-des-decisions-de-la-commission/), décisions publiées au Journal officiel | Comptes de campagne de 2022 : dépenses, recettes, remboursement dû par l'État, dépenses irrégulières et réductions |
 | [franceinfo avec AFP](https://www.franceinfo.fr/politique/emmanuel-macron/presidentielle-2022-consultez-les-declarations-de-patrimoine-et-d-interets-des-12-candidats_4998801.html) (8 mars 2022) et [Insee](https://www.insee.fr/fr/statistiques/8736846) | Patrimoine net des candidats de 2022 tel que rapporté par la presse, comparé à celui des ménages |
+| [Casier Politique](https://codeberg.org/raphael-jolivet/crapulopedia) (Raphaël Jolivet, [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)) | Condamnations et décisions de justice des députés, sénateurs, ministres et candidats : extraction automatique de Wikipédia par une IA, non vérifiée |
 | [service-public.gouv.fr](https://www.service-public.gouv.fr/particuliers/vosdroits/F2300) | Montant du SMIC (juin 2026), pour les comparaisons |
 
 - **Le coût d'un siège est un maximum** : il inclut les frais de mandat et le crédit collaborateurs, qui ne
   sont pas versés à l'élu.
 - **Les revenus sont ceux que l'élu a déclarés**, reproduits sans modification ni arrondi.
 - **Les signalements sont des rapprochements automatiques** entre registres : vérifiez-les avant de les citer.
+- **Les décisions de justice ne viennent pas d'une source officielle** : il n'en existe pas (le casier judiciaire
+  n'est pas public, Judilibre retire les noms). Elles sont reprises de Casier Politique sans vérification affaire
+  par affaire, arrêtées à mai 2026 environ, et peuvent contenir des erreurs ou des oublis. Ne pas y figurer ne
+  signifie pas n'avoir jamais été condamné. Les recours en cours sont indiqués, les décisions civiles et électorales
+  sont séparées des condamnations pénales.
 - **Le contenu des déclarations de patrimoine n'est jamais affiché** (article LO 135-2 du code électoral),
   seulement leur dépôt et leurs dates. Seule exception : le patrimoine des candidats de 2022, tel que la presse
   l'a rapporté.
@@ -68,32 +75,13 @@ lundi. Certaines données (barèmes, composition du Gouvernement, budgets, compt
 main dans `scripts/` : voir [docs/data.md](docs/data.md). L'interface est décrite dans
 [docs/frontend.md](docs/frontend.md), la suite dans [docs/roadmap.md](docs/roadmap.md).
 
-## À venir : condamnations des candidats 2027
-
-Piste étudiée le 30 octobre 2026, mise en attente. Aucune source officielle ouverte n'existe : le casier
-judiciaire n'est pas public et [Judilibre](https://www.courdecassation.fr/acces-rapide-judilibre) retire le nom
-des personnes. Deux sources partielles :
-
-- **Wikidata**, propriété [P1399](https://www.wikidata.org/wiki/Property:P1399) (« condamné pour ») : 2 candidats
-  sur 36 renseignés, avec doublons, sans l'état du recours ni l'arrêt d'appel de Marine Le Pen du 7 juillet 2026.
-- **[Casier Politique](https://codeberg.org/raphael-jolivet/crapulopedia)** (Raphaël Jolivet), sous
-  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) : extraction par un LLM des pages
-  Wikipédia, avec l'état du recours.
-
-Approche envisagée : se servir de ces sources comme pistes, vérifier chaque affaire et la saisir à la main dans
-`scripts/candidates-2027.mjs`, avec la juridiction, la date, l'infraction, l'état du recours (définitive, appel,
-cassation) et un article daté ; seulement les condamnations, jamais les mises en examen ; aucune condamnation
-amnistiée ou effacée par une réhabilitation. Reprendre telles quelles les données de Casier Politique imposerait
-de les créditer et de publier la partie dérivée sous la même licence.
-
-À trancher avant de commencer : valider le principe (protection des données pénales, article 10 du RGPD et
-article 46 de la loi Informatique et libertés ; risque de diffamation en cas d'erreur, l'éditeur du site en
-répondant) et le périmètre, condamnations définitives seules ou aussi celles frappées d'appel avec leur état.
-
 ## Contribuer
 
 Une erreur, une donnée qui ne correspond pas à sa source ? [Ouvrez un ticket](https://github.com/leopard577/hemicycle/issues).
 
 ## Licence
 
-Code sous licence [MIT](LICENSE). En réutilisant les données, citez leur source et leur date de mise à jour.
+Code sous licence [MIT](LICENSE). En réutilisant les données, citez leur source et leur date de mise à jour. Les
+décisions de justice (`scripts/data/casier-politique.json` et le champ `convictions` des données générées) restent
+sous [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) : attribution, pas d'usage commercial,
+partage à l'identique.

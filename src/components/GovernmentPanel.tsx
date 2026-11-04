@@ -14,9 +14,10 @@ import { LiveCounter } from './panel/CostSummary'
 import { DeclarationsTab } from './panel/DeclarationsTab'
 import { CapitalTab } from './panel/CapitalTab'
 import { OverlapsNotes, OverlapsTab } from './panel/OverlapsTab'
-import { ExternalLink, Field, Fields, Note, NoteGroup, NotesAndSources, PanelActions, Section } from './panel/parts'
+import { Convictions } from './panel/Convictions'
+import { ExternalLink, Field, Fields, Note, NoteGroup, NotesAndSources, PanelActions, Section, TabLabel } from './panel/parts'
 
-const TAB_TRIGGER = 'max-sm:px-1 max-sm:text-[0.8125rem]'
+const TAB_TRIGGER = 'max-sm:px-1 max-sm:text-[0.8125rem] max-[22.5rem]:px-0.5 max-[22.5rem]:text-xs'
 
 interface Props {
   member: GovernmentMember | null
@@ -137,7 +138,10 @@ function Details({
                 Capital
               </TabsTrigger>
               <TabsTrigger value="declarations" className={TAB_TRIGGER}>
-                Déclarations
+                <TabLabel full="Déclarations" short="Décl." />
+              </TabsTrigger>
+              <TabsTrigger value="convictions" className={TAB_TRIGGER}>
+                <TabLabel full="Condamnations" short="Condam." />
               </TabsTrigger>
               <TabsTrigger value="appointment" className={TAB_TRIGGER}>
                 {member.rank === 'president' ? 'Élection' : 'Nomination'}
@@ -152,6 +156,9 @@ function Details({
           </TabsContent>
           <TabsContent value="declarations">
             <DeclarationsTab member={member} office={office} />
+          </TabsContent>
+          <TabsContent value="convictions">
+            <Convictions convictions={member.convictions} />
           </TabsContent>
           <TabsContent value="appointment">
             <Appointment member={member} />

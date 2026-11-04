@@ -104,6 +104,13 @@ opening a deputy's and a senator's panel.
   placed by hand from their party, decided by the project owner on 30 October 2026. The page labels it a placement by
   the site. A candidate without a party, or whose movement no family covers, gets `null` and is listed apart: never
   guess a position.
+- **Convictions come from Casier Politique, unverified.** Decided by the project owner on 4 November 2026: the snapshot
+  `scripts/data/casier-politique.json` (an LLM extraction of Wikipedia, CC BY-NC-SA 4.0, stale since about May 2026) is
+  imported as it is, every page showing it carries `ConvictionsCaveat`, and appeals stay visible with their state.
+  `scripts/lib/convictions.mjs` adds by hand what the source lacks: `NATURE` (civil and electoral decisions), `CORRECTIONS`
+  (errors checked against the press) and `AMNESTIES` (never removed, only stated). It joins on full name plus birth date
+  when both exist, and warns about a person missing from `REVIEWED`. Refresh with `import-casier-politique.mjs`, then read
+  the diff. Never write that someone has no conviction: the tier is "Aucune recensée".
 - **Campaign accounts are hand-copied** from the CNCCFP decisions in `ACCOUNTS` (`scripts/candidates.mjs`).
   The build checks each refund against the legal cap (`presidentialFunding2022` in `pay-scales.mjs`) and the
   decision's own arithmetic (entitlement − irregular − penalty = refund), and fails on a mismatch. Never name

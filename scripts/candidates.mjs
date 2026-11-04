@@ -5,6 +5,7 @@
 // The CNCCFP publishes its decisions in the Journal officiel only, as text: the figures of each account are
 // copied by hand below. The build checks them against the legal refund formula and fails on any mismatch.
 import { presidentialFunding2022 as funding, householdWealth } from './pay-scales.mjs'
+import { attachConvictions } from './lib/convictions.mjs'
 import { download, normalizeName, parseQuotedCsv } from './lib/util.mjs'
 
 // Every sponsorship validated by the Conseil constitutionnel, final publication of 7 March 2022 (UTF-8, `;`)
@@ -251,6 +252,7 @@ export function buildCandidates({ sponsorships, rounds }) {
     throw new Error(`Candidates: ${candidates.length} candidates in the results, ${ACCOUNTS.length} accounts`)
   // Most votes first
   candidates.sort((a, b) => b.firstRound.votes - a.firstRound.votes)
+  attachConvictions(candidates, 'Candidates 2022')
 
   // People who received sponsorships without standing: counted, not named
   const standing = new Set(candidates.map((c) => key(c.lastName + c.firstName)))

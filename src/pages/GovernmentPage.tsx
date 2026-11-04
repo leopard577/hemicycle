@@ -88,7 +88,13 @@ export function GovernmentPage() {
           </p>
 
           <div>
-            <ReadingPicker reading={reading} onChange={setReading} baseLabel="Rangs" label="Colorer la table selon" />
+            <ReadingPicker
+              reading={reading}
+              onChange={setReading}
+              baseLabel="Rangs"
+              label="Colorer la table selon"
+              omit={members.some((m) => m.convictions?.length) ? [] : ['convictions']}
+            />
             <CouncilTable
               members={members}
               payScales={data.payScales}

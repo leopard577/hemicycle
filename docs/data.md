@@ -208,6 +208,30 @@ page without review; `CHECKED_AT` is the date of the last check.
 - Replace this page's source with the official list once it is published (sponsorships, then results and CNCCFP
   accounts, as for 2022).
 
+## Convictions (`lib/convictions.mjs`)
+
+No official open source exists: criminal records are not public and Judilibre removes names. The app imports
+[Casier Politique](https://codeberg.org/raphael-jolivet/crapulopedia) (Raphaël Jolivet, CC BY-NC-SA 4.0; the author
+agreed to the reuse by email, asking for the source to be cited), an LLM extraction of French Wikipedia. The project
+owner chose to import it unverified, with a warning on every page. Its author has not refreshed it since about May 2026.
+
+`scripts/data/casier-politique.json` is a committed snapshot, written by
+`node scripts/import-casier-politique.mjs <clone>` from a clone of the repository. It needs no network at build time, so
+it is not in `PAGES`. `attachConvictions()` sets `convictions` on deputies, senators, members of the Government and
+both candidates lists: full name, plus birth date when both sides have one; homonyms fail the build.
+
+Three hand tables, keyed `<Wikidata id>:<date in the source>`:
+
+- `NATURE`: the source files everything as a conviction. Copyright, labour, bankruptcy and campaign-account decisions
+  are marked `civil` or `electoral`, and their `amount` is what the person must pay, not a fine.
+- `CORRECTIONS`: errors confirmed against the press. Three so far: Annick Girardin (wrong grounds), Julien Odoul
+  (first-instance sentence, replaced by the appeal ruling of 7 July 2026) and the Riwal case, removed from Marine Le
+  Pen because the party was convicted, not her.
+- `AMNESTIES`: empty so far. Old convictions are kept; an amnesty is stated, not hidden, once documented.
+
+`status` is the source's `etat_recours`. It is known to be unreliable: the source sometimes uses `appel` for a ruling
+given on appeal, and cases decided after its last update still read as pending.
+
 ## Matching HATVP records to deputies
 
 The two HATVP files are matched differently.

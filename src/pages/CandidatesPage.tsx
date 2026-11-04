@@ -2,9 +2,13 @@ import { useEffect, useState } from 'react'
 import { ChevronDownIcon } from 'lucide-react'
 import { Link } from 'react-router'
 import { PageError, PageLoading } from '@/components/PageStatus'
+import { Convictions, ConvictionsCaveat } from '@/components/panel/Convictions'
 import { ExternalLink, Field, Fields, MissingData, Note } from '@/components/panel/parts'
 import { SiteFooter } from '@/components/SiteFooter'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { CONVICTION_TIERS, type ConvictionTier, convictionTierOf } from '@/lib/convictions'
 import { formatDate, formatEuro } from '@/lib/format'
 import { pathTo } from '@/lib/pages'
 import { cn } from '@/lib/utils'
@@ -30,6 +34,7 @@ const SPONSOR_OFFICES: { id: SponsorOffice; label: string; fill: string; bg: str
 export function CandidatesPage() {
   const [data, setData] = useState<CandidatesDataset | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [tier, setTier] = useState<ConvictionTier | null>(null)
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/candidates.json`)
@@ -105,10 +110,33 @@ export function CandidatesPage() {
             </li>
           </ul>
 
-          <ul className="divide-y rounded-lg border">
-            {candidates.map((c) => (
-              <CandidateRow key={c.id} candidate={c} maxSpending={maxSpending} data={data} />
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            spacing={2}
+            value={tier ?? ''}
+            onValueChange={(v) => setTier((v as ConvictionTier) || null)}
+            aria-label="Filtrer selon les condamnations"
+            className="flex-wrap justify-start"
+          >
+            {(Object.keys(CONVICTION_TIERS) as ConvictionTier[]).map((t) => (
+              <ToggleGroupItem key={t} value={t} className="rounded-full data-[state=on]:border-foreground">
+                <span className={cn('size-2.5 shrink-0 rounded-full', CONVICTION_TIERS[t].dot)} />
+                <span className="font-semibold">{CONVICTION_TIERS[t].label}</span>
+                <span className="text-muted-foreground tabular-nums">
+                  {candidates.filter((c) => convictionTierOf(c.convictions) === t).length}
+                </span>
+              </ToggleGroupItem>
             ))}
+          </ToggleGroup>
+          {tier && <ConvictionsCaveat />}
+
+          <ul className="divide-y rounded-lg border">
+            {candidates
+              .filter((c) => !tier || convictionTierOf(c.convictions) === tier)
+              .map((c) => (
+                <CandidateRow key={c.id} candidate={c} maxSpending={maxSpending} data={data} />
+              ))}
           </ul>
         </section>
 
@@ -388,7 +416,20 @@ function CandidateRow({
           </span>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <AccountDetail candidate={c} data={data} />
+          <Tabs defaultValue="account" className="gap-0 border-t bg-muted/30">
+            <div className="px-4 pt-3">
+              <TabsList>
+                <TabsTrigger value="account">Compte de campagne</TabsTrigger>
+                <TabsTrigger value="convictions">Condamnations</TabsTrigger>
+              </TabsList>
+            </div>
+            <TabsContent value="account">
+              <AccountDetail candidate={c} data={data} />
+            </TabsContent>
+            <TabsContent value="convictions" className="px-4">
+              <Convictions convictions={c.convictions} />
+            </TabsContent>
+          </Tabs>
         </CollapsibleContent>
       </Collapsible>
     </li>
@@ -401,7 +442,7 @@ function AccountDetail({ candidate: c, data }: { candidate: Candidate; data: Can
   const offices = SPONSOR_OFFICES.filter((o) => c.sponsorships.byOffice[o.id] > 0)
   const starts = offices.map((_, i) => offices.slice(0, i).reduce((sum, o) => sum + c.sponsorships.byOffice[o.id], 0))
   return (
-    <div className="grid gap-6 border-t bg-muted/30 px-4 py-4 text-sm md:grid-cols-3">
+    <div className="grid gap-6 px-4 py-4 text-sm md:grid-cols-3">
       <div className="space-y-2">
         <h3 className="font-heading font-semibold">Dépenses</h3>
         <Fields>
