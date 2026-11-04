@@ -26,6 +26,7 @@ source et chaque calcul est expliqué dans la fiche ; le détail technique est d
 | --- | --- |
 | [Assemblée nationale](https://data.assemblee-nationale.fr) (open data) | Députés, groupes, commissions, fonctions, collaborateurs, place dans l'hémicycle |
 | [Sénat](https://data.senat.fr) (open data et liste des sénateurs de senat.fr) | Sénateurs, groupes, commissions, délégations, fonctions au Bureau, dates de mandat, place dans l'hémicycle |
+| [Assemblée nationale](https://data.assemblee-nationale.fr/travaux-parlementaires/votes) (scrutins, dossiers législatifs, réunions) | Activité des députés depuis le début de leur mandat : votes, présence en commission, propositions de loi déposées et cosignées |
 | [HATVP](https://www.hatvp.fr/open-data/), Haute Autorité pour la transparence de la vie publique | Liste et dates des déclarations, contenu des déclarations d'intérêts (revenus, sociétés, mandats), autres fonctions déclarées |
 | [Répertoire national des élus](https://www.data.gouv.fr/fr/datasets/repertoire-national-des-elus-1/) (ministère de l'Intérieur) | Mandats locaux en cours : maire, adjoint, conseiller municipal, départemental, régional, intercommunal |
 | [Assemblée nationale, fiche n° 7](https://www.assemblee-nationale.fr/dyn/synthese/deputes-groupes-parlementaires/la-situation-materielle-du-depute) (janvier 2026) | Montant de l'indemnité, des indemnités spéciales, des frais de mandat et du crédit collaborateurs |
@@ -41,6 +42,8 @@ source et chaque calcul est expliqué dans la fiche ; le détail technique est d
 
 - **Le coût d'un siège est un maximum** : il inclut les frais de mandat et le crédit collaborateurs, qui ne
   sont pas versés à l'élu.
+- **L'activité décrit ce que l'Assemblée enregistre, pas la quantité de travail** : un vote manqué n'est pas une
+  absence, et le travail en circonscription, en mission ou de chef de groupe n'y figure pas.
 - **Les revenus sont ceux que l'élu a déclarés**, reproduits sans modification ni arrondi.
 - **Les signalements sont des rapprochements automatiques** entre registres : vérifiez-les avant de les citer.
 - **Les décisions de justice ne viennent pas d'une source officielle** : il n'en existe pas (le casier judiciaire

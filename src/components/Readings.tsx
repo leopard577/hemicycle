@@ -112,6 +112,7 @@ export function ReadingDetail<T extends Official>({
       )}
       <p className="text-center font-medium">{def.overview(all.filter((s) => def.value(s) > 0).length, all, office)}</p>
       {reading === 'convictions' && <ConvictionsCaveat className="mx-auto max-w-2xl text-center text-balance" />}
+      {def.note && <p className="mx-auto max-w-2xl text-center text-xs text-balance text-muted-foreground">{def.note}</p>}
 
       {ranking.length > 0 && (
         <Card className="mx-auto w-full max-w-xl gap-0 p-2">

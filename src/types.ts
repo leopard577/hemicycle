@@ -73,6 +73,29 @@ export interface Parliamentarian extends Official {
   email: string | null
   twitter: string | null
   specialAllowances: SpecialAllowance[]
+  /** Deputies only so far */
+  activity?: ParliamentaryActivity
+}
+
+/** What the Assemblée recorded since the start of the current term */
+export interface ParliamentaryActivity {
+  votes: {
+    /** Public votes held during the term */
+    scrutins: number
+    for: number
+    against: number
+    abstain: number
+    /** Recorded as not voting: presiding the sitting, member of the Government… */
+    nonVoting: number
+    /** Votes above cast by a colleague */
+    delegated: number
+  }
+  committeeMeetings: { present: number; excused: number; absent: number }
+  bills: {
+    /** Tabled at the Assemblée as author, most recent first */
+    authored: { title: string; date: string; url: string }[]
+    cosigned: number
+  }
 }
 
 export interface Deputy extends Parliamentarian {

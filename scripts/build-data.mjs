@@ -9,6 +9,7 @@ import { buildCandidates2027 } from './candidates-2027.mjs'
 import { buildDeputies, loadAssemblyActors, loadDeputies } from './deputies.mjs'
 import { buildGovernment } from './government.mjs'
 import { loadMinistryBudgets } from './government-costs.mjs'
+import { loadAssemblyActivity } from './lib/assembly-activity.mjs'
 import { loadHatvp } from './lib/hatvp.mjs'
 import { loadRne } from './lib/rne.mjs'
 import { SourceUnavailable } from './lib/util.mjs'
@@ -24,6 +25,7 @@ const LOADERS = {
   rne: loadRne,
   assembly: loadDeputies,
   assemblyActors: loadAssemblyActors,
+  assemblyActivity: loadAssemblyActivity,
   senate: loadSenators,
   elections: loadCandidates,
   ministries: loadMinistryBudgets,
@@ -61,7 +63,7 @@ function write(page, data) {
 
 // Each page with the sources it needs
 const PAGES = [
-  ['deputies', ['hatvp', 'rne', 'assembly'], (s) => buildDeputies(s.assembly, shared)],
+  ['deputies', ['hatvp', 'rne', 'assembly', 'assemblyActivity'], (s) => buildDeputies(s.assembly, { ...shared, activity: s.assemblyActivity })],
   ['senators', ['hatvp', 'rne', 'senate'], (s) => buildSenators(s.senate, shared)],
   [
     'government',

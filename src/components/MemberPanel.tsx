@@ -5,15 +5,17 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { alerts } from '@/lib/money'
 import type { Office } from '@/lib/offices'
+import { cn } from '@/lib/utils'
 import type { Group, Parliamentarian, PayScales } from '@/types'
 import { Alerts } from './panel/Alerts'
 import { CostNotes, CostSummary } from './panel/CostSummary'
 import { DeclarationsTab } from './panel/DeclarationsTab'
+import { ActivityTab } from './panel/ActivityTab'
 import { CapitalTab } from './panel/CapitalTab'
 import { Convictions } from './panel/Convictions'
 import { OverlapsNotes, OverlapsTab } from './panel/OverlapsTab'
 import { PayNotes, PayTab } from './panel/PayTab'
-import { NoteGroup, NotesAndSources, PanelActions, TabLabel } from './panel/parts'
+import { NoteGroup, NotesAndSources, PanelActions } from './panel/parts'
 
 interface Props<T extends Parliamentarian> {
   member: T | null
@@ -33,7 +35,7 @@ interface DetailsProps {
   profile: ReactNode
 }
 
-const TAB_TRIGGER = 'text-[0.8125rem] max-sm:px-1 max-[22.5rem]:px-0.5 max-[22.5rem]:text-xs'
+const TAB_TRIGGER = 'col-span-4 h-7 w-full text-[0.8125rem] max-sm:px-0.5 max-[22.5rem]:px-0 max-[22.5rem]:text-xs'
 
 /** Side panel of a member of Parliament: cost, alerts, then tabs */
 export function MemberPanel<T extends Parliamentarian>({ member, group, payScales, office, profile, onClose }: Props<T>) {
@@ -67,6 +69,7 @@ function MemberDetails({ member, group, payScales, office, profile }: DetailsPro
   const body = useRef<HTMLDivElement>(null)
   const tabs = useRef<HTMLDivElement>(null)
   const [notesOpen, setNotesOpen] = useState(false)
+  const topRow = member.activity && 'col-span-3'
 
   // An asterisk opens "Précisions et sources", then scrolls to its note
   const showNote = (n: number) => {
@@ -131,21 +134,27 @@ function MemberDetails({ member, group, payScales, office, profile }: DetailsPro
 
         <Tabs ref={tabs} defaultValue="overlaps" onValueChange={scrollToTabs} className="gap-0 px-6 pb-4">
           <div className="sticky top-0 z-10 -mx-6 bg-popover px-6 py-2">
-            <TabsList className="w-full group-data-horizontal/tabs:h-9">
-              <TabsTrigger value="overlaps" className={TAB_TRIGGER}>
+            {/* Two rows on a 12-column grid: the longest labels share the row of three */}
+            <TabsList className="grid w-full grid-cols-12 group-data-horizontal/tabs:h-auto">
+              <TabsTrigger value="overlaps" className={cn(TAB_TRIGGER, topRow)}>
                 Cumuls
               </TabsTrigger>
-              <TabsTrigger value="pay" className={TAB_TRIGGER}>
+              <TabsTrigger value="pay" className={cn(TAB_TRIGGER, topRow)}>
                 Salaire
               </TabsTrigger>
-              <TabsTrigger value="capital" className={TAB_TRIGGER}>
+              <TabsTrigger value="capital" className={cn(TAB_TRIGGER, topRow)}>
                 Capital
               </TabsTrigger>
+              {member.activity && (
+                <TabsTrigger value="activity" className={cn(TAB_TRIGGER, topRow)}>
+                  Activité
+                </TabsTrigger>
+              )}
               <TabsTrigger value="declarations" className={TAB_TRIGGER}>
-                <TabLabel full="Déclarations" short="Décl." />
+                Déclarations
               </TabsTrigger>
               <TabsTrigger value="convictions" className={TAB_TRIGGER}>
-                <TabLabel full="Condamnations" short="Condam." />
+                Condamnations
               </TabsTrigger>
               <TabsTrigger value="profile" className={TAB_TRIGGER}>
                 Profil
@@ -163,6 +172,11 @@ function MemberDetails({ member, group, payScales, office, profile }: DetailsPro
           <TabsContent value="convictions">
             <Convictions convictions={member.convictions} />
           </TabsContent>
+          {member.activity && (
+            <TabsContent value="activity">
+              <ActivityTab activity={member.activity} since={member.startDate} />
+            </TabsContent>
+          )}
           <TabsContent value="profile">{profile}</TabsContent>
           <TabsContent value="pay">
             <PayTab member={member} payScales={payScales} office={office} />

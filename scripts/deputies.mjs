@@ -1,6 +1,7 @@
 // "Députés" page: Assemblée nationale open data (17th legislature), joined with the HATVP and the RNE
 import AdmZip from 'adm-zip'
 import { DEPUTY_SPECIAL_ALLOWANCES, deputyPayScales } from './pay-scales.mjs'
+import { activityOf } from './lib/assembly-activity.mjs'
 import { attachConvictions } from './lib/convictions.mjs'
 import { asArray, download, downloadResumable, text } from './lib/util.mjs'
 
@@ -77,7 +78,7 @@ function specialAllowances(activeMandates, organLabel) {
 }
 
 /** Builds the page dataset from the AN archive and the shared sources */
-export function buildDeputies({ organs, actors }, { hatvpFor, rneFor }) {
+export function buildDeputies({ organs, actors }, { hatvpFor, rneFor, activity }) {
   const organLabel = (ref) => organs.get(Array.isArray(ref) ? ref[0] : ref)?.libelle ?? ref
   const groups = new Map()
   const deputies = []
@@ -152,6 +153,7 @@ export function buildDeputies({ organs, actors }, { hatvpFor, rneFor }) {
   const rne = rneFor(deputies)
   for (const d of deputies) d.localMandates = rne.get(d.id) ?? []
   attachConvictions(deputies, 'Deputies')
+  for (const d of deputies) d.activity = activityOf(activity, d)
 
   const rank = (abbrev) => {
     const i = GROUP_ORDER.indexOf(abbrev)

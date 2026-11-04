@@ -64,6 +64,14 @@ To add a page: add it to `PAGES`, then give it its element in `router.tsx`. Page
 | `src/lib/declarations.ts` | Maps raw HATVP statuses to labels and states (`published`, `pending`, `missing`) |
 | `src/lib/format.ts` | `formatDate`, `formatEuro`, `age` (fr-FR) |
 
+### Deputy activity
+
+`src/lib/activity.ts` turns `Parliamentarian.activity` into figures; `panel/ActivityTab.tsx` is the "Activité" tab, and
+`READINGS` has three readings, with a `note` on their limits: `votes`, `attendance` and `bills`. They use a violet, blue,
+teal and lime scale, without the reds and oranges of the other readings, because a low count is not a warning.
+`ACTIVITY_READINGS` are omitted on pages without that data. The member panel's `TabsList` is a 12-column grid with two
+rows: four tabs then three for deputies, three then three for senators, who have no "Activité" tab.
+
 ### Convictions
 
 `src/lib/convictions.ts` holds the tiers (final criminal, criminal with an appeal pending, civil or electoral, none

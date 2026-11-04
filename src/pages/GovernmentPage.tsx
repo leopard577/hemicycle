@@ -13,7 +13,7 @@ import { RANKS, rankLabel, rankStyle, roleUnder } from '@/lib/government'
 import { useLayout } from '@/lib/layout'
 import { summary } from '@/lib/money'
 import { GOVERNMENT_MEMBER, PRESIDENT } from '@/lib/offices'
-import { type Reading, READINGS, tierOf } from '@/lib/readings'
+import { ACTIVITY_READINGS, type Reading, READINGS, tierOf } from '@/lib/readings'
 import { useSelectedId } from '@/lib/selection'
 import { cn } from '@/lib/utils'
 import type { GovernmentDataset, GovernmentMember } from '@/types'
@@ -93,7 +93,7 @@ export function GovernmentPage() {
               onChange={setReading}
               baseLabel="Rangs"
               label="Colorer la table selon"
-              omit={members.some((m) => m.convictions?.length) ? [] : ['convictions']}
+              omit={[...ACTIVITY_READINGS, ...(members.some((m) => m.convictions?.length) ? [] : ['convictions' as const])]}
             />
             <CouncilTable
               members={members}

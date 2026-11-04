@@ -104,6 +104,12 @@ opening a deputy's and a senator's panel.
   placed by hand from their party, decided by the project owner on 30 October 2026. The page labels it a placement by
   the site. A candidate without a party, or whose movement no family covers, gets `null` and is listed apart: never
   guess a position.
+- **Deputy activity is counted, never judged.** `scripts/lib/assembly-activity.mjs` joins votes, committee presence and
+  bills on the AN id, from the start of the current term. Keep its filters: bills tabled at the Assemblée only (`PIONANR`,
+  `INITDEP`, no withdrawn cosignature), confirmed past meetings only (the agenda lists future ones with everyone "absent").
+  Never show a share of public votes as attendance: the median deputy voted on 23% of them, most being amendments with
+  few present. `committeeAttendance` is null under 10 meetings. Senators have no `activity`: a Sénat vote is often cast
+  by the group, so it proves nothing about presence.
 - **Convictions come from Casier Politique, unverified.** Decided by the project owner on 4 November 2026: the snapshot
   `scripts/data/casier-politique.json` (an LLM extraction of Wikipedia, CC BY-NC-SA 4.0, stale since about May 2026) is
   imported as it is, every page showing it carries `ConvictionsCaveat`, and appeals stay visible with their state.

@@ -17,6 +17,9 @@ HATVP and the RNE are joined to it, and a hand-entered pay scale, with its sourc
 Also done along the way: the HATVP legal notice is applied (partial redactions kept verbatim, reproduction
 notice in the footer), and the whole code base is in English (the UI stays in French).
 
+Next: bring the activity readings to senators, limited to their number of votes and, if the Sénat publishes them,
+their bills. No attendance figure: see `docs/data.md`.
+
 ## 3. Senators
 
 | Need | Source |

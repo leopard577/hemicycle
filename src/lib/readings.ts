@@ -1,10 +1,23 @@
 // Hemicycle readings: every seat is coloured according to an indicator taken from `summary`
+import { percent } from '@/lib/activity'
 import { CONVICTION_TIERS, type ConvictionTier } from '@/lib/convictions'
 import type { Summary } from '@/lib/money'
 import type { Office } from '@/lib/offices'
 import { formatEuro } from '@/lib/format'
 
-export type Reading = 'group' | 'overlaps' | 'sideIncome' | 'capital' | 'alerts' | 'convictions'
+export type Reading =
+  | 'group'
+  | 'overlaps'
+  | 'sideIncome'
+  | 'capital'
+  | 'alerts'
+  | 'convictions'
+  | 'votes'
+  | 'attendance'
+  | 'bills'
+
+/** Readings that need `Parliamentarian.activity`: left out where a page has none */
+export const ACTIVITY_READINGS: Reading[] = ['votes', 'attendance', 'bills']
 
 interface Tier {
   label: string
@@ -20,11 +33,24 @@ interface ReadingDefinition {
   value: (s: Summary) => number
   /** Lists everyone concerned instead of a top 10 */
   listAll?: boolean
+  /** Limits of the indicator, shown under the overview */
+  note?: string
   detail: (s: Summary) => string | null
   overview: (count: number, summaries: Summary[], office: Office) => string
 }
 
 const NONE = { fill: 'fill-muted-foreground/25', bg: 'bg-muted-foreground/25' }
+
+// Activity scale: one hue per tier so the seats read at a glance, without the reds and oranges that mark a point of attention
+const HIGH = { fill: 'fill-violet-700 dark:fill-violet-400', bg: 'bg-violet-700 dark:bg-violet-400' }
+const MEDIUM = { fill: 'fill-blue-500', bg: 'bg-blue-500' }
+const LOW = { fill: 'fill-teal-400', bg: 'bg-teal-400' }
+const LOWEST = { fill: 'fill-lime-300', bg: 'bg-lime-300' }
+
+const median = (values: number[]) => {
+  const sorted = [...values].sort((a, b) => a - b)
+  return sorted[Math.floor(sorted.length / 2)] ?? 0
+}
 
 // Tiers from highest to lowest: the first one that matches gives the colour
 export const READINGS: Record<Exclude<Reading, 'group'>, ReadingDefinition> = {
@@ -111,6 +137,48 @@ export const READINGS: Record<Exclude<Reading, 'group'>, ReadingDefinition> = {
     value: (s) => ({ final: 3, pending: 2, other: 1, none: 0 })[s.convictionTier],
     detail: (s) => (s.convictions ? `${s.convictions} décision${s.convictions > 1 ? 's' : ''}` : null),
     overview: (n, _, o) => `Casier Politique recense au moins une décision de justice pour ${n} ${o.plural}.`,
+  },
+  votes: {
+    label: 'Votes',
+    tiers: [
+      { label: '4 000 et plus', ...HIGH, test: (s) => s.votes >= 4000 },
+      { label: '2 000 à 4 000', ...MEDIUM, test: (s) => s.votes >= 2000 },
+      { label: '1 000 à 2 000', ...LOW, test: (s) => s.votes >= 1000 },
+      { label: 'Moins de 1 000', ...LOWEST, test: () => true },
+    ],
+    value: (s) => s.votes,
+    detail: (s) => `${s.votes.toLocaleString('fr-FR')} vote${s.votes > 1 ? 's' : ''}`,
+    overview: (_, summaries, o) =>
+      `Un ${o.noun} a voté ${median(summaries.map((s) => s.votes)).toLocaleString('fr-FR')} fois depuis le début de son mandat (médiane).`,
+    note: "Scrutins publics en séance, délégations comprises. Beaucoup portent sur des amendements examinés avec peu de présents, donc ce nombre ne mesure pas la présence à l'Assemblée, et un mandat commencé plus tard en compte moins.",
+  },
+  attendance: {
+    label: 'Présence en commission',
+    tiers: [
+      { label: '60 % et plus', ...HIGH, test: (s) => (s.attendance ?? 0) >= 0.6 },
+      { label: '40 à 60 %', ...MEDIUM, test: (s) => (s.attendance ?? 0) >= 0.4 },
+      { label: '20 à 40 %', ...LOW, test: (s) => (s.attendance ?? 0) >= 0.2 },
+      { label: 'Moins de 20 %', ...LOWEST, test: (s) => s.attendance !== null },
+      { label: 'Moins de 10 réunions', ...NONE, test: () => true },
+    ],
+    value: (s) => Math.round((s.attendance ?? 0) * 100),
+    detail: (s) => (s.attendance === null ? null : percent(s.attendance)),
+    overview: (_, summaries, o) =>
+      `Un ${o.noun} assiste à ${percent(median(summaries.flatMap((s) => s.attendance ?? [])))} des réunions de ses commissions (médiane).`,
+    note: "Présences relevées par l'Assemblée. Les fonctions de président, de ministre ou de chef de groupe, et le travail en séance, en circonscription ou en mission n'y apparaissent pas : comparez avec prudence.",
+  },
+  bills: {
+    label: 'Propositions de loi',
+    tiers: [
+      { label: '5 et plus', ...HIGH, test: (s) => s.billsAuthored >= 5 },
+      { label: '2 à 4', ...MEDIUM, test: (s) => s.billsAuthored >= 2 },
+      { label: '1', ...LOW, test: (s) => s.billsAuthored === 1 },
+      { label: 'Aucune', ...NONE, test: () => true },
+    ],
+    value: (s) => s.billsAuthored,
+    detail: (s) => `${s.billsAuthored} déposée${s.billsAuthored > 1 ? 's' : ''}, ${s.billsCosigned} cosignée${s.billsCosigned > 1 ? 's' : ''}`,
+    overview: (n, _, o) => `${n} ${o.plural} ont déposé au moins une proposition de loi comme auteur.`,
+    note: "Propositions déposées à l'Assemblée comme auteur depuis le début du mandat. Une proposition peut n'être jamais discutée, et les amendements n'y figurent pas.",
   },
 }
 

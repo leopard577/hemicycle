@@ -208,6 +208,20 @@ page without review; `CHECKED_AT` is the date of the last check.
 - Replace this page's source with the official list once it is published (sponsorships, then results and CNCCFP
   accounts, as for 2022).
 
+## Deputy activity (`lib/assembly-activity.mjs`)
+
+Three AN archives of the 17th legislature, about 50 MB in all, under Licence Ouverte. All join on the `PA…` id and
+count from `startDate`, the start of the current term.
+
+| Indicator | Archive | Rules |
+| --- | --- | --- |
+| Votes | `loi/scrutins/Scrutins.json.zip` | Positions in `decompteNominatif`; `parDelegation` gives the delegated ones. A deputy not listed did not vote; nothing records why |
+| Committee presence | `vp/reunions/Agenda.json.zip` | `participants.participantsInternes`: `présent`, `excusé`, `absent`. `etat` must be `Confirmé` and the date past: upcoming meetings list everyone absent |
+| Bills | `loi/dossiers_legislatifs/Dossiers_Legislatifs.json.zip`, `document/` | Type `PION`, `uid` starting `PIONANR` and depot `INITDEP`, which leaves out Sénat bills and those it sent over. Author: `qualite` `auteur`. Cosignatures without `dateRetraitCosignature` |
+
+Amendments are not counted: that archive alone is 350 MB. The Sénat has no equivalent yet: votes are published scrutin
+by scrutin on senat.fr, and a vote recorded there can be cast by the group, so it cannot measure presence.
+
 ## Convictions (`lib/convictions.mjs`)
 
 No official open source exists: criminal records are not public and Judilibre removes names. The app imports

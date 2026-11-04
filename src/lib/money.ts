@@ -1,6 +1,7 @@
 // What a parliamentarian costs and what they hold on top of their mandate, from public data only.
 // Everything is computed client side from the page dataset: nothing is invented or estimated beyond the
 // official pay scales.
+import { committeeAttendance, votesCast } from '@/lib/activity'
 import { type ConvictionTier, convictionTierOf } from '@/lib/convictions'
 import { ASSETS, declarationsOf, INITIAL_ASSETS, INITIAL_INTERESTS, INTERESTS, REDACTED } from '@/lib/declarations'
 import { formatDate } from '@/lib/format'
@@ -399,12 +400,18 @@ export interface Summary {
   capital: number
   convictionTier: ConvictionTier
   convictions: number
+  votes: number
+  /** Share of committee meetings attended; null with too few meetings or no activity data */
+  attendance: number | null
+  billsAuthored: number
+  billsCosigned: number
 }
 
 export function summary(official: Official, office: Office, now = Date.now()): Summary {
   const side = sideIncome(incomeLines(official), office)
   const paid = side.lines.filter((l) => l.category !== 'local' && (l.latest?.amount ?? 0) > 0).length
   const all = alerts(official, office, now)
+  const { activity } = official as Partial<Parliamentarian>
   return {
     sideIncome: side.total,
     overlaps: official.localMandates.filter((m) => m.type !== 'intercommunal').length + paid,
@@ -413,5 +420,9 @@ export function summary(official: Official, office: Office, now = Date.now()): S
     capital: (official.hatvp.interests?.holdings ?? []).reduce((sum, h) => sum + (h.value ?? 0), 0),
     convictionTier: convictionTierOf(official.convictions),
     convictions: official.convictions?.length ?? 0,
+    votes: activity ? votesCast(activity) : 0,
+    attendance: activity ? committeeAttendance(activity) : null,
+    billsAuthored: activity?.bills.authored.length ?? 0,
+    billsCosigned: activity?.bills.cosigned ?? 0,
   }
 }

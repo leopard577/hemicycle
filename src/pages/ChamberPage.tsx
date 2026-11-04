@@ -13,7 +13,7 @@ import { formatEuro } from '@/lib/format'
 import { useLayout } from '@/lib/layout'
 import { monthlyCost, summary } from '@/lib/money'
 import type { Office } from '@/lib/offices'
-import { type Reading, READINGS, tierOf } from '@/lib/readings'
+import { ACTIVITY_READINGS, type Reading, READINGS, tierOf } from '@/lib/readings'
 import { useSelectedId } from '@/lib/selection'
 import type { ChamberDataset, Parliamentarian } from '@/types'
 
@@ -176,6 +176,7 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
             setReading(r)
             setTierFilter(null)
           }}
+          omit={data.members.some((m) => m.activity) ? [] : ACTIVITY_READINGS}
         />
 
         <Hemicycle
