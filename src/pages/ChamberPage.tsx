@@ -90,6 +90,17 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
     [groupFilter, tierFilter, reading, summaries, q, searchText],
   )
 
+  // A finger aims at what stands out: seats left out by a filter, then the grey ones when coloured seats are the
+  // minority. With most seats coloured, grey ones are looked for too and must stay reachable.
+  const isTarget = useMemo(() => {
+    if (reading === 'group' || tierFilter || !data) return isHighlighted
+    const { value } = READINGS[reading]
+    const coloured = (m: T) => value(summaries.get(m.id)!) > 0
+    return data.members.filter(coloured).length < data.members.length / 2
+      ? (m: T) => isHighlighted(m) && coloured(m)
+      : isHighlighted
+  }, [data, reading, tierFilter, summaries, isHighlighted])
+
   const matches = useMemo(
     () => (data && (q || groupFilter || tierFilter) ? data.members.filter(isHighlighted) : []),
     [data, q, groupFilter, tierFilter, isHighlighted],
@@ -179,18 +190,22 @@ export function ChamberPage<T extends Parliamentarian>({ config }: { config: Cha
           omit={data.members.some((m) => m.activity) ? [] : ACTIVITY_READINGS}
         />
 
-        <Hemicycle
-          members={data.members}
-          groups={groups}
-          selectedId={selectedId}
-          isHighlighted={isHighlighted}
-          onSelect={(m) => setSelectedId(m.id)}
-          tint={reading === 'group' ? null : (m) => tierOf(reading, summaries.get(m.id)!).fill}
-          detail={reading === 'group' ? null : (m) => READINGS[reading].detail(summaries.get(m.id)!)}
-          place={config.place}
-          label={office.chartLabel}
-          countLabel={office.plural}
-        />
+        {/* On a phone the chart takes most of the side gutters: every pixel of width makes the seats easier to reach */}
+        <div className="-mx-4 sm:mx-0">
+          <Hemicycle
+            members={data.members}
+            groups={groups}
+            selectedId={selectedId}
+            isHighlighted={isHighlighted}
+            isTarget={isTarget}
+            onSelect={(m) => setSelectedId(m.id)}
+            tint={reading === 'group' ? null : (m) => tierOf(reading, summaries.get(m.id)!).fill}
+            detail={reading === 'group' ? null : (m) => READINGS[reading].detail(summaries.get(m.id)!)}
+            place={config.place}
+            label={office.chartLabel}
+            countLabel={office.plural}
+          />
+        </div>
 
         {reading !== 'group' && (
           <ReadingDetail

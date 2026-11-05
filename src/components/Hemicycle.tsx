@@ -17,6 +17,8 @@ interface Props<T extends HemicycleMember> {
   groups: Map<string, Group>
   selectedId: string | null
   isHighlighted: (m: T) => boolean
+  /** Seats a finger snaps to, those the visitor is looking for; defaults to the highlighted ones */
+  isTarget?: (m: T) => boolean
   onSelect: (m: T) => void
   /** Fill class for the chosen reading; null = group colour */
   tint: ((m: T) => string) | null
@@ -39,11 +41,15 @@ interface Props<T extends HemicycleMember> {
 
 const FALLBACK_COLOR = '#8D949A'
 
+/** How far from a finger a target seat is still reached, in screen pixels: about the width of a fingertip */
+const TOUCH_REACH = 24
+
 export function Hemicycle<T extends HemicycleMember>({
   members,
   groups,
   selectedId,
   isHighlighted,
+  isTarget = isHighlighted,
   onSelect,
   tint,
   detail,
@@ -56,20 +62,29 @@ export function Hemicycle<T extends HemicycleMember>({
   const layout = useMemo(() => hemicycleLayout(members.length, rows), [members.length, rows])
   const [hovered, setHovered] = useState<T | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
+  // A second finger makes it a pinch: lifting those fingers must not open a seat
+  const pinching = useRef(false)
 
-  // Seat closest to the pointer: on a phone the dots are 6 to 8 px wide, too small to aim at with a finger
+  // Seat closest to the pointer: on a phone the dots are 6 to 8 px wide, too small to aim at with a finger. A finger
+  // lands several seats off, so it first looks for a target further away, then falls back on any seat right under it
   const seatAtPointer = (e: PointerEvent) => {
     const ctm = svgRef.current?.getScreenCTM()
     if (!ctm) return null
     const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse())
-    let closest = -1
-    let distance = Infinity
-    layout.seats.forEach((s, i) => {
-      const d = (s.x - p.x) ** 2 + (s.y - p.y) ** 2
-      if (d < distance) [closest, distance] = [i, d]
-    })
+    const closest = (reach: number, keep: (m: T) => boolean) => {
+      let found: T | null = null
+      let distance = reach ** 2
+      layout.seats.forEach((s, i) => {
+        const d = (s.x - p.x) ** 2 + (s.y - p.y) ** 2
+        if (d <= distance && keep(members[i])) [found, distance] = [members[i], d]
+      })
+      return found as T | null
+    }
     const radius = (layout.seats[0]?.r ?? 0) * 2.5
-    return closest >= 0 && distance <= radius ** 2 ? members[closest] : null
+    if (e.pointerType !== 'touch') return closest(radius, () => true)
+    // Pinching enlarges the screen without changing the matrix, so the reach shrinks with it
+    const reach = TOUCH_REACH / (ctm.a * (window.visualViewport?.scale ?? 1))
+    return closest(Math.max(radius, reach), isTarget) ?? closest(radius, () => true)
   }
 
   const hoveredGroup = hovered?.groupId ? groups.get(hovered.groupId) : undefined
@@ -77,18 +92,21 @@ export function Hemicycle<T extends HemicycleMember>({
   return (
     <div>
       <div className="relative">
-        {/* By touch: tapping opens the closest seat; sliding sideways previews names in the centre, releasing
-          opens the panel. touch-pan-y leaves vertical page scrolling to the browser. */}
+        {/* By touch: tapping opens the closest target seat; sliding sideways previews names in the centre, releasing
+          opens the panel. touch-pan-y and touch-pinch-zoom leave vertical scrolling and zooming to the browser. */}
         <svg
           ref={svgRef}
           viewBox={`0 0 ${layout.width} ${layout.height}`}
           role="list"
           aria-label={label}
-          className={cn('block h-auto w-full touch-pan-y overflow-visible select-none', hovered && 'cursor-pointer')}
-          onPointerDown={(e) => e.pointerType !== 'mouse' && setHovered(seatAtPointer(e))}
-          onPointerMove={(e) => setHovered(seatAtPointer(e))}
+          className={cn('block h-auto w-full touch-pan-y touch-pinch-zoom overflow-visible select-none', hovered && 'cursor-pointer')}
+          onPointerDown={(e) => {
+            pinching.current = !e.isPrimary
+            if (e.pointerType !== 'mouse') setHovered(pinching.current ? null : seatAtPointer(e))
+          }}
+          onPointerMove={(e) => setHovered(pinching.current ? null : seatAtPointer(e))}
           onPointerUp={(e) => {
-            if (e.button !== 0) return
+            if (e.button !== 0 || pinching.current) return
             const d = seatAtPointer(e)
             if (d) onSelect(d)
           }}

@@ -42,9 +42,11 @@ interface ReadingDefinition {
 const NONE = { fill: 'fill-muted-foreground/25', bg: 'bg-muted-foreground/25' }
 
 // Activity scale: one hue per tier so the seats read at a glance, without the reds and oranges that mark a point of attention
+const HIGHEST = { fill: 'fill-fuchsia-600 dark:fill-fuchsia-400', bg: 'bg-fuchsia-600 dark:bg-fuchsia-400' }
 const HIGH = { fill: 'fill-violet-700 dark:fill-violet-400', bg: 'bg-violet-700 dark:bg-violet-400' }
 const MEDIUM = { fill: 'fill-blue-500', bg: 'bg-blue-500' }
-const LOW = { fill: 'fill-teal-400', bg: 'bg-teal-400' }
+const LOW = { fill: 'fill-cyan-400', bg: 'bg-cyan-400' }
+const LOWER = { fill: 'fill-green-400', bg: 'bg-green-400' }
 const LOWEST = { fill: 'fill-lime-300', bg: 'bg-lime-300' }
 
 const median = (values: number[]) => {
@@ -141,9 +143,11 @@ export const READINGS: Record<Exclude<Reading, 'group'>, ReadingDefinition> = {
   votes: {
     label: 'Votes',
     tiers: [
-      { label: '4 000 et plus', ...HIGH, test: (s) => s.votes >= 4000 },
-      { label: '2 000 à 4 000', ...MEDIUM, test: (s) => s.votes >= 2000 },
-      { label: '1 000 à 2 000', ...LOW, test: (s) => s.votes >= 1000 },
+      { label: '5 000 et plus', ...HIGHEST, test: (s) => s.votes >= 5000 },
+      { label: '4 000 à 5 000', ...HIGH, test: (s) => s.votes >= 4000 },
+      { label: '3 000 à 4 000', ...MEDIUM, test: (s) => s.votes >= 3000 },
+      { label: '2 000 à 3 000', ...LOW, test: (s) => s.votes >= 2000 },
+      { label: '1 000 à 2 000', ...LOWER, test: (s) => s.votes >= 1000 },
       { label: 'Moins de 1 000', ...LOWEST, test: () => true },
     ],
     value: (s) => s.votes,
@@ -155,9 +159,11 @@ export const READINGS: Record<Exclude<Reading, 'group'>, ReadingDefinition> = {
   attendance: {
     label: 'Présence en commission',
     tiers: [
-      { label: '60 % et plus', ...HIGH, test: (s) => (s.attendance ?? 0) >= 0.6 },
-      { label: '40 à 60 %', ...MEDIUM, test: (s) => (s.attendance ?? 0) >= 0.4 },
-      { label: '20 à 40 %', ...LOW, test: (s) => (s.attendance ?? 0) >= 0.2 },
+      { label: '60 % et plus', ...HIGHEST, test: (s) => (s.attendance ?? 0) >= 0.6 },
+      { label: '50 à 60 %', ...HIGH, test: (s) => (s.attendance ?? 0) >= 0.5 },
+      { label: '40 à 50 %', ...MEDIUM, test: (s) => (s.attendance ?? 0) >= 0.4 },
+      { label: '30 à 40 %', ...LOW, test: (s) => (s.attendance ?? 0) >= 0.3 },
+      { label: '20 à 30 %', ...LOWER, test: (s) => (s.attendance ?? 0) >= 0.2 },
       { label: 'Moins de 20 %', ...LOWEST, test: (s) => s.attendance !== null },
       { label: 'Moins de 10 réunions', ...NONE, test: () => true },
     ],
@@ -170,9 +176,11 @@ export const READINGS: Record<Exclude<Reading, 'group'>, ReadingDefinition> = {
   bills: {
     label: 'Propositions de loi',
     tiers: [
-      { label: '5 et plus', ...HIGH, test: (s) => s.billsAuthored >= 5 },
-      { label: '2 à 4', ...MEDIUM, test: (s) => s.billsAuthored >= 2 },
-      { label: '1', ...LOW, test: (s) => s.billsAuthored === 1 },
+      { label: '10 et plus', ...HIGHEST, test: (s) => s.billsAuthored >= 10 },
+      { label: '5 à 9', ...HIGH, test: (s) => s.billsAuthored >= 5 },
+      { label: '3 à 4', ...MEDIUM, test: (s) => s.billsAuthored >= 3 },
+      { label: '2', ...LOW, test: (s) => s.billsAuthored === 2 },
+      { label: '1', ...LOWER, test: (s) => s.billsAuthored === 1 },
       { label: 'Aucune', ...NONE, test: () => true },
     ],
     value: (s) => s.billsAuthored,

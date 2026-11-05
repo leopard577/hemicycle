@@ -67,8 +67,8 @@ To add a page: add it to `PAGES`, then give it its element in `router.tsx`. Page
 ### Deputy activity
 
 `src/lib/activity.ts` turns `Parliamentarian.activity` into figures; `panel/ActivityTab.tsx` is the "Activité" tab, and
-`READINGS` has three readings, with a `note` on their limits: `votes`, `attendance` and `bills`. They use a violet, blue,
-teal and lime scale, without the reds and oranges of the other readings, because a low count is not a warning.
+`READINGS` has three readings, with a `note` on their limits: `votes`, `attendance` and `bills`. They use a fuchsia, violet,
+blue, cyan, green and lime scale, without the reds and oranges of the other readings, because a low count is not a warning.
 `ACTIVITY_READINGS` are omitted on pages without that data. The member panel's `TabsList` is a 12-column grid with two
 rows: four tabs then three for deputies, three then three for senators, who have no "Activité" tab.
 
@@ -124,7 +124,11 @@ the 2022 page. The Government page omits the reading while no member has a decis
 - **Seat picking uses the nearest seat**, not the circle under the pointer. On a phone the dots are 6 to 8 px wide,
   so `Hemicycle` maps the pointer to the closest seat (within 2.5 seat radii) and selects on `pointerup`. On touch,
   sliding a finger previews names in the centre label and releasing opens that deputy; the SVG is `touch-pan-y`, so
-  vertical swipes still scroll the page. A hint shown only on coarse pointers explains the gesture.
+  vertical swipes still scroll the page, and pinching zooms it (`touch-pinch-zoom`). A finger lands several seats off,
+  so touch first looks for the closest *target* within 24 screen pixels (`isTarget`, by default the highlighted seats),
+  then for any seat within the usual radius. `ChamberPage` also leaves grey seats out of the targets when the coloured
+  ones are a minority (convictions, alerts…), so a tap near a red seat opens it; a filter on a tier targets that tier,
+  grey included. A mouse keeps the plain nearest seat. A hint shown only on coarse pointers explains the gesture.
 - **Accessibility**: seats have `role="listitem"`, an `aria-label` and keyboard activation (Enter or
   Space), and the centre label is an `aria-live` region.
 
